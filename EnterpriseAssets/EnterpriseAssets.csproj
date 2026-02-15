@@ -38,8 +38,15 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.5.0.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -59,6 +66,96 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BoolToVisibilityConverter.cs" />
+    <Compile Include="Model\DataBase\ActStatus.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\ASSETTYPE.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\CATEGORY.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\COMPLETION_ACTS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\DBManage.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DBManage.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\DBManage.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\DBManage.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DBManage.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\EQUIPMENT.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\EQUIPMENT_PURCHASES.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\FINISHED_PRODUCTS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\MAINTENANCE.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\MASTERS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\PRODUCTION_ASSETS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\QUALIFICATION.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\REPORTS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\ROLES.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\SPECIALTY.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\sp_helpdiagramdefinition_Result.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\sp_helpdiagrams_Result.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\STATUSASSETS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\STATUS_PURCHASE.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\SUPPLIERS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\sysdiagrams.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\Unit.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\USERS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\WORKSHOPS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\WORK_ACTS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\DataBase\WORK_ACTS_MATERIALS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
     <Compile Include="Model\User.cs" />
     <Compile Include="ViewModel\LoginViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
@@ -101,6 +198,14 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EntityDeploy Include="Model\DataBase\DBManage.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>DBManage.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="Model\DataBase\DBManage.edmx.diagram">
+      <DependentUpon>DBManage.edmx</DependentUpon>
+    </None>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -115,6 +220,21 @@
   <ItemGroup>
     <Resource Include="Image\Enterpise0Logo.png" />
     <Resource Include="Image\Enterpise0Up.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Model\DataBase\DBManage.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>DBManage.Context.cs</LastGenOutput>
+      <DependentUpon>DBManage.edmx</DependentUpon>
+    </Content>
+    <Content Include="Model\DataBase\DBManage.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>DBManage.edmx</DependentUpon>
+      <LastGenOutput>DBManage.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

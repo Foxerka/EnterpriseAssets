@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="92cb3620355849758201cfa2fc432732" Name="Diagram1">
+        <EntityTypeShape EntityType="DB_AssetManageModel.ActStatus" Width="1.5" PointX="9.75" PointY="15.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.ASSETTYPE" Width="1.5" PointX="7.5" PointY="30" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.CATEGORY" Width="1.5" PointX="7.5" PointY="32.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.COMPLETION_ACTS" Width="1.5" PointX="7.5" PointY="14.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.EQUIPMENT" Width="1.5" PointX="9.75" PointY="18.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.EQUIPMENT_PURCHASES" Width="1.5" PointX="12" PointY="16.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.FINISHED_PRODUCTS" Width="1.5" PointX="9.75" PointY="38.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.MAINTENANCE" Width="1.5" PointX="15" PointY="16.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.MASTERS" Width="1.5" PointX="5.25" PointY="14" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.PRODUCTION_ASSETS" Width="1.5" PointX="9.75" PointY="25.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.QUALIFICATION" Width="1.5" PointX="3" PointY="12" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.REPORTS" Width="1.5" PointX="7.5" PointY="22.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.ROLES" Width="1.5" PointX="0.75" PointY="15.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.SPECIALTY" Width="1.5" PointX="3" PointY="18.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.STATUS_PURCHASE" Width="1.5" PointX="9.75" PointY="13.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.STATUSASSETS" Width="1.5" PointX="7.5" PointY="19.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.SUPPLIERS" Width="1.5" PointX="10.125" PointY="34.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.sysdiagrams" Width="1.5" PointX="0.5" PointY="12" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.Unit" Width="1.5" PointX="7.5" PointY="38.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.USERS" Width="1.5" PointX="3" PointY="14.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.WORK_ACTS" Width="1.5" PointX="12" PointY="22.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.WORK_ACTS_MATERIALS" Width="1.5" PointX="14.25" PointY="25.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="DB_AssetManageModel.WORKSHOPS" Width="1.5" PointX="7.5" PointY="26" IsExpanded="true" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_WORKACTS_STATUS" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_PRODASSETS_ASSETTYPE" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_PRODASSETS_CATEGORY" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_COMPLACTS_SUPERVISOR" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_COMPLACTS_WORKACT" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_EQUIPMENT_MASTER" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_EQUIPMENT_STATUS" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_EQUIPMENT_WORKSHOP" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_EQUIPPURCH_EQUIPMENT" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_MAINTENANCE_EQUIPMENT" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_WORKACTS_EQUIPMENT" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_EQUIPPURCH_MASTER" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_EQUIPPURCH_STATUS" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_EQUIPPURCH_SUPPLIER" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_FINISHEDPROD_UNIT" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_MAINTENANCE_STATUS" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_MAINTENANCE_TECHNICIAN" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_MASTERS_QUALIFICATION" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_MASTERS_SPECIALTY" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_MASTERS_USERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_REPORTS_MASTER" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_WORKACTS_MASTER" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_WORKSHOPS_MASTERS" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_PRODASSETS_STATUS" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_PRODASSETS_SUPPLIER" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_PRODASSETS_UNIT" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_PRODASSETS_WORKSHOP" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_WAM_ASSET" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_WORKACTS_ASSET" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_USERS_ROLES" ManuallyRouted="false" />
+        <AssociationConnector Association="DB_AssetManageModel.FK_WAM_WORKACT" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

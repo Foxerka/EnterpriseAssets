@@ -1,0 +1,2063 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="Хранилище DB_AssetManageModel" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="ActStatus">
+          <Key>
+            <PropertyRef Name="ID_status" />
+          </Key>
+          <Property Name="ID_status" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Status" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="ASSETTYPE">
+          <Key>
+            <PropertyRef Name="ID_ASSETTYPE" />
+          </Key>
+          <Property Name="ID_ASSETTYPE" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="AssetType" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="CATEGORY">
+          <Key>
+            <PropertyRef Name="ID_category" />
+          </Key>
+          <Property Name="ID_category" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Category" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="COMPLETION_ACTS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="act_number" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="work_act_id" Type="int" />
+          <Property Name="completion_date" Type="date" />
+          <Property Name="supervisor_id" Type="int" />
+          <Property Name="quality_check" Type="bit" />
+          <Property Name="comments" Type="nvarchar(max)" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="EQUIPMENT">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="asset_id" Type="nvarchar" MaxLength="100" />
+          <Property Name="equipment_type" Type="nvarchar" MaxLength="100" />
+          <Property Name="manufacturer" Type="nvarchar" MaxLength="255" />
+          <Property Name="installation_date" Type="date" />
+          <Property Name="Workshop_id" Type="int" />
+          <Property Name="warranty_period_months" Type="int" />
+          <Property Name="last_maintenance_date" Type="date" />
+          <Property Name="next_maintenance_date" Type="date" />
+          <Property Name="operational_status" Type="nvarchar" MaxLength="100" />
+          <Property Name="assigned_to" Type="int" />
+          <Property Name="current_work_hours" Type="int" />
+          <Property Name="max_work_hours_before_maintenance" Type="int" />
+          <Property Name="status" Type="int" />
+          <Property Name="notes" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="EQUIPMENT_PURCHASES">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="purchase_number" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="asset_id" Type="int" />
+          <Property Name="quantity" Type="int" />
+          <Property Name="unit_price" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="total_cost" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="order_date" Type="date" />
+          <Property Name="expected_delivery" Type="date" />
+          <Property Name="actual_delivery" Type="date" />
+          <Property Name="status" Type="int" />
+          <Property Name="supplier_id" Type="int" />
+          <Property Name="purchase_manager_id" Type="int" />
+          <Property Name="notes" Type="nvarchar(max)" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="FINISHED_PRODUCTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="product_code" Type="nvarchar" MaxLength="100" />
+          <Property Name="product_name" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="description" Type="nvarchar(max)" />
+          <Property Name="unit" Type="int" />
+          <Property Name="quantity" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="warehouse_location" Type="nvarchar" MaxLength="100" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="MAINTENANCE">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="equipment_id" Type="int" />
+          <Property Name="maintenance_date" Type="date" />
+          <Property Name="maintenance_type" Type="nvarchar" MaxLength="100" />
+          <Property Name="technician_id" Type="int" />
+          <Property Name="description" Type="nvarchar(max)" />
+          <Property Name="cost" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="downtime_hours" Type="int" />
+          <Property Name="parts_replaced" Type="nvarchar(max)" />
+          <Property Name="next_maintenance_date" Type="date" />
+          <Property Name="status" Type="int" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="MASTERS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="user_id" Type="int" />
+          <Property Name="specialty" Type="int" />
+          <Property Name="skill_level" Type="nvarchar" MaxLength="100" />
+          <Property Name="qualifications" Type="int" />
+          <Property Name="hire_date" Type="date" />
+          <Property Name="is_available" Type="bit" />
+        </EntityType>
+        <EntityType Name="PRODUCTION_ASSETS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="asset_type" Type="int" />
+          <Property Name="name" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="description" Type="nvarchar(max)" />
+          <Property Name="id_category" Type="int" />
+          <Property Name="unit" Type="int" />
+          <Property Name="quantity" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="min_quantity" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="warehouse_location" Type="nvarchar" MaxLength="100" />
+          <Property Name="workshop_id" Type="int" />
+          <Property Name="supplier_id" Type="int" />
+          <Property Name="purchase_date" Type="date" />
+          <Property Name="purchase_cost" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="current_value" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="status" Type="int" />
+          <Property Name="serial_number" Type="nvarchar" MaxLength="100" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="QUALIFICATION">
+          <Key>
+            <PropertyRef Name="ID_Qualification" />
+          </Key>
+          <Property Name="ID_Qualification" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Qualification" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="REPORTS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="report_type" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="period_start" Type="date" />
+          <Property Name="period_end" Type="date" />
+          <Property Name="generated_by" Type="int" />
+          <Property Name="report_data" Type="nvarchar(max)" />
+          <Property Name="file_path" Type="nvarchar" MaxLength="500" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="ROLES">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="description" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="SPECIALTY">
+          <Key>
+            <PropertyRef Name="ID_specialty" />
+          </Key>
+          <Property Name="ID_specialty" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Speciality" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="description" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityType Name="STATUS_PURCHASE">
+          <Key>
+            <PropertyRef Name="ID_status" />
+          </Key>
+          <Property Name="ID_status" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Status" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="STATUSASSETS">
+          <Key>
+            <PropertyRef Name="ID_status" />
+          </Key>
+          <Property Name="ID_status" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Status" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="SUPPLIERS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="contact_person" Type="nvarchar" MaxLength="255" />
+          <Property Name="phone" Type="nvarchar" MaxLength="20" />
+          <Property Name="email" Type="nvarchar" MaxLength="255" />
+          <Property Name="address" Type="nvarchar(max)" />
+          <Property Name="tax_number" Type="nvarchar" MaxLength="50" />
+          <Property Name="is_active" Type="bit" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="sysdiagrams">
+          <Key>
+            <PropertyRef Name="diagram_id" />
+          </Key>
+          <Property Name="name" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="principal_id" Type="int" Nullable="false" />
+          <Property Name="diagram_id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="version" Type="int" />
+          <Property Name="definition" Type="varbinary(max)" />
+        </EntityType>
+        <EntityType Name="Unit">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="unit" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="quantity" Type="decimal" Precision="15" Scale="2" />
+        </EntityType>
+        <EntityType Name="USERS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="username" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="password" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="full_name" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="email" Type="nvarchar" MaxLength="255" />
+          <Property Name="phone" Type="nvarchar" MaxLength="20" />
+          <Property Name="role_id" Type="int" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="WORK_ACTS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="act_number" Type="nvarchar" MaxLength="100" Nullable="false" />
+          <Property Name="work_date" Type="date" />
+          <Property Name="master_id" Type="int" />
+          <Property Name="work_type" Type="nvarchar" MaxLength="100" />
+          <Property Name="equipment_id" Type="int" />
+          <Property Name="asset_id" Type="int" />
+          <Property Name="quantity" Type="decimal" Precision="15" Scale="2" />
+          <Property Name="status" Type="int" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <EntityType Name="WORK_ACTS_MATERIALS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="work_act_id" Type="int" />
+          <Property Name="asset_id" Type="int" />
+          <Property Name="quantity_used" Type="decimal" Precision="15" Scale="2" />
+        </EntityType>
+        <EntityType Name="WORKSHOPS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="name" Type="nvarchar" MaxLength="255" Nullable="false" />
+          <Property Name="location" Type="nvarchar" MaxLength="255" />
+          <Property Name="manager_id" Type="int" />
+          <Property Name="created_at" Type="datetime" />
+        </EntityType>
+        <Association Name="FK_COMPLACTS_SUPERVISOR">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="COMPLETION_ACTS" Type="Self.COMPLETION_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="COMPLETION_ACTS">
+              <PropertyRef Name="supervisor_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_COMPLACTS_WORKACT">
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="0..1" />
+          <End Role="COMPLETION_ACTS" Type="Self.COMPLETION_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WORK_ACTS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="COMPLETION_ACTS">
+              <PropertyRef Name="work_act_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPMENT_MASTER">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="EQUIPMENT">
+              <PropertyRef Name="assigned_to" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPMENT_STATUS">
+          <End Role="STATUSASSETS" Type="Self.STATUSASSETS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="STATUSASSETS">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="EQUIPMENT">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPMENT_WORKSHOP">
+          <End Role="WORKSHOPS" Type="Self.WORKSHOPS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WORKSHOPS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="EQUIPMENT">
+              <PropertyRef Name="Workshop_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPPURCH_EQUIPMENT">
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="0..1" />
+          <End Role="EQUIPMENT_PURCHASES" Type="Self.EQUIPMENT_PURCHASES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EQUIPMENT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="EQUIPMENT_PURCHASES">
+              <PropertyRef Name="asset_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPPURCH_MASTER">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT_PURCHASES" Type="Self.EQUIPMENT_PURCHASES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="EQUIPMENT_PURCHASES">
+              <PropertyRef Name="purchase_manager_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPPURCH_STATUS">
+          <End Role="STATUS_PURCHASE" Type="Self.STATUS_PURCHASE" Multiplicity="0..1" />
+          <End Role="EQUIPMENT_PURCHASES" Type="Self.EQUIPMENT_PURCHASES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="STATUS_PURCHASE">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="EQUIPMENT_PURCHASES">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPPURCH_SUPPLIER">
+          <End Role="SUPPLIERS" Type="Self.SUPPLIERS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT_PURCHASES" Type="Self.EQUIPMENT_PURCHASES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SUPPLIERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="EQUIPMENT_PURCHASES">
+              <PropertyRef Name="supplier_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FINISHEDPROD_UNIT">
+          <End Role="Unit" Type="Self.Unit" Multiplicity="0..1" />
+          <End Role="FINISHED_PRODUCTS" Type="Self.FINISHED_PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Unit">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FINISHED_PRODUCTS">
+              <PropertyRef Name="unit" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MAINTENANCE_EQUIPMENT">
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="0..1" />
+          <End Role="MAINTENANCE" Type="Self.MAINTENANCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EQUIPMENT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="MAINTENANCE">
+              <PropertyRef Name="equipment_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MAINTENANCE_STATUS">
+          <End Role="STATUSASSETS" Type="Self.STATUSASSETS" Multiplicity="0..1" />
+          <End Role="MAINTENANCE" Type="Self.MAINTENANCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="STATUSASSETS">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="MAINTENANCE">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MAINTENANCE_TECHNICIAN">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="MAINTENANCE" Type="Self.MAINTENANCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="MAINTENANCE">
+              <PropertyRef Name="technician_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MASTERS_QUALIFICATION">
+          <End Role="QUALIFICATION" Type="Self.QUALIFICATION" Multiplicity="0..1" />
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="QUALIFICATION">
+              <PropertyRef Name="ID_Qualification" />
+            </Principal>
+            <Dependent Role="MASTERS">
+              <PropertyRef Name="qualifications" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MASTERS_SPECIALTY">
+          <End Role="SPECIALTY" Type="Self.SPECIALTY" Multiplicity="0..1" />
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SPECIALTY">
+              <PropertyRef Name="ID_specialty" />
+            </Principal>
+            <Dependent Role="MASTERS">
+              <PropertyRef Name="specialty" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MASTERS_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="MASTERS">
+              <PropertyRef Name="user_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_ASSETTYPE">
+          <End Role="ASSETTYPE" Type="Self.ASSETTYPE" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ASSETTYPE">
+              <PropertyRef Name="ID_ASSETTYPE" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="asset_type" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_CATEGORY">
+          <End Role="CATEGORY" Type="Self.CATEGORY" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CATEGORY">
+              <PropertyRef Name="ID_category" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="id_category" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_STATUS">
+          <End Role="STATUSASSETS" Type="Self.STATUSASSETS" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="STATUSASSETS">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_SUPPLIER">
+          <End Role="SUPPLIERS" Type="Self.SUPPLIERS" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SUPPLIERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="supplier_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_UNIT">
+          <End Role="Unit" Type="Self.Unit" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Unit">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="unit" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_WORKSHOP">
+          <End Role="WORKSHOPS" Type="Self.WORKSHOPS" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WORKSHOPS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="workshop_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REPORTS_MASTER">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="REPORTS" Type="Self.REPORTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="REPORTS">
+              <PropertyRef Name="generated_by" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_USERS_ROLES">
+          <End Role="ROLES" Type="Self.ROLES" Multiplicity="0..1" />
+          <End Role="USERS" Type="Self.USERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ROLES">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="USERS">
+              <PropertyRef Name="role_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WAM_ASSET">
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="0..1" />
+          <End Role="WORK_ACTS_MATERIALS" Type="Self.WORK_ACTS_MATERIALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORK_ACTS_MATERIALS">
+              <PropertyRef Name="asset_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WAM_WORKACT">
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="0..1" />
+          <End Role="WORK_ACTS_MATERIALS" Type="Self.WORK_ACTS_MATERIALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WORK_ACTS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORK_ACTS_MATERIALS">
+              <PropertyRef Name="work_act_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKACTS_ASSET">
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="0..1" />
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORK_ACTS">
+              <PropertyRef Name="asset_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKACTS_EQUIPMENT">
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="0..1" />
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EQUIPMENT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="WORK_ACTS">
+              <PropertyRef Name="equipment_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKACTS_MASTER">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORK_ACTS">
+              <PropertyRef Name="master_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKACTS_STATUS">
+          <End Role="ActStatus" Type="Self.ActStatus" Multiplicity="0..1" />
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ActStatus">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="WORK_ACTS">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKSHOPS_MASTERS">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="WORKSHOPS" Type="Self.WORKSHOPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORKSHOPS">
+              <PropertyRef Name="manager_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Function Name="fn_diagramobjects" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="int" />
+        <Function Name="sp_alterdiagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+          <Parameter Name="version" Type="int" Mode="In" />
+          <Parameter Name="definition" Type="varbinary(max)" Mode="In" />
+        </Function>
+        <Function Name="sp_creatediagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+          <Parameter Name="version" Type="int" Mode="In" />
+          <Parameter Name="definition" Type="varbinary(max)" Mode="In" />
+        </Function>
+        <Function Name="sp_dropdiagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+        </Function>
+        <Function Name="sp_helpdiagramdefinition" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+        </Function>
+        <Function Name="sp_helpdiagrams" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+        </Function>
+        <Function Name="sp_renamediagram" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="diagramname" Type="nvarchar" Mode="In" />
+          <Parameter Name="owner_id" Type="int" Mode="In" />
+          <Parameter Name="new_diagramname" Type="nvarchar" Mode="In" />
+        </Function>
+        <Function Name="sp_upgraddiagrams" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" />
+        <EntityContainer Name="Хранилище DB_AssetManageModelContainer">
+          <EntitySet Name="ActStatus" EntityType="Self.ActStatus" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ASSETTYPE" EntityType="Self.ASSETTYPE" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="CATEGORY" EntityType="Self.CATEGORY" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="COMPLETION_ACTS" EntityType="Self.COMPLETION_ACTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="EQUIPMENT" EntityType="Self.EQUIPMENT" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="EQUIPMENT_PURCHASES" EntityType="Self.EQUIPMENT_PURCHASES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="FINISHED_PRODUCTS" EntityType="Self.FINISHED_PRODUCTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MAINTENANCE" EntityType="Self.MAINTENANCE" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="MASTERS" EntityType="Self.MASTERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="PRODUCTION_ASSETS" EntityType="Self.PRODUCTION_ASSETS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="QUALIFICATION" EntityType="Self.QUALIFICATION" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="REPORTS" EntityType="Self.REPORTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="ROLES" EntityType="Self.ROLES" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SPECIALTY" EntityType="Self.SPECIALTY" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="STATUS_PURCHASE" EntityType="Self.STATUS_PURCHASE" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="STATUSASSETS" EntityType="Self.STATUSASSETS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="SUPPLIERS" EntityType="Self.SUPPLIERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Unit" EntityType="Self.Unit" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="USERS" EntityType="Self.USERS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="WORK_ACTS" EntityType="Self.WORK_ACTS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="WORK_ACTS_MATERIALS" EntityType="Self.WORK_ACTS_MATERIALS" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="WORKSHOPS" EntityType="Self.WORKSHOPS" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_COMPLACTS_SUPERVISOR" Association="Self.FK_COMPLACTS_SUPERVISOR">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="COMPLETION_ACTS" EntitySet="COMPLETION_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_COMPLACTS_WORKACT" Association="Self.FK_COMPLACTS_WORKACT">
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+            <End Role="COMPLETION_ACTS" EntitySet="COMPLETION_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPMENT_MASTER" Association="Self.FK_EQUIPMENT_MASTER">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPMENT_STATUS" Association="Self.FK_EQUIPMENT_STATUS">
+            <End Role="STATUSASSETS" EntitySet="STATUSASSETS" />
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPMENT_WORKSHOP" Association="Self.FK_EQUIPMENT_WORKSHOP">
+            <End Role="WORKSHOPS" EntitySet="WORKSHOPS" />
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPPURCH_EQUIPMENT" Association="Self.FK_EQUIPPURCH_EQUIPMENT">
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+            <End Role="EQUIPMENT_PURCHASES" EntitySet="EQUIPMENT_PURCHASES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPPURCH_MASTER" Association="Self.FK_EQUIPPURCH_MASTER">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="EQUIPMENT_PURCHASES" EntitySet="EQUIPMENT_PURCHASES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPPURCH_STATUS" Association="Self.FK_EQUIPPURCH_STATUS">
+            <End Role="STATUS_PURCHASE" EntitySet="STATUS_PURCHASE" />
+            <End Role="EQUIPMENT_PURCHASES" EntitySet="EQUIPMENT_PURCHASES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPPURCH_SUPPLIER" Association="Self.FK_EQUIPPURCH_SUPPLIER">
+            <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
+            <End Role="EQUIPMENT_PURCHASES" EntitySet="EQUIPMENT_PURCHASES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FINISHEDPROD_UNIT" Association="Self.FK_FINISHEDPROD_UNIT">
+            <End Role="Unit" EntitySet="Unit" />
+            <End Role="FINISHED_PRODUCTS" EntitySet="FINISHED_PRODUCTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MAINTENANCE_EQUIPMENT" Association="Self.FK_MAINTENANCE_EQUIPMENT">
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+            <End Role="MAINTENANCE" EntitySet="MAINTENANCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MAINTENANCE_STATUS" Association="Self.FK_MAINTENANCE_STATUS">
+            <End Role="STATUSASSETS" EntitySet="STATUSASSETS" />
+            <End Role="MAINTENANCE" EntitySet="MAINTENANCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MAINTENANCE_TECHNICIAN" Association="Self.FK_MAINTENANCE_TECHNICIAN">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="MAINTENANCE" EntitySet="MAINTENANCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MASTERS_QUALIFICATION" Association="Self.FK_MASTERS_QUALIFICATION">
+            <End Role="QUALIFICATION" EntitySet="QUALIFICATION" />
+            <End Role="MASTERS" EntitySet="MASTERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MASTERS_SPECIALTY" Association="Self.FK_MASTERS_SPECIALTY">
+            <End Role="SPECIALTY" EntitySet="SPECIALTY" />
+            <End Role="MASTERS" EntitySet="MASTERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MASTERS_USERS" Association="Self.FK_MASTERS_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="MASTERS" EntitySet="MASTERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_ASSETTYPE" Association="Self.FK_PRODASSETS_ASSETTYPE">
+            <End Role="ASSETTYPE" EntitySet="ASSETTYPE" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_CATEGORY" Association="Self.FK_PRODASSETS_CATEGORY">
+            <End Role="CATEGORY" EntitySet="CATEGORY" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_STATUS" Association="Self.FK_PRODASSETS_STATUS">
+            <End Role="STATUSASSETS" EntitySet="STATUSASSETS" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_SUPPLIER" Association="Self.FK_PRODASSETS_SUPPLIER">
+            <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_UNIT" Association="Self.FK_PRODASSETS_UNIT">
+            <End Role="Unit" EntitySet="Unit" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_WORKSHOP" Association="Self.FK_PRODASSETS_WORKSHOP">
+            <End Role="WORKSHOPS" EntitySet="WORKSHOPS" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REPORTS_MASTER" Association="Self.FK_REPORTS_MASTER">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="REPORTS" EntitySet="REPORTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_USERS_ROLES" Association="Self.FK_USERS_ROLES">
+            <End Role="ROLES" EntitySet="ROLES" />
+            <End Role="USERS" EntitySet="USERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WAM_ASSET" Association="Self.FK_WAM_ASSET">
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+            <End Role="WORK_ACTS_MATERIALS" EntitySet="WORK_ACTS_MATERIALS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WAM_WORKACT" Association="Self.FK_WAM_WORKACT">
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+            <End Role="WORK_ACTS_MATERIALS" EntitySet="WORK_ACTS_MATERIALS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKACTS_ASSET" Association="Self.FK_WORKACTS_ASSET">
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKACTS_EQUIPMENT" Association="Self.FK_WORKACTS_EQUIPMENT">
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKACTS_MASTER" Association="Self.FK_WORKACTS_MASTER">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKACTS_STATUS" Association="Self.FK_WORKACTS_STATUS">
+            <End Role="ActStatus" EntitySet="ActStatus" />
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKSHOPS_MASTERS" Association="Self.FK_WORKSHOPS_MASTERS">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="WORKSHOPS" EntitySet="WORKSHOPS" />
+          </AssociationSet>
+        </EntityContainer>
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="DB_AssetManageModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="ActStatus">
+          <Key>
+            <PropertyRef Name="ID_status" />
+          </Key>
+          <Property Name="ID_status" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Status" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="WORK_ACTS" Relationship="Self.FK_WORKACTS_STATUS" FromRole="ActStatus" ToRole="WORK_ACTS" />
+        </EntityType>
+        <EntityType Name="ASSETTYPE">
+          <Key>
+            <PropertyRef Name="ID_ASSETTYPE" />
+          </Key>
+          <Property Name="ID_ASSETTYPE" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="AssetType1" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="PRODUCTION_ASSETS" Relationship="Self.FK_PRODASSETS_ASSETTYPE" FromRole="ASSETTYPE" ToRole="PRODUCTION_ASSETS" />
+        </EntityType>
+        <EntityType Name="CATEGORY">
+          <Key>
+            <PropertyRef Name="ID_category" />
+          </Key>
+          <Property Name="ID_category" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Category1" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="PRODUCTION_ASSETS" Relationship="Self.FK_PRODASSETS_CATEGORY" FromRole="CATEGORY" ToRole="PRODUCTION_ASSETS" />
+        </EntityType>
+        <EntityType Name="COMPLETION_ACTS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="act_number" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="work_act_id" Type="Int32" />
+          <Property Name="completion_date" Type="DateTime" Precision="0" />
+          <Property Name="supervisor_id" Type="Int32" />
+          <Property Name="quality_check" Type="Boolean" />
+          <Property Name="comments" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_COMPLACTS_SUPERVISOR" FromRole="COMPLETION_ACTS" ToRole="MASTERS" />
+          <NavigationProperty Name="WORK_ACTS" Relationship="Self.FK_COMPLACTS_WORKACT" FromRole="COMPLETION_ACTS" ToRole="WORK_ACTS" />
+        </EntityType>
+        <EntityType Name="EQUIPMENT">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="asset_id" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="equipment_type" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="manufacturer" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="installation_date" Type="DateTime" Precision="0" />
+          <Property Name="Workshop_id" Type="Int32" />
+          <Property Name="warranty_period_months" Type="Int32" />
+          <Property Name="last_maintenance_date" Type="DateTime" Precision="0" />
+          <Property Name="next_maintenance_date" Type="DateTime" Precision="0" />
+          <Property Name="operational_status" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="assigned_to" Type="Int32" />
+          <Property Name="current_work_hours" Type="Int32" />
+          <Property Name="max_work_hours_before_maintenance" Type="Int32" />
+          <Property Name="status" Type="Int32" />
+          <Property Name="notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_EQUIPMENT_MASTER" FromRole="EQUIPMENT" ToRole="MASTERS" />
+          <NavigationProperty Name="STATUSASSETS" Relationship="Self.FK_EQUIPMENT_STATUS" FromRole="EQUIPMENT" ToRole="STATUSASSETS" />
+          <NavigationProperty Name="WORKSHOPS" Relationship="Self.FK_EQUIPMENT_WORKSHOP" FromRole="EQUIPMENT" ToRole="WORKSHOPS" />
+          <NavigationProperty Name="EQUIPMENT_PURCHASES" Relationship="Self.FK_EQUIPPURCH_EQUIPMENT" FromRole="EQUIPMENT" ToRole="EQUIPMENT_PURCHASES" />
+          <NavigationProperty Name="MAINTENANCE" Relationship="Self.FK_MAINTENANCE_EQUIPMENT" FromRole="EQUIPMENT" ToRole="MAINTENANCE" />
+          <NavigationProperty Name="WORK_ACTS" Relationship="Self.FK_WORKACTS_EQUIPMENT" FromRole="EQUIPMENT" ToRole="WORK_ACTS" />
+        </EntityType>
+        <EntityType Name="EQUIPMENT_PURCHASES">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="purchase_number" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="asset_id" Type="Int32" />
+          <Property Name="quantity" Type="Int32" />
+          <Property Name="unit_price" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="total_cost" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="order_date" Type="DateTime" Precision="0" />
+          <Property Name="expected_delivery" Type="DateTime" Precision="0" />
+          <Property Name="actual_delivery" Type="DateTime" Precision="0" />
+          <Property Name="status" Type="Int32" />
+          <Property Name="supplier_id" Type="Int32" />
+          <Property Name="purchase_manager_id" Type="Int32" />
+          <Property Name="notes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="EQUIPMENT" Relationship="Self.FK_EQUIPPURCH_EQUIPMENT" FromRole="EQUIPMENT_PURCHASES" ToRole="EQUIPMENT" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_EQUIPPURCH_MASTER" FromRole="EQUIPMENT_PURCHASES" ToRole="MASTERS" />
+          <NavigationProperty Name="STATUS_PURCHASE" Relationship="Self.FK_EQUIPPURCH_STATUS" FromRole="EQUIPMENT_PURCHASES" ToRole="STATUS_PURCHASE" />
+          <NavigationProperty Name="SUPPLIERS" Relationship="Self.FK_EQUIPPURCH_SUPPLIER" FromRole="EQUIPMENT_PURCHASES" ToRole="SUPPLIERS" />
+        </EntityType>
+        <EntityType Name="FINISHED_PRODUCTS">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="product_code" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="product_name" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="unit" Type="Int32" />
+          <Property Name="quantity" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="warehouse_location" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="Unit1" Relationship="Self.FK_FINISHEDPROD_UNIT" FromRole="FINISHED_PRODUCTS" ToRole="Unit" />
+        </EntityType>
+        <EntityType Name="MAINTENANCE">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="equipment_id" Type="Int32" />
+          <Property Name="maintenance_date" Type="DateTime" Precision="0" />
+          <Property Name="maintenance_type" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="technician_id" Type="Int32" />
+          <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="cost" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="downtime_hours" Type="Int32" />
+          <Property Name="parts_replaced" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="next_maintenance_date" Type="DateTime" Precision="0" />
+          <Property Name="status" Type="Int32" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="EQUIPMENT" Relationship="Self.FK_MAINTENANCE_EQUIPMENT" FromRole="MAINTENANCE" ToRole="EQUIPMENT" />
+          <NavigationProperty Name="STATUSASSETS" Relationship="Self.FK_MAINTENANCE_STATUS" FromRole="MAINTENANCE" ToRole="STATUSASSETS" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_MAINTENANCE_TECHNICIAN" FromRole="MAINTENANCE" ToRole="MASTERS" />
+        </EntityType>
+        <EntityType Name="MASTERS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="user_id" Type="Int32" />
+          <Property Name="specialty" Type="Int32" />
+          <Property Name="skill_level" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="qualifications" Type="Int32" />
+          <Property Name="hire_date" Type="DateTime" Precision="0" />
+          <Property Name="is_available" Type="Boolean" />
+          <NavigationProperty Name="COMPLETION_ACTS" Relationship="Self.FK_COMPLACTS_SUPERVISOR" FromRole="MASTERS" ToRole="COMPLETION_ACTS" />
+          <NavigationProperty Name="EQUIPMENT" Relationship="Self.FK_EQUIPMENT_MASTER" FromRole="MASTERS" ToRole="EQUIPMENT" />
+          <NavigationProperty Name="EQUIPMENT_PURCHASES" Relationship="Self.FK_EQUIPPURCH_MASTER" FromRole="MASTERS" ToRole="EQUIPMENT_PURCHASES" />
+          <NavigationProperty Name="MAINTENANCE" Relationship="Self.FK_MAINTENANCE_TECHNICIAN" FromRole="MASTERS" ToRole="MAINTENANCE" />
+          <NavigationProperty Name="QUALIFICATION" Relationship="Self.FK_MASTERS_QUALIFICATION" FromRole="MASTERS" ToRole="QUALIFICATION" />
+          <NavigationProperty Name="SPECIALTY1" Relationship="Self.FK_MASTERS_SPECIALTY" FromRole="MASTERS" ToRole="SPECIALTY" />
+          <NavigationProperty Name="USERS" Relationship="Self.FK_MASTERS_USERS" FromRole="MASTERS" ToRole="USERS" />
+          <NavigationProperty Name="REPORTS" Relationship="Self.FK_REPORTS_MASTER" FromRole="MASTERS" ToRole="REPORTS" />
+          <NavigationProperty Name="WORK_ACTS" Relationship="Self.FK_WORKACTS_MASTER" FromRole="MASTERS" ToRole="WORK_ACTS" />
+          <NavigationProperty Name="WORKSHOPS" Relationship="Self.FK_WORKSHOPS_MASTERS" FromRole="MASTERS" ToRole="WORKSHOPS" />
+        </EntityType>
+        <EntityType Name="PRODUCTION_ASSETS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="asset_type" Type="Int32" />
+          <Property Name="name" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="id_category" Type="Int32" />
+          <Property Name="unit" Type="Int32" />
+          <Property Name="quantity" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="min_quantity" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="warehouse_location" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="workshop_id" Type="Int32" />
+          <Property Name="supplier_id" Type="Int32" />
+          <Property Name="purchase_date" Type="DateTime" Precision="0" />
+          <Property Name="purchase_cost" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="current_value" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="status" Type="Int32" />
+          <Property Name="serial_number" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="ASSETTYPE" Relationship="Self.FK_PRODASSETS_ASSETTYPE" FromRole="PRODUCTION_ASSETS" ToRole="ASSETTYPE" />
+          <NavigationProperty Name="CATEGORY" Relationship="Self.FK_PRODASSETS_CATEGORY" FromRole="PRODUCTION_ASSETS" ToRole="CATEGORY" />
+          <NavigationProperty Name="STATUSASSETS" Relationship="Self.FK_PRODASSETS_STATUS" FromRole="PRODUCTION_ASSETS" ToRole="STATUSASSETS" />
+          <NavigationProperty Name="SUPPLIERS" Relationship="Self.FK_PRODASSETS_SUPPLIER" FromRole="PRODUCTION_ASSETS" ToRole="SUPPLIERS" />
+          <NavigationProperty Name="Unit1" Relationship="Self.FK_PRODASSETS_UNIT" FromRole="PRODUCTION_ASSETS" ToRole="Unit" />
+          <NavigationProperty Name="WORKSHOPS" Relationship="Self.FK_PRODASSETS_WORKSHOP" FromRole="PRODUCTION_ASSETS" ToRole="WORKSHOPS" />
+          <NavigationProperty Name="WORK_ACTS_MATERIALS" Relationship="Self.FK_WAM_ASSET" FromRole="PRODUCTION_ASSETS" ToRole="WORK_ACTS_MATERIALS" />
+          <NavigationProperty Name="WORK_ACTS" Relationship="Self.FK_WORKACTS_ASSET" FromRole="PRODUCTION_ASSETS" ToRole="WORK_ACTS" />
+        </EntityType>
+        <EntityType Name="QUALIFICATION">
+          <Key>
+            <PropertyRef Name="ID_Qualification" />
+          </Key>
+          <Property Name="ID_Qualification" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Qualification1" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_MASTERS_QUALIFICATION" FromRole="QUALIFICATION" ToRole="MASTERS" />
+        </EntityType>
+        <EntityType Name="REPORTS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="report_type" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="period_start" Type="DateTime" Precision="0" />
+          <Property Name="period_end" Type="DateTime" Precision="0" />
+          <Property Name="generated_by" Type="Int32" />
+          <Property Name="report_data" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="file_path" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_REPORTS_MASTER" FromRole="REPORTS" ToRole="MASTERS" />
+        </EntityType>
+        <EntityType Name="ROLES">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="USERS" Relationship="Self.FK_USERS_ROLES" FromRole="ROLES" ToRole="USERS" />
+        </EntityType>
+        <EntityType Name="SPECIALTY">
+          <Key>
+            <PropertyRef Name="ID_specialty" />
+          </Key>
+          <Property Name="ID_specialty" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Speciality" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_MASTERS_SPECIALTY" FromRole="SPECIALTY" ToRole="MASTERS" />
+        </EntityType>
+        <EntityType Name="STATUS_PURCHASE">
+          <Key>
+            <PropertyRef Name="ID_status" />
+          </Key>
+          <Property Name="ID_status" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Status" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="EQUIPMENT_PURCHASES" Relationship="Self.FK_EQUIPPURCH_STATUS" FromRole="STATUS_PURCHASE" ToRole="EQUIPMENT_PURCHASES" />
+        </EntityType>
+        <EntityType Name="STATUSASSETS">
+          <Key>
+            <PropertyRef Name="ID_status" />
+          </Key>
+          <Property Name="ID_status" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Status" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <NavigationProperty Name="EQUIPMENT" Relationship="Self.FK_EQUIPMENT_STATUS" FromRole="STATUSASSETS" ToRole="EQUIPMENT" />
+          <NavigationProperty Name="MAINTENANCE" Relationship="Self.FK_MAINTENANCE_STATUS" FromRole="STATUSASSETS" ToRole="MAINTENANCE" />
+          <NavigationProperty Name="PRODUCTION_ASSETS" Relationship="Self.FK_PRODASSETS_STATUS" FromRole="STATUSASSETS" ToRole="PRODUCTION_ASSETS" />
+        </EntityType>
+        <EntityType Name="SUPPLIERS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="contact_person" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="phone" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="email" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="address" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="tax_number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="is_active" Type="Boolean" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="EQUIPMENT_PURCHASES" Relationship="Self.FK_EQUIPPURCH_SUPPLIER" FromRole="SUPPLIERS" ToRole="EQUIPMENT_PURCHASES" />
+          <NavigationProperty Name="PRODUCTION_ASSETS" Relationship="Self.FK_PRODASSETS_SUPPLIER" FromRole="SUPPLIERS" ToRole="PRODUCTION_ASSETS" />
+        </EntityType>
+        <EntityType Name="sysdiagrams">
+          <Key>
+            <PropertyRef Name="diagram_id" />
+          </Key>
+          <Property Name="name" Type="String" MaxLength="128" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="principal_id" Type="Int32" Nullable="false" />
+          <Property Name="diagram_id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="version" Type="Int32" />
+          <Property Name="definition" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <EntityType Name="Unit">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="unit1" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="quantity" Type="Decimal" Precision="15" Scale="2" />
+          <NavigationProperty Name="FINISHED_PRODUCTS" Relationship="Self.FK_FINISHEDPROD_UNIT" FromRole="Unit" ToRole="FINISHED_PRODUCTS" />
+          <NavigationProperty Name="PRODUCTION_ASSETS" Relationship="Self.FK_PRODASSETS_UNIT" FromRole="Unit" ToRole="PRODUCTION_ASSETS" />
+        </EntityType>
+        <EntityType Name="USERS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="username" Type="String" MaxLength="50" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="password" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="full_name" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="email" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="phone" Type="String" MaxLength="20" FixedLength="false" Unicode="true" />
+          <Property Name="role_id" Type="Int32" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_MASTERS_USERS" FromRole="USERS" ToRole="MASTERS" />
+          <NavigationProperty Name="ROLES" Relationship="Self.FK_USERS_ROLES" FromRole="USERS" ToRole="ROLES" />
+        </EntityType>
+        <EntityType Name="WORK_ACTS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="act_number" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="work_date" Type="DateTime" Precision="0" />
+          <Property Name="master_id" Type="Int32" />
+          <Property Name="work_type" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="equipment_id" Type="Int32" />
+          <Property Name="asset_id" Type="Int32" />
+          <Property Name="quantity" Type="Decimal" Precision="15" Scale="2" />
+          <Property Name="status" Type="Int32" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="ActStatus" Relationship="Self.FK_WORKACTS_STATUS" FromRole="WORK_ACTS" ToRole="ActStatus" />
+          <NavigationProperty Name="COMPLETION_ACTS" Relationship="Self.FK_COMPLACTS_WORKACT" FromRole="WORK_ACTS" ToRole="COMPLETION_ACTS" />
+          <NavigationProperty Name="EQUIPMENT" Relationship="Self.FK_WORKACTS_EQUIPMENT" FromRole="WORK_ACTS" ToRole="EQUIPMENT" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_WORKACTS_MASTER" FromRole="WORK_ACTS" ToRole="MASTERS" />
+          <NavigationProperty Name="PRODUCTION_ASSETS" Relationship="Self.FK_WORKACTS_ASSET" FromRole="WORK_ACTS" ToRole="PRODUCTION_ASSETS" />
+          <NavigationProperty Name="WORK_ACTS_MATERIALS" Relationship="Self.FK_WAM_WORKACT" FromRole="WORK_ACTS" ToRole="WORK_ACTS_MATERIALS" />
+        </EntityType>
+        <EntityType Name="WORK_ACTS_MATERIALS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="work_act_id" Type="Int32" />
+          <Property Name="asset_id" Type="Int32" />
+          <Property Name="quantity_used" Type="Decimal" Precision="15" Scale="2" />
+          <NavigationProperty Name="PRODUCTION_ASSETS" Relationship="Self.FK_WAM_ASSET" FromRole="WORK_ACTS_MATERIALS" ToRole="PRODUCTION_ASSETS" />
+          <NavigationProperty Name="WORK_ACTS" Relationship="Self.FK_WAM_WORKACT" FromRole="WORK_ACTS_MATERIALS" ToRole="WORK_ACTS" />
+        </EntityType>
+        <EntityType Name="WORKSHOPS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="name" Type="String" MaxLength="255" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="location" Type="String" MaxLength="255" FixedLength="false" Unicode="true" />
+          <Property Name="manager_id" Type="Int32" />
+          <Property Name="created_at" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="EQUIPMENT" Relationship="Self.FK_EQUIPMENT_WORKSHOP" FromRole="WORKSHOPS" ToRole="EQUIPMENT" />
+          <NavigationProperty Name="MASTERS" Relationship="Self.FK_WORKSHOPS_MASTERS" FromRole="WORKSHOPS" ToRole="MASTERS" />
+          <NavigationProperty Name="PRODUCTION_ASSETS" Relationship="Self.FK_PRODASSETS_WORKSHOP" FromRole="WORKSHOPS" ToRole="PRODUCTION_ASSETS" />
+        </EntityType>
+        <Association Name="FK_WORKACTS_STATUS">
+          <End Role="ActStatus" Type="Self.ActStatus" Multiplicity="0..1" />
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ActStatus">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="WORK_ACTS">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_ASSETTYPE">
+          <End Role="ASSETTYPE" Type="Self.ASSETTYPE" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ASSETTYPE">
+              <PropertyRef Name="ID_ASSETTYPE" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="asset_type" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_CATEGORY">
+          <End Role="CATEGORY" Type="Self.CATEGORY" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CATEGORY">
+              <PropertyRef Name="ID_category" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="id_category" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_COMPLACTS_SUPERVISOR">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="COMPLETION_ACTS" Type="Self.COMPLETION_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="COMPLETION_ACTS">
+              <PropertyRef Name="supervisor_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_COMPLACTS_WORKACT">
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="0..1" />
+          <End Role="COMPLETION_ACTS" Type="Self.COMPLETION_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WORK_ACTS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="COMPLETION_ACTS">
+              <PropertyRef Name="work_act_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPMENT_MASTER">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="EQUIPMENT">
+              <PropertyRef Name="assigned_to" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPMENT_STATUS">
+          <End Role="STATUSASSETS" Type="Self.STATUSASSETS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="STATUSASSETS">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="EQUIPMENT">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPMENT_WORKSHOP">
+          <End Role="WORKSHOPS" Type="Self.WORKSHOPS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WORKSHOPS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="EQUIPMENT">
+              <PropertyRef Name="Workshop_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPPURCH_EQUIPMENT">
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="0..1" />
+          <End Role="EQUIPMENT_PURCHASES" Type="Self.EQUIPMENT_PURCHASES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EQUIPMENT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="EQUIPMENT_PURCHASES">
+              <PropertyRef Name="asset_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MAINTENANCE_EQUIPMENT">
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="0..1" />
+          <End Role="MAINTENANCE" Type="Self.MAINTENANCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EQUIPMENT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="MAINTENANCE">
+              <PropertyRef Name="equipment_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKACTS_EQUIPMENT">
+          <End Role="EQUIPMENT" Type="Self.EQUIPMENT" Multiplicity="0..1" />
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="EQUIPMENT">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="WORK_ACTS">
+              <PropertyRef Name="equipment_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPPURCH_MASTER">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT_PURCHASES" Type="Self.EQUIPMENT_PURCHASES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="EQUIPMENT_PURCHASES">
+              <PropertyRef Name="purchase_manager_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPPURCH_STATUS">
+          <End Role="STATUS_PURCHASE" Type="Self.STATUS_PURCHASE" Multiplicity="0..1" />
+          <End Role="EQUIPMENT_PURCHASES" Type="Self.EQUIPMENT_PURCHASES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="STATUS_PURCHASE">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="EQUIPMENT_PURCHASES">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_EQUIPPURCH_SUPPLIER">
+          <End Role="SUPPLIERS" Type="Self.SUPPLIERS" Multiplicity="0..1" />
+          <End Role="EQUIPMENT_PURCHASES" Type="Self.EQUIPMENT_PURCHASES" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SUPPLIERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="EQUIPMENT_PURCHASES">
+              <PropertyRef Name="supplier_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_FINISHEDPROD_UNIT">
+          <End Role="Unit" Type="Self.Unit" Multiplicity="0..1" />
+          <End Role="FINISHED_PRODUCTS" Type="Self.FINISHED_PRODUCTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Unit">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="FINISHED_PRODUCTS">
+              <PropertyRef Name="unit" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MAINTENANCE_STATUS">
+          <End Role="STATUSASSETS" Type="Self.STATUSASSETS" Multiplicity="0..1" />
+          <End Role="MAINTENANCE" Type="Self.MAINTENANCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="STATUSASSETS">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="MAINTENANCE">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MAINTENANCE_TECHNICIAN">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="MAINTENANCE" Type="Self.MAINTENANCE" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="MAINTENANCE">
+              <PropertyRef Name="technician_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MASTERS_QUALIFICATION">
+          <End Role="QUALIFICATION" Type="Self.QUALIFICATION" Multiplicity="0..1" />
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="QUALIFICATION">
+              <PropertyRef Name="ID_Qualification" />
+            </Principal>
+            <Dependent Role="MASTERS">
+              <PropertyRef Name="qualifications" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MASTERS_SPECIALTY">
+          <End Role="SPECIALTY" Type="Self.SPECIALTY" Multiplicity="0..1" />
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SPECIALTY">
+              <PropertyRef Name="ID_specialty" />
+            </Principal>
+            <Dependent Role="MASTERS">
+              <PropertyRef Name="specialty" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_MASTERS_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="0..1" />
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="MASTERS">
+              <PropertyRef Name="user_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_REPORTS_MASTER">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="REPORTS" Type="Self.REPORTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="REPORTS">
+              <PropertyRef Name="generated_by" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKACTS_MASTER">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORK_ACTS">
+              <PropertyRef Name="master_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKSHOPS_MASTERS">
+          <End Role="MASTERS" Type="Self.MASTERS" Multiplicity="0..1" />
+          <End Role="WORKSHOPS" Type="Self.WORKSHOPS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="MASTERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORKSHOPS">
+              <PropertyRef Name="manager_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_STATUS">
+          <End Role="STATUSASSETS" Type="Self.STATUSASSETS" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="STATUSASSETS">
+              <PropertyRef Name="ID_status" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="status" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_SUPPLIER">
+          <End Role="SUPPLIERS" Type="Self.SUPPLIERS" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="SUPPLIERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="supplier_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_UNIT">
+          <End Role="Unit" Type="Self.Unit" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Unit">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="unit" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_PRODASSETS_WORKSHOP">
+          <End Role="WORKSHOPS" Type="Self.WORKSHOPS" Multiplicity="0..1" />
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WORKSHOPS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="workshop_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WAM_ASSET">
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="0..1" />
+          <End Role="WORK_ACTS_MATERIALS" Type="Self.WORK_ACTS_MATERIALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORK_ACTS_MATERIALS">
+              <PropertyRef Name="asset_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WORKACTS_ASSET">
+          <End Role="PRODUCTION_ASSETS" Type="Self.PRODUCTION_ASSETS" Multiplicity="0..1" />
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="PRODUCTION_ASSETS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORK_ACTS">
+              <PropertyRef Name="asset_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_USERS_ROLES">
+          <End Role="ROLES" Type="Self.ROLES" Multiplicity="0..1" />
+          <End Role="USERS" Type="Self.USERS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="ROLES">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="USERS">
+              <PropertyRef Name="role_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_WAM_WORKACT">
+          <End Role="WORK_ACTS" Type="Self.WORK_ACTS" Multiplicity="0..1" />
+          <End Role="WORK_ACTS_MATERIALS" Type="Self.WORK_ACTS_MATERIALS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="WORK_ACTS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="WORK_ACTS_MATERIALS">
+              <PropertyRef Name="work_act_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityContainer Name="DB_AssetManage" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="ActStatus" EntityType="Self.ActStatus" />
+          <EntitySet Name="ASSETTYPE" EntityType="Self.ASSETTYPE" />
+          <EntitySet Name="CATEGORY" EntityType="Self.CATEGORY" />
+          <EntitySet Name="COMPLETION_ACTS" EntityType="Self.COMPLETION_ACTS" />
+          <EntitySet Name="EQUIPMENT" EntityType="Self.EQUIPMENT" />
+          <EntitySet Name="EQUIPMENT_PURCHASES" EntityType="Self.EQUIPMENT_PURCHASES" />
+          <EntitySet Name="FINISHED_PRODUCTS" EntityType="Self.FINISHED_PRODUCTS" />
+          <EntitySet Name="MAINTENANCE" EntityType="Self.MAINTENANCE" />
+          <EntitySet Name="MASTERS" EntityType="Self.MASTERS" />
+          <EntitySet Name="PRODUCTION_ASSETS" EntityType="Self.PRODUCTION_ASSETS" />
+          <EntitySet Name="QUALIFICATION" EntityType="Self.QUALIFICATION" />
+          <EntitySet Name="REPORTS" EntityType="Self.REPORTS" />
+          <EntitySet Name="ROLES" EntityType="Self.ROLES" />
+          <EntitySet Name="SPECIALTY" EntityType="Self.SPECIALTY" />
+          <EntitySet Name="STATUS_PURCHASE" EntityType="Self.STATUS_PURCHASE" />
+          <EntitySet Name="STATUSASSETS" EntityType="Self.STATUSASSETS" />
+          <EntitySet Name="SUPPLIERS" EntityType="Self.SUPPLIERS" />
+          <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" />
+          <EntitySet Name="Unit" EntityType="Self.Unit" />
+          <EntitySet Name="USERS" EntityType="Self.USERS" />
+          <EntitySet Name="WORK_ACTS" EntityType="Self.WORK_ACTS" />
+          <EntitySet Name="WORK_ACTS_MATERIALS" EntityType="Self.WORK_ACTS_MATERIALS" />
+          <EntitySet Name="WORKSHOPS" EntityType="Self.WORKSHOPS" />
+          <AssociationSet Name="FK_WORKACTS_STATUS" Association="Self.FK_WORKACTS_STATUS">
+            <End Role="ActStatus" EntitySet="ActStatus" />
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_ASSETTYPE" Association="Self.FK_PRODASSETS_ASSETTYPE">
+            <End Role="ASSETTYPE" EntitySet="ASSETTYPE" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_CATEGORY" Association="Self.FK_PRODASSETS_CATEGORY">
+            <End Role="CATEGORY" EntitySet="CATEGORY" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_COMPLACTS_SUPERVISOR" Association="Self.FK_COMPLACTS_SUPERVISOR">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="COMPLETION_ACTS" EntitySet="COMPLETION_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_COMPLACTS_WORKACT" Association="Self.FK_COMPLACTS_WORKACT">
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+            <End Role="COMPLETION_ACTS" EntitySet="COMPLETION_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPMENT_MASTER" Association="Self.FK_EQUIPMENT_MASTER">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPMENT_STATUS" Association="Self.FK_EQUIPMENT_STATUS">
+            <End Role="STATUSASSETS" EntitySet="STATUSASSETS" />
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPMENT_WORKSHOP" Association="Self.FK_EQUIPMENT_WORKSHOP">
+            <End Role="WORKSHOPS" EntitySet="WORKSHOPS" />
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPPURCH_EQUIPMENT" Association="Self.FK_EQUIPPURCH_EQUIPMENT">
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+            <End Role="EQUIPMENT_PURCHASES" EntitySet="EQUIPMENT_PURCHASES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MAINTENANCE_EQUIPMENT" Association="Self.FK_MAINTENANCE_EQUIPMENT">
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+            <End Role="MAINTENANCE" EntitySet="MAINTENANCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKACTS_EQUIPMENT" Association="Self.FK_WORKACTS_EQUIPMENT">
+            <End Role="EQUIPMENT" EntitySet="EQUIPMENT" />
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPPURCH_MASTER" Association="Self.FK_EQUIPPURCH_MASTER">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="EQUIPMENT_PURCHASES" EntitySet="EQUIPMENT_PURCHASES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPPURCH_STATUS" Association="Self.FK_EQUIPPURCH_STATUS">
+            <End Role="STATUS_PURCHASE" EntitySet="STATUS_PURCHASE" />
+            <End Role="EQUIPMENT_PURCHASES" EntitySet="EQUIPMENT_PURCHASES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_EQUIPPURCH_SUPPLIER" Association="Self.FK_EQUIPPURCH_SUPPLIER">
+            <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
+            <End Role="EQUIPMENT_PURCHASES" EntitySet="EQUIPMENT_PURCHASES" />
+          </AssociationSet>
+          <AssociationSet Name="FK_FINISHEDPROD_UNIT" Association="Self.FK_FINISHEDPROD_UNIT">
+            <End Role="Unit" EntitySet="Unit" />
+            <End Role="FINISHED_PRODUCTS" EntitySet="FINISHED_PRODUCTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MAINTENANCE_STATUS" Association="Self.FK_MAINTENANCE_STATUS">
+            <End Role="STATUSASSETS" EntitySet="STATUSASSETS" />
+            <End Role="MAINTENANCE" EntitySet="MAINTENANCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MAINTENANCE_TECHNICIAN" Association="Self.FK_MAINTENANCE_TECHNICIAN">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="MAINTENANCE" EntitySet="MAINTENANCE" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MASTERS_QUALIFICATION" Association="Self.FK_MASTERS_QUALIFICATION">
+            <End Role="QUALIFICATION" EntitySet="QUALIFICATION" />
+            <End Role="MASTERS" EntitySet="MASTERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MASTERS_SPECIALTY" Association="Self.FK_MASTERS_SPECIALTY">
+            <End Role="SPECIALTY" EntitySet="SPECIALTY" />
+            <End Role="MASTERS" EntitySet="MASTERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_MASTERS_USERS" Association="Self.FK_MASTERS_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="MASTERS" EntitySet="MASTERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_REPORTS_MASTER" Association="Self.FK_REPORTS_MASTER">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="REPORTS" EntitySet="REPORTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKACTS_MASTER" Association="Self.FK_WORKACTS_MASTER">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKSHOPS_MASTERS" Association="Self.FK_WORKSHOPS_MASTERS">
+            <End Role="MASTERS" EntitySet="MASTERS" />
+            <End Role="WORKSHOPS" EntitySet="WORKSHOPS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_STATUS" Association="Self.FK_PRODASSETS_STATUS">
+            <End Role="STATUSASSETS" EntitySet="STATUSASSETS" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_SUPPLIER" Association="Self.FK_PRODASSETS_SUPPLIER">
+            <End Role="SUPPLIERS" EntitySet="SUPPLIERS" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_UNIT" Association="Self.FK_PRODASSETS_UNIT">
+            <End Role="Unit" EntitySet="Unit" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_PRODASSETS_WORKSHOP" Association="Self.FK_PRODASSETS_WORKSHOP">
+            <End Role="WORKSHOPS" EntitySet="WORKSHOPS" />
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WAM_ASSET" Association="Self.FK_WAM_ASSET">
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+            <End Role="WORK_ACTS_MATERIALS" EntitySet="WORK_ACTS_MATERIALS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WORKACTS_ASSET" Association="Self.FK_WORKACTS_ASSET">
+            <End Role="PRODUCTION_ASSETS" EntitySet="PRODUCTION_ASSETS" />
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_USERS_ROLES" Association="Self.FK_USERS_ROLES">
+            <End Role="ROLES" EntitySet="ROLES" />
+            <End Role="USERS" EntitySet="USERS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_WAM_WORKACT" Association="Self.FK_WAM_WORKACT">
+            <End Role="WORK_ACTS" EntitySet="WORK_ACTS" />
+            <End Role="WORK_ACTS_MATERIALS" EntitySet="WORK_ACTS_MATERIALS" />
+          </AssociationSet>
+          <FunctionImport Name="sp_alterdiagram">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+            <Parameter Name="version" Mode="In" Type="Int32" />
+            <Parameter Name="definition" Mode="In" Type="Binary" />
+          </FunctionImport>
+          <FunctionImport Name="sp_creatediagram">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+            <Parameter Name="version" Mode="In" Type="Int32" />
+            <Parameter Name="definition" Mode="In" Type="Binary" />
+          </FunctionImport>
+          <FunctionImport Name="sp_dropdiagram">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="sp_helpdiagramdefinition" ReturnType="Collection(DB_AssetManageModel.sp_helpdiagramdefinition_Result)">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="sp_helpdiagrams" ReturnType="Collection(DB_AssetManageModel.sp_helpdiagrams_Result)">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="sp_renamediagram">
+            <Parameter Name="diagramname" Mode="In" Type="String" />
+            <Parameter Name="owner_id" Mode="In" Type="Int32" />
+            <Parameter Name="new_diagramname" Mode="In" Type="String" />
+          </FunctionImport>
+          <FunctionImport Name="sp_upgraddiagrams" />
+        </EntityContainer>
+        <ComplexType Name="sp_helpdiagramdefinition_Result">
+          <Property Type="Int32" Name="version" Nullable="true" />
+          <Property Type="Binary" Name="definition" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="sp_helpdiagrams_Result">
+          <Property Type="String" Name="Database" Nullable="true" MaxLength="128" />
+          <Property Type="String" Name="Name" Nullable="false" MaxLength="128" />
+          <Property Type="Int32" Name="ID" Nullable="false" />
+          <Property Type="String" Name="Owner" Nullable="true" MaxLength="128" />
+          <Property Type="Int32" Name="OwnerID" Nullable="false" />
+        </ComplexType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="Хранилище DB_AssetManageModelContainer" CdmEntityContainer="DB_AssetManage">
+          <EntitySetMapping Name="ActStatus">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.ActStatus">
+              <MappingFragment StoreEntitySet="ActStatus">
+                <ScalarProperty Name="ID_status" ColumnName="ID_status" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ASSETTYPE">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.ASSETTYPE">
+              <MappingFragment StoreEntitySet="ASSETTYPE">
+                <ScalarProperty Name="ID_ASSETTYPE" ColumnName="ID_ASSETTYPE" />
+                <ScalarProperty Name="AssetType1" ColumnName="AssetType" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CATEGORY">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.CATEGORY">
+              <MappingFragment StoreEntitySet="CATEGORY">
+                <ScalarProperty Name="ID_category" ColumnName="ID_category" />
+                <ScalarProperty Name="Category1" ColumnName="Category" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="COMPLETION_ACTS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.COMPLETION_ACTS">
+              <MappingFragment StoreEntitySet="COMPLETION_ACTS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="act_number" ColumnName="act_number" />
+                <ScalarProperty Name="work_act_id" ColumnName="work_act_id" />
+                <ScalarProperty Name="completion_date" ColumnName="completion_date" />
+                <ScalarProperty Name="supervisor_id" ColumnName="supervisor_id" />
+                <ScalarProperty Name="quality_check" ColumnName="quality_check" />
+                <ScalarProperty Name="comments" ColumnName="comments" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="EQUIPMENT">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.EQUIPMENT">
+              <MappingFragment StoreEntitySet="EQUIPMENT">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="asset_id" ColumnName="asset_id" />
+                <ScalarProperty Name="equipment_type" ColumnName="equipment_type" />
+                <ScalarProperty Name="manufacturer" ColumnName="manufacturer" />
+                <ScalarProperty Name="installation_date" ColumnName="installation_date" />
+                <ScalarProperty Name="Workshop_id" ColumnName="Workshop_id" />
+                <ScalarProperty Name="warranty_period_months" ColumnName="warranty_period_months" />
+                <ScalarProperty Name="last_maintenance_date" ColumnName="last_maintenance_date" />
+                <ScalarProperty Name="next_maintenance_date" ColumnName="next_maintenance_date" />
+                <ScalarProperty Name="operational_status" ColumnName="operational_status" />
+                <ScalarProperty Name="assigned_to" ColumnName="assigned_to" />
+                <ScalarProperty Name="current_work_hours" ColumnName="current_work_hours" />
+                <ScalarProperty Name="max_work_hours_before_maintenance" ColumnName="max_work_hours_before_maintenance" />
+                <ScalarProperty Name="status" ColumnName="status" />
+                <ScalarProperty Name="notes" ColumnName="notes" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="EQUIPMENT_PURCHASES">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.EQUIPMENT_PURCHASES">
+              <MappingFragment StoreEntitySet="EQUIPMENT_PURCHASES">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="purchase_number" ColumnName="purchase_number" />
+                <ScalarProperty Name="asset_id" ColumnName="asset_id" />
+                <ScalarProperty Name="quantity" ColumnName="quantity" />
+                <ScalarProperty Name="unit_price" ColumnName="unit_price" />
+                <ScalarProperty Name="total_cost" ColumnName="total_cost" />
+                <ScalarProperty Name="order_date" ColumnName="order_date" />
+                <ScalarProperty Name="expected_delivery" ColumnName="expected_delivery" />
+                <ScalarProperty Name="actual_delivery" ColumnName="actual_delivery" />
+                <ScalarProperty Name="status" ColumnName="status" />
+                <ScalarProperty Name="supplier_id" ColumnName="supplier_id" />
+                <ScalarProperty Name="purchase_manager_id" ColumnName="purchase_manager_id" />
+                <ScalarProperty Name="notes" ColumnName="notes" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="FINISHED_PRODUCTS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.FINISHED_PRODUCTS">
+              <MappingFragment StoreEntitySet="FINISHED_PRODUCTS">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="product_code" ColumnName="product_code" />
+                <ScalarProperty Name="product_name" ColumnName="product_name" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="unit" ColumnName="unit" />
+                <ScalarProperty Name="quantity" ColumnName="quantity" />
+                <ScalarProperty Name="warehouse_location" ColumnName="warehouse_location" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MAINTENANCE">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.MAINTENANCE">
+              <MappingFragment StoreEntitySet="MAINTENANCE">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="equipment_id" ColumnName="equipment_id" />
+                <ScalarProperty Name="maintenance_date" ColumnName="maintenance_date" />
+                <ScalarProperty Name="maintenance_type" ColumnName="maintenance_type" />
+                <ScalarProperty Name="technician_id" ColumnName="technician_id" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="cost" ColumnName="cost" />
+                <ScalarProperty Name="downtime_hours" ColumnName="downtime_hours" />
+                <ScalarProperty Name="parts_replaced" ColumnName="parts_replaced" />
+                <ScalarProperty Name="next_maintenance_date" ColumnName="next_maintenance_date" />
+                <ScalarProperty Name="status" ColumnName="status" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MASTERS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.MASTERS">
+              <MappingFragment StoreEntitySet="MASTERS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="user_id" ColumnName="user_id" />
+                <ScalarProperty Name="specialty" ColumnName="specialty" />
+                <ScalarProperty Name="skill_level" ColumnName="skill_level" />
+                <ScalarProperty Name="qualifications" ColumnName="qualifications" />
+                <ScalarProperty Name="hire_date" ColumnName="hire_date" />
+                <ScalarProperty Name="is_available" ColumnName="is_available" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="PRODUCTION_ASSETS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.PRODUCTION_ASSETS">
+              <MappingFragment StoreEntitySet="PRODUCTION_ASSETS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="asset_type" ColumnName="asset_type" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="id_category" ColumnName="id_category" />
+                <ScalarProperty Name="unit" ColumnName="unit" />
+                <ScalarProperty Name="quantity" ColumnName="quantity" />
+                <ScalarProperty Name="min_quantity" ColumnName="min_quantity" />
+                <ScalarProperty Name="warehouse_location" ColumnName="warehouse_location" />
+                <ScalarProperty Name="workshop_id" ColumnName="workshop_id" />
+                <ScalarProperty Name="supplier_id" ColumnName="supplier_id" />
+                <ScalarProperty Name="purchase_date" ColumnName="purchase_date" />
+                <ScalarProperty Name="purchase_cost" ColumnName="purchase_cost" />
+                <ScalarProperty Name="current_value" ColumnName="current_value" />
+                <ScalarProperty Name="status" ColumnName="status" />
+                <ScalarProperty Name="serial_number" ColumnName="serial_number" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="QUALIFICATION">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.QUALIFICATION">
+              <MappingFragment StoreEntitySet="QUALIFICATION">
+                <ScalarProperty Name="ID_Qualification" ColumnName="ID_Qualification" />
+                <ScalarProperty Name="Qualification1" ColumnName="Qualification" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="REPORTS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.REPORTS">
+              <MappingFragment StoreEntitySet="REPORTS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="report_type" ColumnName="report_type" />
+                <ScalarProperty Name="period_start" ColumnName="period_start" />
+                <ScalarProperty Name="period_end" ColumnName="period_end" />
+                <ScalarProperty Name="generated_by" ColumnName="generated_by" />
+                <ScalarProperty Name="report_data" ColumnName="report_data" />
+                <ScalarProperty Name="file_path" ColumnName="file_path" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="ROLES">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.ROLES">
+              <MappingFragment StoreEntitySet="ROLES">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="description" ColumnName="description" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SPECIALTY">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.SPECIALTY">
+              <MappingFragment StoreEntitySet="SPECIALTY">
+                <ScalarProperty Name="ID_specialty" ColumnName="ID_specialty" />
+                <ScalarProperty Name="Speciality" ColumnName="Speciality" />
+                <ScalarProperty Name="description" ColumnName="description" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="STATUS_PURCHASE">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.STATUS_PURCHASE">
+              <MappingFragment StoreEntitySet="STATUS_PURCHASE">
+                <ScalarProperty Name="ID_status" ColumnName="ID_status" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="STATUSASSETS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.STATUSASSETS">
+              <MappingFragment StoreEntitySet="STATUSASSETS">
+                <ScalarProperty Name="ID_status" ColumnName="ID_status" />
+                <ScalarProperty Name="Status" ColumnName="Status" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="SUPPLIERS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.SUPPLIERS">
+              <MappingFragment StoreEntitySet="SUPPLIERS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="contact_person" ColumnName="contact_person" />
+                <ScalarProperty Name="phone" ColumnName="phone" />
+                <ScalarProperty Name="email" ColumnName="email" />
+                <ScalarProperty Name="address" ColumnName="address" />
+                <ScalarProperty Name="tax_number" ColumnName="tax_number" />
+                <ScalarProperty Name="is_active" ColumnName="is_active" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="sysdiagrams">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.sysdiagrams">
+              <MappingFragment StoreEntitySet="sysdiagrams">
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="principal_id" ColumnName="principal_id" />
+                <ScalarProperty Name="diagram_id" ColumnName="diagram_id" />
+                <ScalarProperty Name="version" ColumnName="version" />
+                <ScalarProperty Name="definition" ColumnName="definition" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Unit">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.Unit">
+              <MappingFragment StoreEntitySet="Unit">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="unit1" ColumnName="unit" />
+                <ScalarProperty Name="quantity" ColumnName="quantity" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="USERS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.USERS">
+              <MappingFragment StoreEntitySet="USERS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="username" ColumnName="username" />
+                <ScalarProperty Name="password" ColumnName="password" />
+                <ScalarProperty Name="full_name" ColumnName="full_name" />
+                <ScalarProperty Name="email" ColumnName="email" />
+                <ScalarProperty Name="phone" ColumnName="phone" />
+                <ScalarProperty Name="role_id" ColumnName="role_id" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="WORK_ACTS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.WORK_ACTS">
+              <MappingFragment StoreEntitySet="WORK_ACTS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="act_number" ColumnName="act_number" />
+                <ScalarProperty Name="work_date" ColumnName="work_date" />
+                <ScalarProperty Name="master_id" ColumnName="master_id" />
+                <ScalarProperty Name="work_type" ColumnName="work_type" />
+                <ScalarProperty Name="equipment_id" ColumnName="equipment_id" />
+                <ScalarProperty Name="asset_id" ColumnName="asset_id" />
+                <ScalarProperty Name="quantity" ColumnName="quantity" />
+                <ScalarProperty Name="status" ColumnName="status" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="WORK_ACTS_MATERIALS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.WORK_ACTS_MATERIALS">
+              <MappingFragment StoreEntitySet="WORK_ACTS_MATERIALS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="work_act_id" ColumnName="work_act_id" />
+                <ScalarProperty Name="asset_id" ColumnName="asset_id" />
+                <ScalarProperty Name="quantity_used" ColumnName="quantity_used" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="WORKSHOPS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.WORKSHOPS">
+              <MappingFragment StoreEntitySet="WORKSHOPS">
+                <ScalarProperty Name="id" ColumnName="id" />
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="location" ColumnName="location" />
+                <ScalarProperty Name="manager_id" ColumnName="manager_id" />
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="sp_alterdiagram" FunctionName="Хранилище DB_AssetManageModel.sp_alterdiagram" />
+          <FunctionImportMapping FunctionImportName="sp_creatediagram" FunctionName="Хранилище DB_AssetManageModel.sp_creatediagram" />
+          <FunctionImportMapping FunctionImportName="sp_dropdiagram" FunctionName="Хранилище DB_AssetManageModel.sp_dropdiagram" />
+          <FunctionImportMapping FunctionImportName="sp_helpdiagramdefinition" FunctionName="Хранилище DB_AssetManageModel.sp_helpdiagramdefinition">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DB_AssetManageModel.sp_helpdiagramdefinition_Result">
+                <ScalarProperty Name="version" ColumnName="version" />
+                <ScalarProperty Name="definition" ColumnName="definition" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="sp_helpdiagrams" FunctionName="Хранилище DB_AssetManageModel.sp_helpdiagrams">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="DB_AssetManageModel.sp_helpdiagrams_Result">
+                <ScalarProperty Name="Database" ColumnName="Database" />
+                <ScalarProperty Name="Name" ColumnName="Name" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="Owner" ColumnName="Owner" />
+                <ScalarProperty Name="OwnerID" ColumnName="OwnerID" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="sp_renamediagram" FunctionName="Хранилище DB_AssetManageModel.sp_renamediagram" />
+          <FunctionImportMapping FunctionImportName="sp_upgraddiagrams" FunctionName="Хранилище DB_AssetManageModel.sp_upgraddiagrams" />
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="true" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="Нет" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
