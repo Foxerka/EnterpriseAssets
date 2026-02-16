@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using EnterpriseAssets.View.Pages;
+using EnterpriseAssets.ViewModel;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using EnterpriseAssets.ViewModel;
 
 namespace EnterpriseAssets.View
 {
@@ -330,22 +332,71 @@ namespace EnterpriseAssets.View
                 _viewModel.PageTitle = GetPageTitle(pageName);
             }
 
-            // Временное содержимое для демонстрации
-            var textBlock = new TextBlock
+            try
             {
-                Text = $"Страница: {GetPageTitle(pageName)}\n",
-                FontSize = 18,
-                Foreground = Brushes.Gray,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                TextAlignment = TextAlignment.Center,
-                TextWrapping = TextWrapping.Wrap
-            };
+                Page? page = null;
 
-            var contentGrid = new Grid();
-            contentGrid.Children.Add(textBlock);
+                // Создаем соответствующую страницу
+                switch (pageName)
+                {
+                    //case "Dashboard":
+                    //    page = new DashboardPage();
+                    //    break;
+                    //case "Assets":
+                    //    page = new AssetsPage();
+                    //    break;
+                    //case "Equipment":
+                    //    page = new EquipmentPage();
+                    //    break;
+                    //case "Warehouse":
+                    //    page = new WarehousePage();
+                    //    break;
+                    //case "WorkActs":
+                    //    page = new WorkActsPage();
+                    //    break;
+                    //case "Sessions":
+                    //    page = new SessionsPage();
+                    //    break;
+                    //case "Products":
+                    //    page = new ProductsPage();
+                    //    break;
+                    //case "Purchases":
+                    //    page = new PurchasesPage();
+                    //    break;
+                    //case "Suppliers":
+                    //    page = new SuppliersPage();
+                    //    break;
+                    //case "Maintenance":
+                    //    page = new MaintenancePage();
+                    //    break;
+                    //case "Reports":
+                    //    page = new ReportsPage();
+                    //    break;
+                    //case "Analytics":
+                    //    page = new AnalyticsPage();
+                    //    break;
+                    case "Users":
+                        page = new UsersPage();
+                        break;
+                    default:
+                        page = new DashboardPage();
+                        break;
+                }
 
-            MainFrame.Content = contentGrid;
+                // Устанавливаем DataContext для страницы, если нужно
+                if (page != null && _viewModel != null)
+                {
+                    // Здесь можно передавать данные в страницу
+                    // Например: page.DataContext = someViewModel;
+                }
+
+                MainFrame.Navigate(page);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при открытии страницы: {ex.Message}",
+                              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private string GetPageTitle(string pageName)

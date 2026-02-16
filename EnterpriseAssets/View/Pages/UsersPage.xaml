@@ -1,0 +1,286 @@
+﻿<Page x:Class="EnterpriseAssets.View.Pages.UsersPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:EnterpriseAssets.View.Pages"
+      mc:Ignorable="d" 
+      d:DesignHeight="600" d:DesignWidth="900"
+      Title="UsersPage"
+      Background="#F5F7FA">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок -->
+        <TextBlock Text="Управление пользователями" 
+                   FontSize="24" 
+                   FontWeight="SemiBold" 
+                   Foreground="#2C3E50"
+                   Margin="0,0,0,20"/>
+
+        <!-- Tab Control -->
+        <TabControl Grid.Row="1" 
+                    Background="White"
+                    BorderBrush="#E1E5EB"
+                    BorderThickness="1"
+                    Padding="20">
+
+            <!-- Стиль для вкладок -->
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="HeaderTemplate">
+                        <Setter.Value>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" 
+                                           FontSize="14" 
+                                           FontWeight="SemiBold"
+                                           Padding="20,10"/>
+                            </DataTemplate>
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Background" Value="#F8F9FA"/>
+                    <Setter Property="BorderBrush" Value="#E1E5EB"/>
+                    <Setter Property="BorderThickness" Value="1"/>
+                    <Setter Property="Margin" Value="2,0,2,0"/>
+                    <Setter Property="Padding" Value="10,5"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Background" Value="White"/>
+                            <Setter Property="BorderThickness" Value="1,1,1,0"/>
+                            <Setter Property="BorderBrush" Value="#4A6FA5"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </TabControl.Resources>
+
+            <!-- Вкладка: Пользователи -->
+            <TabItem Header="Пользователи">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Панель инструментов -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
+                        <Button Content="➕ Добавить пользователя" 
+                                Background="#4A6FA5"
+                                Foreground="White"
+                                Padding="15,8"
+                                BorderThickness="0"
+                                
+                                Cursor="Hand"
+                                Margin="0,0,10,0"/>
+                        <Button Content="🔄 Обновить" 
+                                Background="#95A5A6"
+                                Foreground="White"
+                                Padding="15,8"
+                                BorderThickness="0"
+                                
+                                Cursor="Hand"/>
+                    </StackPanel>
+
+                    <!-- Таблица пользователей -->
+                    <DataGrid Grid.Row="1" 
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              IsReadOnly="True"
+                              Background="White"
+                              BorderBrush="#E1E5EB"
+                              BorderThickness="1"
+                              RowHeight="40"
+                              Margin="0,0,0,15">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Width="50" Binding="{Binding id}"/>
+                            <DataGridTextColumn Header="Имя пользователя" Width="150" Binding="{Binding username}"/>
+                            <DataGridTextColumn Header="Полное имя" Width="200" Binding="{Binding full_name}"/>
+                            <DataGridTextColumn Header="Email" Width="200" Binding="{Binding email}"/>
+                            <DataGridTextColumn Header="Телефон" Width="150" Binding="{Binding phone}"/>
+                            <DataGridTextColumn Header="Роль" Width="150" Binding="{Binding role_name}"/>
+                            <DataGridTemplateColumn Header="Действия" Width="150">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="✏️" 
+                                                    ToolTip="Редактировать"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    FontSize="16"
+                                                    Margin="5,0"/>
+                                            <Button Content="🗑️" 
+                                                    ToolTip="Удалить"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    FontSize="16"
+                                                    Margin="5,0"/>
+                                            <Button Content="🔒" 
+                                                    ToolTip="Сбросить пароль"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    FontSize="16"
+                                                    Margin="5,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+
+                    <!-- Статистика -->
+                    <Border Grid.Row="2" Background="#F8F9FA" Padding="15" CornerRadius="4">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock Text="Всего пользователей: " Foreground="#7F8C8D"/>
+                            <TextBlock Text="15" Foreground="#2C3E50" FontWeight="SemiBold" Margin="0,0,20,0"/>
+                            <TextBlock Text="Активных: " Foreground="#7F8C8D"/>
+                            <TextBlock Text="12" Foreground="#27AE60" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка: Роли -->
+            <TabItem Header="Роли">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Панель инструментов -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
+                        <Button Content="➕ Добавить роль" 
+                                Background="#4A6FA5"
+                                Foreground="White"
+                                Padding="15,8"
+                                BorderThickness="0"
+                               
+                                Cursor="Hand"/>
+                    </StackPanel>
+
+                    <!-- Таблица ролей -->
+                    <DataGrid Grid.Row="1" 
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              IsReadOnly="True"
+                              Background="White"
+                              BorderBrush="#E1E5EB"
+                              BorderThickness="1"
+                              RowHeight="40">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Width="50" Binding="{Binding id}"/>
+                            <DataGridTextColumn Header="Название роли" Width="200" Binding="{Binding role_name}"/>
+                            <DataGridTextColumn Header="Описание" Width="400" Binding="{Binding description}"/>
+                            <DataGridTemplateColumn Header="Действия" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="✏️" 
+                                                    ToolTip="Редактировать"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    FontSize="16"
+                                                    Margin="5,0"/>
+                                            <Button Content="🔑" 
+                                                    ToolTip="Права доступа"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    FontSize="16"
+                                                    Margin="5,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <!-- Вкладка: Мастера -->
+            <TabItem Header="Мастера">
+                <Grid Margin="10">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Панель инструментов -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
+                        <Button Content="➕ Назначить мастера" 
+                                Background="#4A6FA5"
+                                Foreground="White"
+                                Padding="15,8"
+                                BorderThickness="0"
+                                
+                                Cursor="Hand"
+                                Margin="0,0,10,0"/>
+                        <Button Content="📋 Отчет" 
+                                Background="#95A5A6"
+                                Foreground="White"
+                                Padding="15,8"
+                                BorderThickness="0"
+                                
+                                Cursor="Hand"/>
+                    </StackPanel>
+
+                    <!-- Таблица мастеров -->
+                    <DataGrid Grid.Row="1" 
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              IsReadOnly="True"
+                              Background="White"
+                              BorderBrush="#E1E5EB"
+                              BorderThickness="1"
+                              RowHeight="40">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ID" Width="50" Binding="{Binding id}"/>
+                            <DataGridTextColumn Header="Пользователь" Width="200" Binding="{Binding user_name}"/>
+                            <DataGridTextColumn Header="Специальность" Width="200" Binding="{Binding specialty_name}"/>
+                            <DataGridTextColumn Header="Квалификация" Width="200" Binding="{Binding qualification_name}"/>
+                            <DataGridTextColumn Header="Уровень навыков" Width="150" Binding="{Binding skill_level}"/>
+                            <DataGridCheckBoxColumn Header="Доступен" Width="80" Binding="{Binding is_available}"/>
+                            <DataGridTextColumn Header="Дата найма" Width="120" Binding="{Binding hire_date, StringFormat={}{0:dd.MM.yyyy}}"/>
+                            <DataGridTemplateColumn Header="Действия" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="✏️" 
+                                                    ToolTip="Редактировать"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    FontSize="16"
+                                                    Margin="5,0"/>
+                                            <Button Content="📊" 
+                                                    ToolTip="Статистика работ"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Cursor="Hand"
+                                                    FontSize="16"
+                                                    Margin="5,0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</Page>

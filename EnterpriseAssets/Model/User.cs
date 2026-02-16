@@ -5,26 +5,30 @@ namespace EnterpriseAssets.Model
 {
     public class User : INotifyPropertyChanged
     {
-        private string _login;
-        private string _password;
+        private int _id;
+        private string _username;
         private string _fullName;
+        private string _email;
+        private string _phone;
+        private int? _roleId;
+        private string _roleName;
 
-        public string Login
+        public int Id
         {
-            get => _login;
+            get => _id;
             set
             {
-                _login = value;
+                _id = value;
                 OnPropertyChanged();
             }
         }
 
-        public string Password
+        public string Username
         {
-            get => _password;
+            get => _username;
             set
             {
-                _password = value;
+                _username = value;
                 OnPropertyChanged();
             }
         }
@@ -35,6 +39,46 @@ namespace EnterpriseAssets.Model
             set
             {
                 _fullName = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Email
+        {
+            get => _email;
+            set
+            {
+                _email = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string Phone
+        {
+            get => _phone;
+            set
+            {
+                _phone = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int? RoleId
+        {
+            get => _roleId;
+            set
+            {
+                _roleId = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string RoleName
+        {
+            get => _roleName;
+            set
+            {
+                _roleName = value;
                 OnPropertyChanged();
             }
         }

@@ -55,7 +55,7 @@
                         <TextBlock Text="Логин" Foreground="#5D6D7E" FontSize="13" Margin="0,0,0,5"/>
                         <Border CornerRadius="6" BorderThickness="1" BorderBrush="#D5DBE1" Background="White">
                             <TextBox x:Name="LoginBox" 
-                                     Text="{Binding Login, UpdateSourceTrigger=PropertyChanged}"
+                                     Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
                                      BorderThickness="0" 
                                      Padding="12,10"
                                      FontSize="14"

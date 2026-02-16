@@ -14,7 +14,7 @@
 
     <Grid>
         <!-- Анимация для сворачивания панели (нерабочая версия) ( плавная по идее)-->
-        <Grid.Resources>
+        <!--<Grid.Resources>
             <Storyboard x:Key="CollapsePanelAnimation">
                 <DoubleAnimation Storyboard.TargetProperty="(Grid.ColumnDefinitions)[0].Width.Value"
                                  To="50" Duration="0:0:0.2"/>
@@ -23,7 +23,7 @@
                 <DoubleAnimation Storyboard.TargetProperty="(Grid.ColumnDefinitions)[0].Width.Value"
                                  To="220" Duration="0:0:0.2"/>
             </Storyboard>
-        </Grid.Resources>
+        </Grid.Resources>-->
 
         <Grid.ColumnDefinitions>
             <ColumnDefinition x:Name="LeftColumn" Width="220"/>
@@ -324,13 +324,13 @@
                             </Border>
                             <StackPanel x:Name="UserDetailsPanel" Margin="10,0,0,0">
                                 <TextBlock x:Name="UserNameText"
-                                           Text="{Binding CurrentUser.FullName}" 
+                                           Text="{Binding FullName}" 
                                            Foreground="White" 
                                            FontSize="12"
                                            FontWeight="SemiBold"
                                            TextWrapping="NoWrap"/>
                                 <TextBlock x:Name="UserRoleText"
-                                           Text="{Binding CurrentUser.RoleName}" 
+                                           Text="{Binding RoleName}" 
                                            Foreground="#95A5A6" 
                                            FontSize="10"/>
                             </StackPanel>
