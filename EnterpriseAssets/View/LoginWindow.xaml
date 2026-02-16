@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:EnterpriseAssets.ViewModel"
         mc:Ignorable="d"
         Title="Учет активов предприятия - Авторизация" 
-        Height="500" 
+        Height="525" 
         Width="350"
         WindowStartupLocation="CenterScreen"
         Background="#F5F7FA"
@@ -17,6 +17,7 @@
     </Window.DataContext>
 
     <Grid>
+        <!-- Основное содержимое окна (сначала идет оно) -->
         <Border Width="340" Height="480" CornerRadius="10" Background="White"
                 BorderThickness="1" BorderBrush="#E1E5EB"
                 VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -79,7 +80,7 @@
                         </Border>
                     </StackPanel>
 
-                    <!-- Сообщение об ошибке -->
+                    <!-- Сообщение об ошибке (для ошибок входа) -->
                     <TextBlock Text="{Binding ErrorMessage}" 
                                Foreground="#E74C3C" 
                                FontSize="12"
@@ -87,20 +88,6 @@
                                TextWrapping="Wrap"
                                HorizontalAlignment="Center"
                                Visibility="{Binding ErrorMessage, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=true}"/>
-
-                    <!-- Индикатор загрузки -->
-                    <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
-                            Background="#F8F9FA"
-                            CornerRadius="6"
-                            Margin="0,0,0,10"
-                            Padding="10">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock Text="Проверка данных..." 
-                                       Foreground="#5D6D7E" 
-                                       FontSize="12"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Border>
 
                     <!-- Кнопка входа -->
                     <Button Command="{Binding LoginCommand}"
@@ -112,7 +99,9 @@
                             FontWeight="SemiBold"
                             BorderThickness="0"
                             Cursor="Hand"
-                            Margin="0,0,0,10">
+                            Margin="0,0,0,10"
+                            IsEnabled="{Binding CanLogin}"
+                            IsDefault="True">
                         <Button.Style>
                             <Style TargetType="Button">
                                 <Setter Property="Template">
@@ -156,12 +145,117 @@
                 </StackPanel>
 
                 <!-- Футер -->
-                <TextBlock Text="© Учет активов предприятия, 2024" 
-                           Foreground="#95A5A6" 
+                <TextBlock Text="© Учет активов предприятия, 2026" 
+                           Foreground="#bebcb7" 
                            FontSize="11"
                            HorizontalAlignment="Center"
-                           Margin="0,25,0,0"/>
+                           Margin="0,10,0,20"/>
 
+            </StackPanel>
+        </Border>
+
+        <!-- Затемняющий слой с проверкой БД -->
+        <Border x:Name="LoadingOverlay" 
+                Background="#CC2C3E50"  
+                CornerRadius="10"
+                Visibility="Visible"
+                Panel.ZIndex="10">
+        
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                 <!--Анимация загрузки--> 
+                <Grid Width="80" Height="80" Margin="0,0,0,20">
+                    <Grid.Resources>
+                        <Storyboard x:Key="PulseAnimation1" RepeatBehavior="Forever">
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Dot1" Storyboard.TargetProperty="Opacity">
+                                <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0"/>
+                                <LinearDoubleKeyFrame Value="0.3" KeyTime="0:0:0.8"/>
+                                <LinearDoubleKeyFrame Value="1" KeyTime="0:0:1.6"/>
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                        <Storyboard x:Key="PulseAnimation2" RepeatBehavior="Forever">
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Dot2" Storyboard.TargetProperty="Opacity">
+                                <LinearDoubleKeyFrame Value="0.3" KeyTime="0:0:0"/>
+                                <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.4"/>
+                                <LinearDoubleKeyFrame Value="0.3" KeyTime="0:0:1.2"/>
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                        <Storyboard x:Key="PulseAnimation3" RepeatBehavior="Forever">
+                            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="Dot3" Storyboard.TargetProperty="Opacity">
+                                <LinearDoubleKeyFrame Value="0.3" KeyTime="0:0:0"/>
+                                <LinearDoubleKeyFrame Value="1" KeyTime="0:0:0.8"/>
+                                <LinearDoubleKeyFrame Value="0.3" KeyTime="0:0:1.6"/>
+                            </DoubleAnimationUsingKeyFrames>
+                        </Storyboard>
+                    </Grid.Resources>
+
+                    <Grid.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard Storyboard="{StaticResource PulseAnimation1}"/>
+                            <BeginStoryboard Storyboard="{StaticResource PulseAnimation2}"/>
+                            <BeginStoryboard Storyboard="{StaticResource PulseAnimation3}"/>
+                        </EventTrigger>
+                    </Grid.Triggers>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                     <!--Три пульсирующие точки--> 
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="0">
+                        <Border x:Name="Dot1" Width="16" Height="16" CornerRadius="8" 
+                Background="#4A6FA5" Margin="0,0,8,0" Opacity="1"/>
+                        <Border x:Name="Dot2" Width="16" Height="16" CornerRadius="8" 
+                Background="#4A6FA5" Margin="0,0,8,0" Opacity="0.3"/>
+                        <Border x:Name="Dot3" Width="16" Height="16" CornerRadius="8" 
+                Background="#4A6FA5" Opacity="0.3"/>
+                    </StackPanel>
+
+                     <!--Текст "Загрузка..." с эффектом печати--> 
+                    <TextBlock x:Name="LoadingDotsText" 
+               Text="Загрузка" 
+               Foreground="White" 
+               FontSize="12"
+               HorizontalAlignment="Center"
+               Grid.Row="1"
+               Margin="0,10,0,0">
+                        <TextBlock.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <StringAnimationUsingKeyFrames Storyboard.TargetProperty="Text" Duration="0:0:1.5">
+                                            <DiscreteStringKeyFrame Value="Загрузка." KeyTime="0:0:0"/>
+                                            <DiscreteStringKeyFrame Value="Загрузка.." KeyTime="0:0:0.5"/>
+                                            <DiscreteStringKeyFrame Value="Загрузка..." KeyTime="0:0:1"/>
+                                            <DiscreteStringKeyFrame Value="Загрузка" KeyTime="0:0:1.5"/>
+                                        </StringAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </TextBlock.Triggers>
+                    </TextBlock>
+                </Grid>
+
+                 <!--Текст статуса--> 
+                <TextBlock x:Name="LoadingText" 
+                           Text="Проверка подключения к базе данных..." 
+                           Foreground="White"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,10"/>
+
+                 <!--Кнопка повторной попытки (изначально скрыта)--> 
+                <Button x:Name="RetryButton" 
+                        Content="🔄 Повторить попытку"
+                        Background="#4A6FA5"
+                        Foreground="White"
+                        Padding="15,8"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Click="RetryButton_Click"
+                        Visibility="Collapsed"
+                        Width="200"/>
             </StackPanel>
         </Border>
     </Grid>

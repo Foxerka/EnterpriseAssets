@@ -248,7 +248,7 @@
                               RowHeight="40">
 
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Width="50" Binding="{Binding id}"/>
+                            <DataGridTextColumn Header="ID" Width="50" Binding="{Binding DB.USERS.id}"/>
                             <DataGridTextColumn Header="Пользователь" Width="200" Binding="{Binding user_name}"/>
                             <DataGridTextColumn Header="Специальность" Width="200" Binding="{Binding specialty_name}"/>
                             <DataGridTextColumn Header="Квалификация" Width="200" Binding="{Binding qualification_name}"/>

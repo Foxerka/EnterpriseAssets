@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EnterpriseAssets.Model.DataBase;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,6 +24,7 @@ namespace EnterpriseAssets.View.Pages
         public UsersPage()
         {
             InitializeComponent();
+            DB_AssetManage DB = new DB_AssetManage();
         }
     }
 }

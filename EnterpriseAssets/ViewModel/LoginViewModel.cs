@@ -1,10 +1,11 @@
-﻿using System.ComponentModel;
+﻿using EnterpriseAssets.Model;
+using EnterpriseAssets.Model.DataBase;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using EnterpriseAssets.Model;
-using EnterpriseAssets.Model.DataBase;
 
 namespace EnterpriseAssets.ViewModel
 {
@@ -14,6 +15,7 @@ namespace EnterpriseAssets.ViewModel
         private string _password = "admin123";
         private string _errorMessage;
         private bool _isLoading;
+        private bool _isDatabaseConnected;
 
         private DB_AssetManage db = new DB_AssetManage();
 
@@ -60,9 +62,22 @@ namespace EnterpriseAssets.ViewModel
             }
         }
 
+        public bool IsDatabaseConnected
+        {
+            get => _isDatabaseConnected;
+            set
+            {
+                _isDatabaseConnected = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanLogin));
+            }
+        }
+
+        // CanLogin теперь зависит от IsDatabaseConnected
         public bool CanLogin => !string.IsNullOrWhiteSpace(Username) &&
                                !string.IsNullOrWhiteSpace(Password) &&
-                               !IsLoading;
+                               !IsLoading &&
+                               IsDatabaseConnected; // Добавили проверку подключения к БД
 
         public ICommand LoginCommand { get; }
         public ICommand CloseCommand { get; }
@@ -71,6 +86,9 @@ namespace EnterpriseAssets.ViewModel
         {
             LoginCommand = new RelayCommand(ExecuteLogin, CanExecuteLogin);
             CloseCommand = new RelayCommand(ExecuteClose);
+
+            // По умолчанию считаем, что БД не подключена
+            IsDatabaseConnected = false;
         }
 
         private bool CanExecuteLogin(object parameter)
@@ -84,24 +102,21 @@ namespace EnterpriseAssets.ViewModel
             IsLoading = true;
 
             // Запускаем асинхронную авторизацию
-            System.Threading.Tasks.Task.Run(() => AuthenticateUserAsync());
+            Task.Run(() => AuthenticateUserAsync());
         }
 
-        private async System.Threading.Tasks.Task AuthenticateUserAsync()
+        private async Task AuthenticateUserAsync()
         {
             try
             {
                 // Ищем пользователя в базе данных по username и password
-                var user = await System.Threading.Tasks.Task.Run(() =>
+                var user = await Task.Run(() =>
                     db.USERS.FirstOrDefault(u => u.username == Username && u.password == Password));
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     if (user != null)
                     {
-                        // Проверяем, активен ли пользователь (такого поля нету)
-                        // Если нужно, можно добавить проверку статуса
-
                         LoginSuccess(user);
                     }
                     else
@@ -115,7 +130,7 @@ namespace EnterpriseAssets.ViewModel
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    ErrorMessage = $"Ошибка подключения к базе данных: {ex.Message}";
+                    ErrorMessage = $"Ошибка при авторизации: {ex.Message}";
                     IsLoading = false;
                 });
             }
