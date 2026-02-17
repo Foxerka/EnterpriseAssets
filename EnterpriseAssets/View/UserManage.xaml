@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:EnterpriseAssets.View"
         mc:Ignorable="d"
         Title="Управление пользователем" 
-        Height="550" 
+        Height="650" 
         Width="450"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
@@ -36,11 +36,10 @@
                 <Border Grid.Column="0"
                         Width="80" Height="80"
                         CornerRadius="40"
-                        Background="{Binding RoleColor}"
                         Margin="0,0,20,0">
                     <TextBlock Text="👤" 
-                               FontSize="48"
-                               Foreground="White"
+                               FontSize="42"
+                               Foreground="#4A6FA5"
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"/>
                 </Border>
@@ -76,8 +75,7 @@
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"
-                                />
+                                 BorderThickness="1"/>
                     </StackPanel>
                 </Border>
 
@@ -95,8 +93,7 @@
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"
-                               />
+                                 BorderThickness="1"/>
                     </StackPanel>
                 </Border>
 
@@ -114,8 +111,7 @@
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"
-                               />
+                                 BorderThickness="1"/>
                     </StackPanel>
                 </Border>
 
@@ -133,8 +129,7 @@
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"
-                            />
+                                 BorderThickness="1"/>
                     </StackPanel>
                 </Border>
 
@@ -153,25 +148,53 @@
                                   FontSize="14"
                                   BorderBrush="#E1E5EB"
                                   BorderThickness="1"
-                                
                                   DisplayMemberPath="name"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Статус -->
-                <Border Background="White"
+                <!-- Пароль (для нового пользователя или смены) -->
+                <Border x:Name="PasswordSection" 
+                        Background="White"
                         CornerRadius="8"
                         Padding="15"
-                        Margin="0,0,0,15">
+                        Margin="0,0,0,15"
+                        Visibility="Collapsed">
                     <StackPanel>
-                        <TextBlock Text="Статус" 
+                        <TextBlock Text="Пароль" 
                                    Foreground="#7F8C8D" 
                                    FontSize="12"
                                    Margin="0,0,0,5"/>
-                        <CheckBox x:Name="ChkIsActive" 
-                                  Content="Активен"
-                                  FontSize="14"
-                                  Foreground="#2C3E50"/>
+                        <PasswordBox x:Name="TxtPassword" 
+                                     Padding="8"
+                                     FontSize="14"
+                                     BorderBrush="#E1E5EB"
+                                     BorderThickness="1"
+                                     PasswordChar="●"/>
+                        <TextBlock Text="Минимум 6 символов" 
+                                   Foreground="#95A5A6" 
+                                   FontSize="10"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Подтверждение пароля (для нового пользователя) -->
+                <Border x:Name="ConfirmPasswordSection" 
+                        Background="White"
+                        CornerRadius="8"
+                        Padding="15"
+                        Margin="0,0,0,15"
+                        Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock Text="Подтверждение пароля" 
+                                   Foreground="#7F8C8D" 
+                                   FontSize="12"
+                                   Margin="0,0,0,5"/>
+                        <PasswordBox x:Name="TxtConfirmPassword" 
+                                     Padding="8"
+                                     FontSize="14"
+                                     BorderBrush="#E1E5EB"
+                                     BorderThickness="1"
+                                     PasswordChar="●"/>
                     </StackPanel>
                 </Border>
 
@@ -212,41 +235,39 @@
 
                 <!-- Кнопка удаления -->
                 <Button x:Name="BtnDelete" 
-                        Grid.Column="0"
-                        Content="🗑️ Удалить пользователя"
-                        Background="#E74C3C"
-                        Foreground="White"
-                        Padding="15,10"
-                        BorderThickness="0"
-                   
-                        Cursor="Hand"
-                        HorizontalAlignment="Left"
-                        Click="BtnDelete_Click"/>
+        Grid.Column="0"
+        Content="🗑️ Удалить"
+        Background="#E74C3C"
+        Foreground="White"
+        Padding="15,10"
+        BorderThickness="0"
+        Margin="0,0,0,0"
+        Cursor="Hand"
+        HorizontalAlignment="Left"
+        Click="BtnDelete_Click"/>
 
-                <!-- Кнопка сброса пароля -->
-                <Button x:Name="BtnResetPassword" 
-                        Grid.Column="1"
-                        Content="🔒 Сбросить пароль"
-                        Background="#F39C12"
-                        Foreground="White"
-                        Padding="15,10"
-                        BorderThickness="0"
-                        
-                        Cursor="Hand"
-                        Margin="0,0,10,0"
-                        Click="BtnResetPassword_Click"/>
+                <!-- Кнопка смены пароля -->
+                <Button x:Name="BtnChangePassword" 
+        Grid.Column="1"
+        Content="🔑 Сменить пароль"
+        Background="#F39C12"
+        Foreground="White"
+        Padding="15,10"
+        BorderThickness="0"
+        Cursor="Hand"
+        Margin="0,0,10,0"
+        Click="BtnChangePassword_Click"/>
 
                 <!-- Кнопка сохранения -->
                 <Button x:Name="BtnSave" 
-                        Grid.Column="2"
-                        Content="💾 Сохранить"
-                        Background="#4A6FA5"
-                        Foreground="White"
-                        Padding="25,10"
-                        BorderThickness="0"
-                
-                        Cursor="Hand"
-                        Click="BtnSave_Click"/>
+        Grid.Column="2"
+        Content="💾 Сохранить"
+        Background="#4A6FA5"
+        Foreground="White"
+        Padding="25,10"
+        BorderThickness="0"
+        Cursor="Hand"
+        Click="BtnSave_Click"/>
             </Grid>
         </Border>
     </Grid>

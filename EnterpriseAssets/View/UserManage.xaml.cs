@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
-using System.Windows.Media;
 using EnterpriseAssets.Model.DataBase;
 
 namespace EnterpriseAssets.View
@@ -11,6 +10,7 @@ namespace EnterpriseAssets.View
         private DB_AssetManage db = new DB_AssetManage();
         private USERS _currentUser;
         private bool _isNewUser;
+        private bool _isChangingPassword = false;
 
         // Конструктор для существующего пользователя
         public UserManage(USERS user)
@@ -20,6 +20,10 @@ namespace EnterpriseAssets.View
             _isNewUser = false;
             LoadUserData();
             LoadRoles();
+
+            // Скрываем секцию пароля для существующего пользователя
+            PasswordSection.Visibility = Visibility.Collapsed;
+            ConfirmPasswordSection.Visibility = Visibility.Collapsed;
         }
 
         // Конструктор для нового пользователя
@@ -30,6 +34,11 @@ namespace EnterpriseAssets.View
             _isNewUser = true;
             Title = "Добавление нового пользователя";
             LoadRoles();
+
+            // Показываем секцию пароля для нового пользователя
+            PasswordSection.Visibility = Visibility.Visible;
+            ConfirmPasswordSection.Visibility = Visibility.Visible;
+            BtnChangePassword.Visibility = Visibility.Collapsed; // Скрываем кнопку смены пароля
         }
 
         private void LoadUserData()
@@ -41,7 +50,7 @@ namespace EnterpriseAssets.View
             TxtFullName.Text = _currentUser.full_name;
             TxtEmail.Text = _currentUser.email;
             TxtPhone.Text = _currentUser.phone;
-            ChkIsActive.IsChecked = true; // Добавьте поле is_active в модель, если есть
+
 
             // Заголовок
             UserFullName.Text = _currentUser.full_name ?? "Новый пользователь";
@@ -63,7 +72,11 @@ namespace EnterpriseAssets.View
 
             if (_currentUser?.role_id != null)
             {
-                CmbRole.SelectedValue = _currentUser.role_id;
+                var selectedRole = roles.FirstOrDefault(r => r.id == _currentUser.role_id);
+                if (selectedRole != null)
+                {
+                    CmbRole.SelectedItem = selectedRole;
+                }
             }
         }
 
@@ -74,82 +87,133 @@ namespace EnterpriseAssets.View
             return role?.name ?? "Не назначена";
         }
 
-        private Brush GetRoleColor()
-        {
-            return _currentUser?.role_id switch
-            {
-                1 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E74C3C")), // Админ
-                2 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#3498DB")), // Директор
-                3 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F39C12")), // Нач. цеха
-                4 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27AE60")), // Мастер
-                5 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#9B59B6")), // Кладовщик
-                6 => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1ABC9C")), // Оператор
-                _ => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#95A5A6"))
-            };
-        }
-
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Валидация
+                // 1. Валидация общих полей
                 if (string.IsNullOrWhiteSpace(TxtUsername.Text))
                 {
-                    MessageBox.Show("Введите имя пользователя", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Введите имя пользователя", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(TxtFullName.Text))
                 {
-                    MessageBox.Show("Введите полное имя", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Введите полное имя", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                // Сохраняем данные
-                _currentUser.username = TxtUsername.Text;
-                _currentUser.full_name = TxtFullName.Text;
-                _currentUser.email = TxtEmail.Text;
-                _currentUser.phone = TxtPhone.Text;
-
-                if (CmbRole.SelectedItem is ROLES selectedRole)
-                {
-                    _currentUser.role_id = selectedRole.id;
-                }
-
+                // 2. Логика для НОВОГО пользователя
                 if (_isNewUser)
                 {
-                    // Для нового пользователя задаем пароль по умолчанию
-                    _currentUser.password = "default123";
+                    if (string.IsNullOrWhiteSpace(TxtPassword.Password))
+                    {
+                        MessageBox.Show("Введите пароль", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    if (TxtPassword.Password.Length < 6)
+                    {
+                        MessageBox.Show("Пароль должен содержать минимум 6 символов", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    if (TxtPassword.Password != TxtConfirmPassword.Password)
+                    {
+                        MessageBox.Show("Пароли не совпадают", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    // Заполняем нового пользователя
+                    _currentUser.username = TxtUsername.Text;
+                    _currentUser.full_name = TxtFullName.Text;
+                    _currentUser.email = TxtEmail.Text;
+                    _currentUser.phone = TxtPhone.Text;
                     _currentUser.created_at = DateTime.Now;
+
+                    // ВНИМАНИЕ: Здесь должен быть хеш пароля! 
+                    // Пример: _currentUser.password = PasswordHelper.Hash(TxtPassword.Password);
+                    _currentUser.password = TxtPassword.Password;
+
+                    if (CmbRole.SelectedItem is ROLES selectedRole)
+                    {
+                        _currentUser.role_id = selectedRole.id;
+                    }
+
                     db.USERS.Add(_currentUser);
+                }
+                // 3. Логика для СУЩЕСТВУЮЩЕГО пользователя
+                else
+                {
+                    // ВАЖНО: Загружаем актуальную запись из БД в текущем контексте
+                    var userInDb = db.USERS.Find(_currentUser.id);
+
+                    if (userInDb == null)
+                    {
+                        MessageBox.Show("Пользователь не найден в базе данных", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    // Обновляем данные у загруженного объекта (который отслеживается контекстом)
+                    userInDb.username = TxtUsername.Text;
+                    userInDb.full_name = TxtFullName.Text;
+                    userInDb.email = TxtEmail.Text;
+                    userInDb.phone = TxtPhone.Text;
+
+                    if (CmbRole.SelectedItem is ROLES selectedRole)
+                    {
+                        userInDb.role_id = selectedRole.id;
+                    }
+
+                    if (_isChangingPassword)
+                    {
+                        if (string.IsNullOrWhiteSpace(TxtPassword.Password))
+                        {
+                            MessageBox.Show("Введите новый пароль", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+
+                        if (TxtPassword.Password.Length < 6)
+                        {
+                            MessageBox.Show("Пароль должен содержать минимум 6 символов", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+
+                        if (TxtPassword.Password != TxtConfirmPassword.Password)
+                        {
+                            MessageBox.Show("Пароли не совпадают", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+
+                        userInDb.password = TxtPassword.Password;
+                    }
                 }
 
                 db.SaveChanges();
 
+                MessageBox.Show("Данные успешно сохранены", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 DialogResult = true;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка сохранения: {ex.Message}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка сохранения: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
             if (_isNewUser)
             {
-                // Если это новый пользователь, просто закрываем окно
                 DialogResult = false;
                 Close();
                 return;
             }
 
             var result = MessageBox.Show(
-                "Вы уверены, что хотите удалить пользователя?\nЭто действие нельзя отменить.",
+                $"Вы уверены, что хотите удалить пользователя {_currentUser.full_name}?\nЭто действие нельзя отменить.",
                 "Подтверждение удаления",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
@@ -158,8 +222,17 @@ namespace EnterpriseAssets.View
             {
                 try
                 {
-                    // Проверяем, есть ли связанные записи
-                    var hasMasters = db.MASTERS.Any(m => m.user_id == _currentUser.id);
+                    var userToDelete = db.USERS.Find(_currentUser.id);
+
+                    if (userToDelete == null)
+                    {
+                        MessageBox.Show("Пользователь не найден", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    var hasMasters = db.MASTERS.Any(m => m.user_id == userToDelete.id);
+
+
 
                     if (hasMasters)
                     {
@@ -172,68 +245,49 @@ namespace EnterpriseAssets.View
                         return;
                     }
 
-                    db.USERS.Remove(_currentUser);
+                    db.USERS.Remove(userToDelete);
                     db.SaveChanges();
 
-                    MessageBox.Show("Пользователь успешно удален", "Успех",
-                                  MessageBoxButton.OK, MessageBoxImage.Information);
-
+                    MessageBox.Show("Пользователь успешно удален", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                     DialogResult = true;
                     Close();
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка удаления: {ex.Message}", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Ошибка удаления: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
-        private void BtnResetPassword_Click(object sender, RoutedEventArgs e)
+        private void BtnChangePassword_Click(object sender, RoutedEventArgs e)
         {
-            if (_isNewUser)
+            if (_isChangingPassword)
             {
-                MessageBox.Show("Для нового пользователя пароль будет установлен при сохранении",
-                              "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
+                // Скрываем поля пароля
+                PasswordSection.Visibility = Visibility.Collapsed;
+                ConfirmPasswordSection.Visibility = Visibility.Collapsed;
+                BtnChangePassword.Content = "🔑 Сменить пароль";
+                _isChangingPassword = false;
+
+                // Очищаем поля
+                TxtPassword.Password = "";
+                TxtConfirmPassword.Password = "";
             }
-
-            var result = MessageBox.Show(
-                "Сбросить пароль пользователя?\nНовый пароль будет отправлен на email.",
-                "Сброс пароля",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result == MessageBoxResult.Yes)
+            else
             {
-                try
-                {
-                    // Генерируем новый пароль
-                    string newPassword = GenerateRandomPassword();
-                    _currentUser.password = newPassword;
-                    db.SaveChanges();
+                // Показываем поля пароля
+                PasswordSection.Visibility = Visibility.Visible;
+                ConfirmPasswordSection.Visibility = Visibility.Visible;
+                BtnChangePassword.Content = "❌ Отмена";
+                _isChangingPassword = true;
 
-                    MessageBox.Show(
-                        $"Пароль успешно сброшен.\nНовый пароль: {newPassword}\n\n" +
-                        "Рекомендуем сообщить пароль пользователю.",
-                        "Сброс пароля",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка сброса пароля: {ex.Message}", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                // Очищаем поля перед вводом нового пароля
+                TxtPassword.Password = "";
+                TxtConfirmPassword.Password = "";
+
+                // Фокус на поле пароля
+                TxtPassword.Focus();
             }
-        }
-
-        private string GenerateRandomPassword()
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, 8)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

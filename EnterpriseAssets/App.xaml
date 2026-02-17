@@ -6,7 +6,7 @@
     <Application.Resources>
         <!-- Конвертеры -->
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-
+        
         <!-- Стили для MainWindow -->
         <Style x:Key="NavButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>

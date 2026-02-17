@@ -12,28 +12,39 @@ namespace EnterpriseAssets.View.Pages
     public partial class UsersPage : Page
     {
         private DB_AssetManage db = new DB_AssetManage();
+
         private List<USERS> _allUsers;
-        private List<RoleViewModel> _allRoles; // Изменили тип
+        private List<RoleViewModel> _allRoles;
         private List<MasterViewModel> _allMasters;
 
         public UsersPage()
         {
             InitializeComponent();
-            LoadData();
+            RefreshAllData();
         }
 
-        private void LoadData()
+        /// <summary>
+        /// Полная перезагрузка всех данных (пользователи, роли, мастера)
+        /// Вызывается после добавления/удаления/изменения
+        /// </summary>
+        private void RefreshAllData()
         {
             try
             {
-                // Загрузка пользователей с включением связанных данных
+                _allUsers = null;
+                _allRoles = null;
+                _allMasters = null;
+
+
+                db.Dispose();
+                db = new DB_AssetManage();
+
+                // Загружаем пользователей
                 _allUsers = db.USERS
-                    .Include("ROLES") // Включаем данные о ролях
+                    .Include("ROLES")
                     .ToList();
 
-                ApplyUserSort();
-
-                // Загрузка ролей
+                // Загружаем роли
                 _allRoles = db.ROLES
                     .Select(r => new RoleViewModel
                     {
@@ -42,20 +53,24 @@ namespace EnterpriseAssets.View.Pages
                         Description = r.description,
                         UsersCount = db.USERS.Count(u => u.role_id == r.id)
                     })
-                    .OrderBy(r => r.Name) // Сразу сортируем по имени
+                    .OrderBy(r => r.Name)
                     .ToList();
 
-                RolesList.ItemsSource = _allRoles;
-
-                // Загрузка мастеров
+                // Загружаем мастеров
                 LoadMasters();
+
+                // Применяем сортировку и фильтр, обновляем UI
+                ApplyUserSort();
+                RolesList.ItemsSource = null;
+                RolesList.ItemsSource = _allRoles;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки данных: {ex.Message}", "Ошибка",
+                MessageBox.Show($"Ошибка обновления данных: {ex.Message}", "Ошибка",
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void LoadMasters()
         {
@@ -83,6 +98,7 @@ namespace EnterpriseAssets.View.Pages
                                    EquipmentCount = db.EQUIPMENT.Count(e => e.assigned_to == m.user_id)
                                }).ToList();
 
+                MastersList.ItemsSource = null;
                 MastersList.ItemsSource = _allMasters;
             }
             catch (Exception ex)
@@ -96,7 +112,7 @@ namespace EnterpriseAssets.View.Pages
 
         private void RefreshUsers_Click(object sender, RoutedEventArgs e)
         {
-            LoadData();
+            RefreshAllData();
         }
 
         private void SortUsers(object sender, RoutedEventArgs e)
@@ -115,7 +131,6 @@ namespace EnterpriseAssets.View.Pages
 
             IEnumerable<USERS> sortedUsers = _allUsers;
 
-            // Применяем выбранную сортировку
             if (SortByUsername.IsChecked == true)
                 sortedUsers = _allUsers.OrderBy(u => u.username);
             else if (SortByFullName.IsChecked == true)
@@ -123,9 +138,8 @@ namespace EnterpriseAssets.View.Pages
             else if (SortByRole.IsChecked == true)
                 sortedUsers = _allUsers.OrderBy(u => u.ROLES != null ? u.ROLES.name : "");
             else
-                sortedUsers = _allUsers.OrderBy(u => u.username); // Сортировка по умолчанию
+                sortedUsers = _allUsers.OrderBy(u => u.username);
 
-            // Применяем фильтр
             ApplyUserFilter(sortedUsers);
         }
 
@@ -141,7 +155,9 @@ namespace EnterpriseAssets.View.Pages
                 source = source.Where(u => u.ROLES != null && u.ROLES.name == selectedRole);
             }
 
-            UsersList.ItemsSource = source.ToList();
+            var resultList = source.ToList();
+            UsersList.ItemsSource = null; // Сброс для принудительного обновления UI
+            UsersList.ItemsSource = resultList;
         }
 
         private void AddUser_Click(object sender, RoutedEventArgs e)
@@ -151,10 +167,7 @@ namespace EnterpriseAssets.View.Pages
 
             if (dialog.ShowDialog() == true)
             {
-                // Обновляем список после добавления
-                LoadData();
-                MessageBox.Show("Пользователь успешно добавлен", "Успех",
-                              MessageBoxButton.OK, MessageBoxImage.Information);
+                RefreshAllData();
             }
         }
 
@@ -165,6 +178,7 @@ namespace EnterpriseAssets.View.Pages
             {
                 int userId = (int)border.Tag;
                 var user = _allUsers?.FirstOrDefault(u => u.id == userId);
+
                 if (user != null)
                 {
                     var dialog = new View.UserManage(user);
@@ -172,46 +186,20 @@ namespace EnterpriseAssets.View.Pages
 
                     if (dialog.ShowDialog() == true)
                     {
-                        // Обновляем список после изменений
-                        LoadData();
+                        RefreshAllData();
                     }
                 }
             }
         }
 
-        // ===== Обработчики для ролей =====
         private void AddRole_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Добавление новой роли", "Добавление",
-                          MessageBoxButton.OK, MessageBoxImage.Information);
-        }
+            var dialog = new View.RoleManage();
+            dialog.Owner = Window.GetWindow(this);
 
-        private void SortRoles(object sender, RoutedEventArgs e)
-        {
-            try
+            if (dialog.ShowDialog() == true)
             {
-                if (_allRoles == null || !_allRoles.Any())
-                {
-                    MessageBox.Show("Нет данных для сортировки", "Информация",
-                                  MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
-
-                List<RoleViewModel> sortedRoles;
-
-                if (SortRolesByName.IsChecked == true)
-                    sortedRoles = _allRoles.OrderBy(r => r.Name).ToList();
-                else if (SortRolesById.IsChecked == true)
-                    sortedRoles = _allRoles.OrderBy(r => r.Id).ToList();
-                else
-                    sortedRoles = _allRoles;
-
-                RolesList.ItemsSource = sortedRoles;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка сортировки: {ex.Message}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                RefreshAllData(); // Обновляем все данные (списки ролей и пользователей)
             }
         }
 
@@ -222,31 +210,39 @@ namespace EnterpriseAssets.View.Pages
             {
                 int roleId = (int)border.Tag;
                 var role = _allRoles?.FirstOrDefault(r => r.Id == roleId);
+
                 if (role != null)
                 {
-                    ShowRoleEditDialog(role);
+                    // Находим полную сущность роли из БД для передачи в окно
+                    var fullRole = db.ROLES.FirstOrDefault(r => r.id == roleId);
+                    if (fullRole != null)
+                    {
+                        var dialog = new View.RoleManage(fullRole);
+                        dialog.Owner = Window.GetWindow(this);
+
+                        if (dialog.ShowDialog() == true)
+                        {
+                            RefreshAllData();
+                        }
+                    }
                 }
             }
         }
 
-        private void ShowRoleEditDialog(RoleViewModel role)
-        {
-            // Диалог редактирования роли
-            MessageBox.Show($"Редактирование роли: {role.Name}", "Редактирование роли",
-                          MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        // ===== Обработчики для мастеров =====
         private void AssignMaster_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Назначение нового мастера", "Назначение",
-                          MessageBoxButton.OK, MessageBoxImage.Information);
+            var dialog = new View.MasterManage();
+            dialog.Owner = Window.GetWindow(this);
+
+            if (dialog.ShowDialog() == true)
+            {
+                RefreshAllData(); // Обновляем все данные
+            }
         }
 
         private void MastersReport_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Формирование отчета по мастерам", "Отчет",
-                          MessageBoxButton.OK, MessageBoxImage.Information);
+            // Логика отчета
         }
 
         private void SortMasters(object sender, RoutedEventArgs e)
@@ -272,6 +268,7 @@ namespace EnterpriseAssets.View.Pages
             else if (SortMastersByAvailability.IsChecked == true)
                 sortedMasters = _allMasters.OrderByDescending(m => m.IsAvailable);
 
+            MastersList.ItemsSource = null;
             MastersList.ItemsSource = sortedMasters.ToList();
         }
 
@@ -286,6 +283,7 @@ namespace EnterpriseAssets.View.Pages
                 filteredMasters = filteredMasters.Where(m => m.IsAvailable);
             }
 
+            MastersList.ItemsSource = null;
             MastersList.ItemsSource = filteredMasters.ToList();
         }
 
@@ -296,17 +294,80 @@ namespace EnterpriseAssets.View.Pages
             {
                 int masterId = (int)border.Tag;
                 var master = _allMasters?.FirstOrDefault(m => m.Id == masterId);
+
                 if (master != null)
                 {
-                    ShowMasterEditDialog(master);
+                    // Находим полную сущность из БД
+                    var fullMaster = db.MASTERS.FirstOrDefault(m => m.id == masterId);
+                    if (fullMaster != null)
+                    {
+                        var dialog = new View.MasterManage(fullMaster);
+                        dialog.Owner = Window.GetWindow(this);
+
+                        if (dialog.ShowDialog() == true)
+                        {
+                            RefreshAllData();
+                        }
+                    }
                 }
             }
         }
 
-        private void ShowMasterEditDialog(MasterViewModel master)
+        // ===== Очистка ресурсов =====
+        ~UsersPage()
         {
-            MessageBox.Show($"Редактирование мастера: {master.UserName}", "Редактирование мастера",
-                          MessageBoxButton.OK, MessageBoxImage.Information);
+            db?.Dispose();
+        }
+
+        private void SearchMasters_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ApplyFiltersAndSort();
+        }
+        private void ClearSearch_Click(object sender, RoutedEventArgs e)
+        {
+            SearchBox.Text = string.Empty;
+            SearchBox.Focus();
+            ApplyFiltersAndSort();
+        }
+
+        private void ApplyFiltersAndSort()
+        {
+            if (_allMasters == null) return;
+
+            string searchText = SearchBox.Text.Trim().ToLower();
+
+            // 1. Поиск (по Имени, Специальности, Квалификации)
+            var filtered = _allMasters.Where(m =>
+                string.IsNullOrEmpty(searchText) ||
+                (m.UserName != null && m.UserName.ToLower().Contains(searchText)) ||
+                (m.SpecialtyName != null && m.SpecialtyName.ToLower().Contains(searchText)) ||
+                (m.QualificationName != null && m.QualificationName.ToLower().Contains(searchText))
+            ).ToList();
+
+            // 2. Фильтр "Только доступные"
+            if (ShowOnlyAvailable.IsChecked == true)
+            {
+                filtered = filtered.Where(m => m.IsAvailable).ToList();
+            }
+
+            // 3. Сортировка
+            if (SortMastersByName.IsChecked == true)
+            {
+                filtered = filtered.OrderBy(m => m.UserName).ToList();
+            }
+            else if (SortMastersBySpecialty.IsChecked == true)
+            {
+                filtered = filtered.OrderBy(m => m.SpecialtyName).ToList();
+            }
+            else if (SortMastersByAvailability.IsChecked == true)
+            {
+                // Сначала недоступные, потом доступные (или наоборот по желанию)
+                filtered = filtered.OrderByDescending(m => m.IsAvailable).ToList();
+            }
+
+            // 4. Обновление списка
+            MastersList.ItemsSource = null; // Сброс для обновления привязки
+            MastersList.ItemsSource = filtered;
         }
     }
 
@@ -318,21 +379,6 @@ namespace EnterpriseAssets.View.Pages
         public string Description { get; set; }
         public int UsersCount { get; set; }
         public int PermissionsCount { get; set; }
-        public Brush RoleColor => new SolidColorBrush((Color)ColorConverter.ConvertFromString(GetRoleColor(Name)));
-
-        private string GetRoleColor(string roleName)
-        {
-            return roleName switch
-            {
-                "Администратор" => "#E74C3C",
-                "Директор" => "#3498DB",
-                "Начальник цеха" => "#F39C12",
-                "Мастер" => "#27AE60",
-                "Кладовщик" => "#9B59B6",
-                "Оператор" => "#1ABC9C",
-                _ => "#95A5A6"
-            };
-        }
     }
 
     // ViewModel для мастеров
@@ -350,6 +396,7 @@ namespace EnterpriseAssets.View.Pages
         public int EquipmentCount { get; set; }
 
         public string StatusText => IsAvailable ? "Доступен" : "Занят";
+
         public Brush StatusColor => IsAvailable ?
             new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27AE60")) :
             new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E74C3C"));
