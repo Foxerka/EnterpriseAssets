@@ -11,7 +11,7 @@ namespace EnterpriseAssets.View.Pages
 {
     public partial class UsersPage : Page
     {
-        private DB_AssetManage db = new DB_AssetManage();
+        private DB_AssetManage db = new();
 
         private List<USERS> _allUsers;
         private List<RoleViewModel> _allRoles;
@@ -336,7 +336,7 @@ namespace EnterpriseAssets.View.Pages
 
             string searchText = SearchBox.Text.Trim().ToLower();
 
-            // 1. Поиск (по Имени, Специальности, Квалификации)
+            // Поиск (по Имени, Специальности, Квалификации)
             var filtered = _allMasters.Where(m =>
                 string.IsNullOrEmpty(searchText) ||
                 (m.UserName != null && m.UserName.ToLower().Contains(searchText)) ||
@@ -344,13 +344,13 @@ namespace EnterpriseAssets.View.Pages
                 (m.QualificationName != null && m.QualificationName.ToLower().Contains(searchText))
             ).ToList();
 
-            // 2. Фильтр "Только доступные"
+            // Фильтр "Только доступные"
             if (ShowOnlyAvailable.IsChecked == true)
             {
                 filtered = filtered.Where(m => m.IsAvailable).ToList();
             }
 
-            // 3. Сортировка
+            // Сортировка
             if (SortMastersByName.IsChecked == true)
             {
                 filtered = filtered.OrderBy(m => m.UserName).ToList();
@@ -365,7 +365,7 @@ namespace EnterpriseAssets.View.Pages
                 filtered = filtered.OrderByDescending(m => m.IsAvailable).ToList();
             }
 
-            // 4. Обновление списка
+            // Обновление списка
             MastersList.ItemsSource = null; // Сброс для обновления привязки
             MastersList.ItemsSource = filtered;
         }

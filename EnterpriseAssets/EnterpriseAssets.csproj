@@ -170,6 +170,9 @@
     <Compile Include="View\Pages\DashboardPage.xaml.cs">
       <DependentUpon>DashboardPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\Pages\SuppliersPage.xaml.cs">
+      <DependentUpon>SuppliersPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Pages\UserManage.xaml.cs">
       <DependentUpon>UserManage.xaml</DependentUpon>
     </Compile>
@@ -178,6 +181,9 @@
     </Compile>
     <Compile Include="View\RoleManage.xaml.cs">
       <DependentUpon>RoleManage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\SupplierManage.xaml.cs">
+      <DependentUpon>SupplierManage.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\UserManage.xaml.cs">
       <DependentUpon>UserManage.xaml</DependentUpon>
@@ -206,6 +212,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\Pages\SuppliersPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Pages\UserManage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -215,6 +225,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\RoleManage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\SupplierManage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

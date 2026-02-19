@@ -336,8 +336,7 @@ namespace EnterpriseAssets.View
             {
                 Page? page = null;
 
-                // Создаем соответствующую страницу
-                switch (pageName)
+                page = pageName switch
                 {
                     //case "Dashboard":
                     //    page = new DashboardPage();
@@ -363,9 +362,7 @@ namespace EnterpriseAssets.View
                     //case "Purchases":
                     //    page = new PurchasesPage();
                     //    break;
-                    //case "Suppliers":
-                    //    page = new SuppliersPage();
-                    //    break;
+                    "Suppliers" => new SuppliersPage(),
                     //case "Maintenance":
                     //    page = new MaintenancePage();
                     //    break;
@@ -375,13 +372,9 @@ namespace EnterpriseAssets.View
                     //case "Analytics":
                     //    page = new AnalyticsPage();
                     //    break;
-                    case "Users":
-                        page = new UsersPage();
-                        break;
-                    default:
-                        page = new DashboardPage();
-                        break;
-                }
+                    "Users" => new UsersPage(),
+                    _ => new DashboardPage(),
+                };
 
                 // Устанавливаем DataContext для страницы, если нужно
                 if (page != null && _viewModel != null)
