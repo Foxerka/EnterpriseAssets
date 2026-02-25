@@ -338,18 +338,13 @@ namespace EnterpriseAssets.View
 
                 page = pageName switch
                 {
-                    //case "Dashboard":
-                    //    page = new DashboardPage();
-                    //    break;
-                    //case "Assets":
-                    //    page = new AssetsPage();
-                    //    break;
+                    "Dashboard" => new DashboardPage(),
+                    "Assets" => new AssetsPage(_viewModel?.RoleName == "Администратор"),
+
                     //case "Equipment":
                     //    page = new EquipmentPage();
                     //    break;
-                    //case "Warehouse":
-                    //    page = new WarehousePage();
-                    //    break;
+                    "Warehouse" => new WarehousePage(),
                     //case "WorkActs":
                     //    page = new WorkActsPage();
                     //    break;
@@ -374,7 +369,7 @@ namespace EnterpriseAssets.View
                     //    break;
                     "Users" => new UsersPage(),
                     _ => new DashboardPage(),
-                };
+                };;
 
                 // Устанавливаем DataContext для страницы, если нужно
                 if (page != null && _viewModel != null)
@@ -399,7 +394,7 @@ namespace EnterpriseAssets.View
                 "Dashboard" => "Главная панель",
                 "Assets" => "Производственные активы",
                 "Equipment" => "Оборудование",
-                "Warehouse" => "Управление складом",
+                "Warehouse" => "Управление цехами",
                 "WorkActs" => "Акты выполненных работ",
                 "Sessions" => "Рабочие сессии станков",
                 "Products" => "Готовая продукция",

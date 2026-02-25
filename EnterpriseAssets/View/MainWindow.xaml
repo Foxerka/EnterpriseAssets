@@ -125,7 +125,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="📦" FontSize="14" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="BtnWarehouseText" 
-                                           Text="Склад" 
+                                           Text="Цеха" 
                                            FontSize="14"
                                            Foreground="White"
                                            VerticalAlignment="Center"
@@ -155,11 +155,12 @@
                                            Margin="10,0,0,0"/>
                             </StackPanel>
                         </Button>
-
+                            <!--СКРЫТ-->
                         <Button x:Name="BtnSessions" 
                                 Style="{StaticResource NavButtonStyle}"
                                 Tag="Sessions"
-                                Click="NavButton_Click">
+                                Click="NavButton_Click"
+                                Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="⏱️" FontSize="14" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="BtnSessionsText" 
@@ -247,18 +248,22 @@
                             </StackPanel>
                         </Button>
 
-                        <!-- Группа: Отчеты -->
+                        <!-- Группа: Отчеты  СКРЫТЫ-->
                         <TextBlock x:Name="GroupReports" 
                                    Text="Отчеты" 
                                    Foreground="#7F8C8D" 
                                    FontSize="12"
                                    FontWeight="SemiBold"
-                                   Margin="15,20,0,5"/>
+                                   Margin="15,20,0,5"
+                                   
+                                   Visibility="Collapsed"/>
 
                         <Button x:Name="BtnReports" 
                                 Style="{StaticResource NavButtonStyle}"
                                 Tag="Reports"
-                                Click="NavButton_Click">
+                                Click="NavButton_Click"
+                                
+                                Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="📈" FontSize="14" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="BtnReportsText" 
@@ -273,7 +278,9 @@
                         <Button x:Name="BtnAnalytics" 
                                 Style="{StaticResource NavButtonStyle}"
                                 Tag="Analytics"
-                                Click="NavButton_Click">
+                                Click="NavButton_Click"
+                                
+                                Visibility="Collapsed">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="📊" FontSize="14" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="BtnAnalyticsText" 
