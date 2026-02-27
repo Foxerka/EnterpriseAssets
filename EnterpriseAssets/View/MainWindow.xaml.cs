@@ -341,9 +341,7 @@ namespace EnterpriseAssets.View
                     "Dashboard" => new DashboardPage(),
                     "Assets" => new AssetsPage(_viewModel?.RoleName == "Администратор"),
 
-                    //case "Equipment":
-                    //    page = new EquipmentPage();
-                    //    break;
+                    "Equipment" => new EquipmentPage(),
                     "Warehouse" => new WarehousePage(),
                     //case "WorkActs":
                     //    page = new WorkActsPage();
@@ -354,13 +352,9 @@ namespace EnterpriseAssets.View
                     //case "Products":
                     //    page = new ProductsPage();
                     //    break;
-                    //case "Purchases":
-                    //    page = new PurchasesPage();
-                    //    break;
+                    "Purchases" => new PurchasesPage(), 
                     "Suppliers" => new SuppliersPage(),
-                    //case "Maintenance":
-                    //    page = new MaintenancePage();
-                    //    break;
+                    "Maintenance" => new MaintenancePage(),
                     //case "Reports":
                     //    page = new ReportsPage();
                     //    break;

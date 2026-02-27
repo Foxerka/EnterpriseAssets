@@ -1,0 +1,200 @@
+﻿<Window x:Class="EnterpriseAssets.View.EquipmentManage"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Управление оборудованием" 
+        Height="700" Width="650"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="#F5F7FA">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 🔹 Заголовок -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock x:Name="WindowTitle" 
+                       Text="Добавление оборудования" 
+                       FontSize="24" 
+                       FontWeight="SemiBold" 
+                       Foreground="#2C3E50"/>
+            <TextBlock Text="Привяжите оборудование к производственному активу" 
+                       FontSize="12" 
+                       Foreground="#7F8C8D"
+                       Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <!-- 🔹 Контент с прокруткой -->
+        <ScrollViewer Grid.Row="1" 
+                      VerticalScrollBarVisibility="Auto"
+                      Margin="0,0,0,15">
+            <StackPanel>
+                <!-- 📋 Раздел 1: Привязка к активу -->
+                <Border Background="White" BorderBrush="#E1E5EB" BorderThickness="1" 
+                        CornerRadius="8" Padding="15" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="📋 Привязка к активу" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="#2C3E50" Margin="0,0,0,12"/>
+
+                        <TextBlock Text="Производственный актив *" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                        <ComboBox x:Name="CmbAsset" 
+                                  Padding="10,8"
+                                  SelectionChanged="CmbAsset_SelectionChanged"
+                                  Margin="0,0,0,5"/>
+                        <TextBlock Text="Выберите актив типа «Оборудование» из списка" 
+                                   FontSize="11" Foreground="#95A5A6" FontStyle="Italic"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- ⚙️ Раздел 2: Параметры оборудования -->
+                <Border Background="White" BorderBrush="#E1E5EB" BorderThickness="1" 
+                        CornerRadius="8" Padding="15" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="⚙️ Параметры оборудования" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="#2C3E50" Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Тип оборудования" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <TextBox x:Name="TxtEquipmentType" Padding="10,8" BorderBrush="#BDC3C7"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Производитель" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <TextBox x:Name="TxtManufacturer" Padding="10,8" BorderBrush="#BDC3C7"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="Примечания" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                        <TextBox x:Name="TxtNotes" Padding="10,8" BorderBrush="#BDC3C7" 
+                                 TextWrapping="Wrap" AcceptsReturn="True" Height="60" VerticalContentAlignment="Top"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 📍 Раздел 3: Расположение и ответственность -->
+                <Border Background="White" BorderBrush="#E1E5EB" BorderThickness="1" 
+                        CornerRadius="8" Padding="15" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="📍 Расположение и ответственность" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="#2C3E50" Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Цех" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <ComboBox x:Name="CmbWorkshop" Padding="8,6"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Ответственный мастер" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <ComboBox x:Name="CmbMaster" Padding="8,6"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Дата установки" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <DatePicker x:Name="DpInstallationDate" Padding="8,6" BorderBrush="#BDC3C7"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Гарантия (месяцев)" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <TextBox x:Name="TxtWarranty" Padding="10,8" BorderBrush="#BDC3C7" 
+                                         PreviewTextInput="TxtNumber_PreviewTextInput"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- 🔧 Раздел 4: Обслуживание -->
+                <Border Background="White" BorderBrush="#E1E5EB" BorderThickness="1" 
+                        CornerRadius="8" Padding="15" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="🔧 Обслуживание и наработка" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="#2C3E50" Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Последнее ТО" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <DatePicker x:Name="DpLastMaintenance" Padding="8,6" BorderBrush="#BDC3C7"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Следующее ТО" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <DatePicker x:Name="DpNextMaintenance" Padding="8,6" BorderBrush="#BDC3C7"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Наработка (часы)" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <TextBox x:Name="TxtCurrentHours" Padding="10,8" BorderBrush="#BDC3C7" 
+                                         PreviewTextInput="TxtNumber_PreviewTextInput"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Макс. до ТО (часы)" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <TextBox x:Name="TxtMaxHours" Padding="10,8" BorderBrush="#BDC3C7" 
+                                         PreviewTextInput="TxtNumber_PreviewTextInput"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- 📊 Раздел 5: Статус -->
+                <Border Background="White" BorderBrush="#E1E5EB" BorderThickness="1" 
+                        CornerRadius="8" Padding="15" Margin="0,0,0,5">
+                    <StackPanel>
+                        <TextBlock Text="📊 Статус" FontSize="14" FontWeight="SemiBold" 
+                                   Foreground="#2C3E50" Margin="0,0,0,12"/>
+                        <ComboBox x:Name="CmbStatus" Padding="8,6"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 🔹 Кнопки -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="BtnDelete" Content="🗑️ Удалить" Background="#E74C3C" Foreground="White"
+                    Padding="15,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"
+                    Click="BtnDelete_Click"/>
+            <Button x:Name="BtnCancel" Content="Отмена" Background="#95A5A6" Foreground="White"
+                    Padding="20,8" BorderThickness="0" Cursor="Hand" Margin="0,0,10,0"
+                    Click="BtnCancel_Click"/>
+            <Button x:Name="BtnSave" Content="💾 Сохранить" Background="#27AE60" Foreground="White"
+                    Padding="20,8" BorderThickness="0" Cursor="Hand" Click="BtnSave_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -138,6 +138,7 @@ namespace EnterpriseAssets.View.Pages
 
                 var assets = query.OrderByDescending(a => a.created_at).ToList();
 
+
                 // Преобразуем в ViewModel для отображения
                 AssetsList.ItemsSource = assets.Select(a => new AssetViewModel
                 {
@@ -146,31 +147,21 @@ namespace EnterpriseAssets.View.Pages
                     CategoryName = a.CATEGORY?.Category1 ?? "—",
                     WorkshopName = a.WORKSHOPS?.name ?? "Не назначен",
                     Quantity = a.quantity,
-
-                    // ✅ Безопасное получение единицы измерения
-                    UnitName = GetUnitName(a.unit, a.Unit1),
-
+                    UnitName = a.Unit1?.unit1 ?? "шт.",
                     Value = a.current_value,
                     StatusName = a.STATUSASSETS?.Status,
-                    StatusColor = GetStatusColor(a.STATUSASSETS?.Status),  // ← название статуса
+                    StatusColor = GetStatusColor(a.STATUSASSETS?.Status),
 
-                    // Получаем название типа из навигационного свойства или fallback
+                    // ✅ Получаем название типа
                     TypeName = a.ASSETTYPE?.AssetType1,
-                    TypeIcon = GetTypeIcon(a.ASSETTYPE?.AssetType1),       // ← название типа
-                    TypeColor = GetTypeColor(a.ASSETTYPE?.AssetType1),     // ← название типа
+                    TypeIcon = GetTypeIcon(a.ASSETTYPE?.AssetType1),
+                    TypeColor = GetTypeColor(a.ASSETTYPE?.AssetType1),
 
-                    // Показ статуса только для "Оборудование"
-                    ShowStatus = string.Equals(a.ASSETTYPE?.AssetType1?.Trim(), "Оборудование",
-                               StringComparison.OrdinalIgnoreCase)
-                 ? Visibility.Visible
-                 : Visibility.Collapsed,
-                    ShowStatusIcon = string.Equals(a.ASSETTYPE?.AssetType1?.Trim(), "Оборудование",
-                                   StringComparison.OrdinalIgnoreCase)
-                     ? Visibility.Visible
-                     : Visibility.Collapsed,
+                    // ✅ Проверка по НАЗВАНИЮ, возврат Visibility
+                    ShowStatus = IsEquipmentType(a.ASSETTYPE?.AssetType1) ? Visibility.Visible : Visibility.Collapsed,
+                    ShowStatusIcon = IsEquipmentType(a.ASSETTYPE?.AssetType1) ? Visibility.Visible : Visibility.Collapsed,
 
-                    // ✅ Используем GetUnitName и для отображения
-                    QuantityDisplay = $"{a.quantity} {GetUnitName(a.unit, a.Unit1)}",
+                    QuantityDisplay = $"{a.quantity} {a.Unit1?.unit1 ?? "шт."}",
                     ValueDisplay = a.current_value.HasValue ? $"{a.current_value:C}" : "—"
                 }).ToList();
 
@@ -194,19 +185,11 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-
-        private string GetUnitName(int? unitId, Unit unitEntity)
+        private bool IsEquipmentType(string assetTypeName)
         {
-            if (unitEntity?.unit1 != null)
-                return unitEntity.unit1;
-            if (unitId.HasValue)
-            {
-                var unit = db.Unit.Find(unitId.Value);
-                if (unit?.unit1 != null)
-                    return unit.unit1;
-            }
-            return "шт.";
+            return string.Equals(assetTypeName?.Trim(), "Оборудование", StringComparison.OrdinalIgnoreCase);
         }
+       
         private void LoadSuppliers()
         {
             try
@@ -671,7 +654,6 @@ namespace EnterpriseAssets.View.Pages
                 LoadSuppliers();
         }
 
-        // 🔹 Освобождение ресурсов
         public void Dispose()
         {
             db?.Dispose();

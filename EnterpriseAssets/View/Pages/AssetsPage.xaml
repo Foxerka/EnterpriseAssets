@@ -66,7 +66,7 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <!-- Панель управления -->
@@ -199,7 +199,7 @@
                                                                    FontSize="11"
                                                                    Margin="0,0,12,0"/>
 
-                                                        <!-- Статус только для оборудования -->
+                                                        <!-- Статус только для оборудования --><!--
                                                         <TextBlock Text="📊" 
                                                                    Foreground="#95A5A6" 
                                                                    Margin="0,0,4,0"
@@ -208,8 +208,20 @@
                                                                    Foreground="{Binding StatusColor}" 
                                                                    FontSize="11"
                                                                    FontWeight="Medium"
-                                                                   Visibility="{Binding ShowStatus}"/>
+                                                                   Visibility="{Binding ShowStatus}"/>-->
                                                     </WrapPanel>
+                                                    <StackPanel Orientation="Horizontal" 
+                                                                Margin="0,2,0,0"
+                                                                Visibility="{Binding ShowStatus}">
+                                                        <TextBlock Text="📊" 
+                                                                Foreground="#95A5A6" 
+                                                                Margin="0,0,4,0"
+                                                                FontSize="11"/>
+                                                        <TextBlock Text="{Binding StatusName}" 
+                                                                    Foreground="{Binding StatusColor}" 
+                                                                FontSize="11"
+                                                                FontWeight="Medium"/>
+                                                    </StackPanel>
                                                 </StackPanel>
 
                                                 <!-- Количество / Цена -->
@@ -260,7 +272,8 @@
                         </ScrollViewer>
 
                         <!-- Статистика -->
-                        <Border Grid.Row="2" 
+                        <Border Grid.Row="2"
+                                VerticalAlignment="Bottom"
                                 Background="#F8F9FA" 
                                 Padding="10,8" 
                                 CornerRadius="4"

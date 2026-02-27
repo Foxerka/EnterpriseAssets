@@ -164,6 +164,9 @@
     <Compile Include="View\AssetManage.xaml.cs">
       <DependentUpon>AssetManage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\EquipmentManage.xaml.cs">
+      <DependentUpon>EquipmentManage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
@@ -176,6 +179,15 @@
     <Compile Include="View\Pages\DashboardPage.xaml.cs">
       <DependentUpon>DashboardPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\Pages\EquipmentPage.xaml.cs">
+      <DependentUpon>EquipmentPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Pages\MaintenancePage.xaml.cs">
+      <DependentUpon>MaintenancePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Pages\PurchasesPage.xaml.cs">
+      <DependentUpon>PurchasesPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Pages\SuppliersPage.xaml.cs">
       <DependentUpon>SuppliersPage.xaml</DependentUpon>
     </Compile>
@@ -187,6 +199,9 @@
     </Compile>
     <Compile Include="View\Pages\WarehousePage.xaml.cs">
       <DependentUpon>WarehousePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\PurchaseManage.xaml.cs">
+      <DependentUpon>PurchaseManage.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\RoleManage.xaml.cs">
       <DependentUpon>RoleManage.xaml</DependentUpon>
@@ -201,6 +216,10 @@
       <DependentUpon>WorkshopManage.xaml</DependentUpon>
     </Compile>
     <Page Include="View\AssetManage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\EquipmentManage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -232,6 +251,18 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\Pages\EquipmentPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Pages\MaintenancePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Pages\PurchasesPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Pages\SuppliersPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -245,6 +276,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\Pages\WarehousePage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PurchaseManage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -294,6 +329,9 @@
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="View\EquipmentManage.xam">
+      <Generator>MSBuild:Compile</Generator>
     </None>
   </ItemGroup>
   <ItemGroup>
