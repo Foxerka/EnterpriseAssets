@@ -210,7 +210,7 @@
                                                      Width="100" Height="6"
                                                      Margin="10,0,0,0"
                                                      Minimum="0" Maximum="100"
-                                                     Value="{Binding WorkHoursPercent}"
+                                                     Value="{Binding WorkHoursPercent, Mode=OneWay}"
                                                      Foreground="#4A6FA5"
                                                      Background="#ECF0F1"/>
                                     </StackPanel>
@@ -274,11 +274,11 @@
                 BorderThickness="1">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <TextBlock Text="Всего: " Foreground="#7F8C8D" FontSize="12"/>
-                <TextBlock x:Name="TotalCount" Text="0" Foreground="#2C3E50" FontWeight="SemiBold" FontSize="12" Margin="0,0,15,0"/>
+                <TextBlock Text="{Binding TotalCount}" Foreground="#2C3E50" FontWeight="SemiBold" FontSize="12" Margin="0,0,15,0"/>
                 <TextBlock Text="✅ В работе: " Foreground="#7F8C8D" FontSize="12"/>
-                <TextBlock x:Name="ActiveCount" Text="0" Foreground="#27AE60" FontWeight="SemiBold" FontSize="12" Margin="0,0,15,0"/>
+                <TextBlock Text="{Binding ActiveCount}" Foreground="#27AE60" FontWeight="SemiBold" FontSize="12" Margin="0,0,15,0"/>
                 <TextBlock Text="⚠️ Требует ТО: " Foreground="#7F8C8D" FontSize="12"/>
-                <TextBlock x:Name="MaintenanceCount" Text="0" Foreground="#E67E22" FontWeight="SemiBold" FontSize="12"/>
+                <TextBlock Text="{Binding MaintenanceCount}" Foreground="#E67E22" FontWeight="SemiBold" FontSize="12"/>
             </StackPanel>
         </Border>
     </Grid>

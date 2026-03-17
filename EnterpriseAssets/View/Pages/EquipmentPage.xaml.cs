@@ -3,384 +3,390 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Data.Entity;
+using System.Windows.Input;
+using System.Windows.Media;
 using EnterpriseAssets.Model.DataBase;
+using System.ComponentModel;
 
 namespace EnterpriseAssets.View.Pages
 {
-    public partial class EquipmentPage : Page
+    public partial class EquipmentPage : Page, INotifyPropertyChanged
     {
         private DB_AssetManage db = new DB_AssetManage();
+
+        private List<EquipmentViewModel> _allEquipment;
+        private List<EquipmentViewModel> _filteredEquipment;
+        private List<string> _workshops;
+        private List<STATUSASSETS> _statuses;
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        // Статистика (привязана к нижней панели)
+        private int _totalCount;
+        public int TotalCount
+        {
+            get => _totalCount;
+            set { _totalCount = value; OnPropertyChanged(nameof(TotalCount)); }
+        }
+
+        private int _activeCount;
+        public int ActiveCount
+        {
+            get => _activeCount;
+            set { _activeCount = value; OnPropertyChanged(nameof(ActiveCount)); }
+        }
+
+        private int _maintenanceCount;
+        public int MaintenanceCount
+        {
+            get => _maintenanceCount;
+            set { _maintenanceCount = value; OnPropertyChanged(nameof(MaintenanceCount)); }
+        }
 
         public EquipmentPage()
         {
             InitializeComponent();
+            DataContext = this; // для привязки статистики
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadFilters();
-            LoadEquipment();
-        }
-        private void CmbStatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            LoadEquipment();
-        }
-        // 🔹 Загрузка фильтров (цеха)
-        private void LoadFilters()
-        {
-            try
-            {
-                CmbWorkshopFilter.Items.Clear();
-                CmbWorkshopFilter.Items.Add(new ComboBoxItem { Content = "Все цеха", Tag = (int?)null });
-
-                var workshops = db.WORKSHOPS.OrderBy(w => w.name).ToList();
-                foreach (var w in workshops)
-                {
-                    CmbWorkshopFilter.Items.Add(new ComboBoxItem
-                    {
-                        Content = w.name,
-                        Tag = w.id
-                    });
-                }
-                CmbWorkshopFilter.SelectedIndex = 0;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ LoadFilters: {ex.Message}");
-            }
+            LoadData();
+            FillFilters();
+            ApplyFilters();
         }
 
-        // 🔹 Загрузка оборудования
-        private void LoadEquipment()
+        /// <summary>
+        /// Загрузка данных из БД (синхронно)
+        /// </summary>
+        private void LoadData()
         {
-            try
+            // Загружаем оборудование со связанными сущностями
+            var equipmentQuery = db.EQUIPMENT
+                .Include("WORKSHOPS")
+                .Include("MASTERS.USERS")
+                .Include("STATUSASSETS")
+                .Include("MAINTENANCE");
+
+            var equipmentList = equipmentQuery.ToList();
+            _allEquipment = equipmentList.Select(eq => new EquipmentViewModel(eq)).ToList();
+
+            _statuses = db.STATUSASSETS.ToList();
+        }
+
+        /// <summary>
+        /// Заполнение фильтров (цеха и статусы)
+        /// </summary>
+        private void FillFilters()
+        {
+            // Цеха
+            _workshops = _allEquipment
+                .Where(e => e.WorkshopName != null)
+                .Select(e => e.WorkshopName)
+                .Distinct()
+                .OrderBy(w => w)
+                .ToList();
+
+            CmbWorkshopFilter.Items.Clear();
+            CmbWorkshopFilter.Items.Add(new ComboBoxItem { Content = "Все цеха", IsSelected = true });
+            foreach (var ws in _workshops)
             {
-                System.Diagnostics.Debug.WriteLine("🔹 LoadEquipment started");
-
-                var query = db.EQUIPMENT
-                    .Include(e => e.WORKSHOPS)
-                    .Include(e => e.MASTERS)
-                    .Include(e => e.MASTERS.USERS)
-                    .Include(e => e.STATUSASSETS)
-                    .AsQueryable();
-
-                // Поиск
-                if (!string.IsNullOrWhiteSpace(TxtSearch?.Text))
-                {
-                    var search = TxtSearch.Text.ToLower();
-                    query = query.Where(e =>
-                        (!string.IsNullOrEmpty(e.asset_id) && e.asset_id.ToLower().Contains(search)) ||
-                        (!string.IsNullOrEmpty(e.equipment_type) && e.equipment_type.ToLower().Contains(search)) ||
-                        (!string.IsNullOrEmpty(e.manufacturer) && e.manufacturer.ToLower().Contains(search)) ||
-                        (!string.IsNullOrEmpty(e.notes) && e.notes.ToLower().Contains(search)));
-                }
-
-                // Фильтр по цеху
-                if (CmbWorkshopFilter != null && CmbWorkshopFilter.SelectedIndex > 0)
-                {
-                    if (CmbWorkshopFilter.SelectedItem is ComboBoxItem wsItem)
-                    {
-                        if (wsItem.Tag is int workshopId)
-                        {
-                            query = query.Where(e => e.Workshop_id == workshopId);
-                        }
-                    }
-                }
-
-                var equipment = query.OrderByDescending(e => e.installation_date).ToList();
-                System.Diagnostics.Debug.WriteLine($"🔹 Equipment loaded: {equipment.Count} items");
-
-                // 🔹 Формируем ViewModel ПОЭЛЕМЕНТНО (безопасно)
-                var viewModelList = new List<EquipmentViewModel>();
-
-                foreach (var e in equipment)
-                {
-                    try
-                    {
-                        var vm = new EquipmentViewModel
-                        {
-                            Id = e.ID,
-                            AssetId = !string.IsNullOrEmpty(e.asset_id) ? e.asset_id : "—",
-                            AssetName = GetAssetName(e.asset_id),
-                            EquipmentType = !string.IsNullOrEmpty(e.equipment_type) ? e.equipment_type : "—",
-                            Manufacturer = !string.IsNullOrEmpty(e.manufacturer) ? e.manufacturer : "—",
-                        };
-
-                        // Цех
-                        if (e.WORKSHOPS != null && !string.IsNullOrEmpty(e.WORKSHOPS.name))
-                        {
-                            vm.WorkshopName = e.WORKSHOPS.name;
-                        }
-                        else
-                        {
-                            vm.WorkshopName = "Не назначен";
-                        }
-
-                        // Мастер
-                        if (e.MASTERS != null && e.MASTERS.USERS != null)
-                        {
-                            var user = e.MASTERS.USERS;
-                            vm.MasterName = !string.IsNullOrEmpty(user.full_name)
-                                ? user.full_name
-                                : (!string.IsNullOrEmpty(user.username) ? user.username : "Не назначен");
-                        }
-                        else
-                        {
-                            vm.MasterName = "Не назначен";
-                        }
-
-                        // Статус
-                        if (e.STATUSASSETS != null && !string.IsNullOrEmpty(e.STATUSASSETS.Status))
-                        {
-                            vm.StatusName = e.STATUSASSETS.Status;
-                            vm.StatusColor = GetStatusColor(e.STATUSASSETS.Status);
-                        }
-                        else
-                        {
-                            vm.StatusName = "—";
-                            vm.StatusColor = "#7F8C8D";
-                        }
-
-                        // Даты и наработка
-                        vm.InstallationDate = e.installation_date;
-                        vm.WarrantyMonths = e.warranty_period_months;
-                        vm.WarrantyDisplay = GetWarrantyDisplay(e.installation_date, e.warranty_period_months);
-                        vm.WarrantyColor = GetWarrantyColor(e.installation_date, e.warranty_period_months);
-
-                        vm.LastMaintenance = e.last_maintenance_date;
-                        vm.NextMaintenance = e.next_maintenance_date;
-                        vm.NextMaintenanceDisplay = GetNextMaintenanceDisplay(e.next_maintenance_date);
-                        vm.MaintenanceColor = GetMaintenanceColor(e.next_maintenance_date);
-
-                        vm.CurrentHours = e.current_work_hours ?? 0;
-                        vm.MaxHours = e.max_work_hours_before_maintenance;
-                        vm.WorkHoursDisplay = $"{vm.CurrentHours} ч.";
-                        vm.MaxHoursDisplay = e.max_work_hours_before_maintenance.HasValue ? $"{e.max_work_hours_before_maintenance} ч." : "∞";
-                        vm.WorkHoursPercent = CalculateWorkHoursPercent(e.current_work_hours, e.max_work_hours_before_maintenance);
-
-                        vm.Notes = e.notes;
-
-                        viewModelList.Add(vm);
-                    }
-                    catch (Exception itemEx)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"❌ Error processing Equipment ID={e.ID}: {itemEx.Message}");
-                        // Пропускаем проблемную запись
-                    }
-                }
-
-                if (EquipmentList == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("❌ EquipmentList is NULL! Проверьте XAML");
-                    MessageBox.Show("EquipmentList не найден! Проверьте XAML файл.", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                EquipmentList.ItemsSource = viewModelList;
-                System.Diagnostics.Debug.WriteLine($"✅ ViewModel created: {viewModelList.Count} items");
-
-                UpdateStats(equipment);
+                CmbWorkshopFilter.Items.Add(new ComboBoxItem { Content = ws });
             }
-            catch (Exception ex)
+
+            // Статусы (из справочника STATUSASSETS)
+            CmbStatusFilter.Items.Clear();
+            CmbStatusFilter.Items.Add(new ComboBoxItem { Content = "Все статусы", IsSelected = true });
+            foreach (var status in _statuses.OrderBy(s => s.Status))
             {
-                System.Diagnostics.Debug.WriteLine($"❌ LoadEquipment ERROR: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                MessageBox.Show($"Ошибка загрузки: {ex.Message}\n\n{ex.StackTrace}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                CmbStatusFilter.Items.Add(new ComboBoxItem { Content = status.Status });
             }
         }
 
-        // 🔹 ViewModel для карточки оборудования
-        public class EquipmentViewModel
+        /// <summary>
+        /// Применение фильтров
+        /// </summary>
+        private void ApplyFilters()
         {
-            public int Id { get; set; }
-            public string AssetId { get; set; }
-            public string AssetName { get; set; }
-            public string EquipmentType { get; set; }
-            public string Manufacturer { get; set; }
-            public string WorkshopName { get; set; }
-            public string MasterName { get; set; }
-            public string StatusName { get; set; }
-            public string StatusColor { get; set; }
+            if (_allEquipment == null) return;
 
-            public DateTime? InstallationDate { get; set; }
-            public int? WarrantyMonths { get; set; }
-            public string WarrantyDisplay { get; set; }
-            public string WarrantyColor { get; set; }
+            var query = _allEquipment.AsEnumerable();
 
-            public DateTime? LastMaintenance { get; set; }
-            public DateTime? NextMaintenance { get; set; }
-            public string NextMaintenanceDisplay { get; set; }
-            public string MaintenanceColor { get; set; }
-
-            public int CurrentHours { get; set; }
-            public int? MaxHours { get; set; }
-            public string WorkHoursDisplay { get; set; }
-            public string MaxHoursDisplay { get; set; }
-            public double WorkHoursPercent { get; set; }
-
-            public string Notes { get; set; }
-        }
-
-        // 🔹 Вспомогательные методы
-        private string GetAssetName(string assetId)
-        {
-            if (string.IsNullOrEmpty(assetId)) return "—";
-            var asset = db.PRODUCTION_ASSETS.FirstOrDefault(a => a.name == assetId || a.serial_number == assetId);
-            return asset?.name ?? assetId;
-        }
-
-        private string GetStatusColor(string statusName)
-        {
-            if (string.IsNullOrEmpty(statusName))
-                return "#7F8C8D";  // Серый для NULL
-
-            return statusName?.Trim().ToLower() switch
+            // Поиск по тексту
+            string searchText = TxtSearch.Text.Trim().ToLower();
+            if (!string.IsNullOrEmpty(searchText))
             {
-                "в эксплуатации" => "#27AE60",
-                "на обслуживании" => "#F39C12",
-                "неисправен" => "#E74C3C",
-                "списан" => "#95A5A6",
-                _ => "#7F8C8D"
-            };
-        }
+                query = query.Where(e =>
+                    (e.AssetName?.ToLower().Contains(searchText) ?? false) ||
+                    (e.AssetId?.ToLower().Contains(searchText) ?? false) ||
+                    (e.Manufacturer?.ToLower().Contains(searchText) ?? false) ||
+                    (e.EquipmentType?.ToLower().Contains(searchText) ?? false));
+            }
 
-        private string GetWarrantyDisplay(DateTime? installDate, int? warrantyMonths)
-        {
-            if (!installDate.HasValue || !warrantyMonths.HasValue) return "—";
-            var warrantyEnd = installDate.Value.AddMonths(warrantyMonths.Value);
-            var daysLeft = (warrantyEnd - DateTime.Now).Days;
-
-            if (daysLeft < 0) return $"❌ Истекла ({Math.Abs(daysLeft)} дн. назад)";
-            if (daysLeft <= 30) return $"⚠️ {daysLeft} дн. до конца";
-            return $"✅ {daysLeft} дн. осталось";
-        }
-
-        private string GetWarrantyColor(DateTime? installDate, int? warrantyMonths)
-        {
-            if (!installDate.HasValue || !warrantyMonths.HasValue) return "#7F8C8D";
-            var warrantyEnd = installDate.Value.AddMonths(warrantyMonths.Value);
-            var daysLeft = (warrantyEnd - DateTime.Now).Days;
-
-            if (daysLeft < 0) return "#E74C3C";
-            if (daysLeft <= 30) return "#F39C12";
-            return "#27AE60";
-        }
-
-        private string GetNextMaintenanceDisplay(DateTime? nextMaintenance)
-        {
-            if (!nextMaintenance.HasValue) return "Не запланировано";
-            var daysLeft = (nextMaintenance.Value - DateTime.Now).Days;
-
-            if (daysLeft < 0) return $"❌ Просрочено на {Math.Abs(daysLeft)} дн.";
-            if (daysLeft <= 7) return $"⚠️ Через {daysLeft} дн.";
-            return $"📅 {nextMaintenance.Value:dd.MM.yyyy}";
-        }
-
-        private string GetMaintenanceColor(DateTime? nextMaintenance)
-        {
-            if (!nextMaintenance.HasValue) return "#7F8C8D";
-            var daysLeft = (nextMaintenance.Value - DateTime.Now).Days;
-
-            if (daysLeft < 0) return "#E74C3C";
-            if (daysLeft <= 7) return "#E67E22";
-            return "#27AE60";
-        }
-
-        private double CalculateWorkHoursPercent(int? current, int? max)
-        {
-            if (!current.HasValue || !max.HasValue || max.Value == 0) return 0;
-            return Math.Min(100, (double)current.Value / max.Value * 100);
-        }
-
-        private void UpdateStats(List<EQUIPMENT> equipment)
-        {
-            TotalCount.Text = equipment.Count.ToString();
-            ActiveCount.Text = equipment.Count(e => e.STATUSASSETS?.Status == "В эксплуатации").ToString();
-            MaintenanceCount.Text = equipment.Count(e =>
+            // Фильтр по цеху
+            if (CmbWorkshopFilter.SelectedItem is ComboBoxItem workshopItem && workshopItem.Content.ToString() != "Все цеха")
             {
-                if (!e.next_maintenance_date.HasValue) return false;
-                var daysLeft = (e.next_maintenance_date.Value - DateTime.Now).Days;
-                return daysLeft <= 14 && daysLeft >= 0;
-            }).ToString();
+                string selectedWorkshop = workshopItem.Content.ToString();
+                query = query.Where(e => e.WorkshopName == selectedWorkshop);
+            }
+
+            // Фильтр по статусу
+            if (CmbStatusFilter.SelectedItem is ComboBoxItem statusItem && statusItem.Content.ToString() != "Все статусы")
+            {
+                string selectedStatus = statusItem.Content.ToString();
+                query = query.Where(e => e.StatusName == selectedStatus);
+            }
+
+            _filteredEquipment = query.ToList();
+            EquipmentList.ItemsSource = _filteredEquipment;
+
+            // Обновление статистики
+            UpdateStatistics();
         }
 
-        // 🔹 Обработчики событий
-        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e) => LoadEquipment();
-        private void CmbWorkshopFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) => LoadEquipment();
-        private void BtnRefresh_Click(object sender, RoutedEventArgs e) => LoadEquipment();
+        /// <summary>
+        /// Обновление нижней статистики
+        /// </summary>
+        private void UpdateStatistics()
+        {
+            TotalCount = _filteredEquipment?.Count ?? 0;
+            ActiveCount = _filteredEquipment?.Count(e => e.StatusName.Contains("эксплуатац") || e.OperationalStatus?.Contains("эксплуатац") == true) ?? 0;
+            MaintenanceCount = _filteredEquipment?.Count(e => e.IsMaintenanceDue) ?? 0;
+        }
 
+        // Обработчики фильтров
+        private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e) => ApplyFilters();
+        private void CmbWorkshopFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) => ApplyFilters();
+        private void CmbStatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e) => ApplyFilters();
+
+        // Обновление (кнопка Refresh)
+        private void BtnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            LoadData();
+            FillFilters();
+            ApplyFilters();
+        }
+
+        // Добавление оборудования
         private void BtnAddEquipment_Click(object sender, RoutedEventArgs e)
         {
-            var window = new EquipmentManage();
+            var window = new EquipmentManage(); // без параметра – добавление
+            window.Owner = Window.GetWindow(this); // привязываем к родительскому окну
             if (window.ShowDialog() == true)
             {
-                LoadEquipment();
+                // Если данные изменились – обновляем список
+                LoadData();
+                FillFilters();
+                ApplyFilters();
             }
         }
 
-        private void EquipmentCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        // Клик по карточке (просмотр деталей)
+        private void EquipmentCard_Click(object sender, MouseButtonEventArgs e)
         {
-            if ((sender as FrameworkElement)?.Tag is int id)
-            {
-                OpenEditWindow(id);
-            }
-        }
+            // Если кликнули по кнопке (или её потомку) – игнорируем, чтобы не открывать карточку повторно
+            var originalSource = e.OriginalSource as DependencyObject;
+            if (originalSource != null && FindParent<Button>(originalSource) != null)
+                return;
 
-        private void EditEquipment_Click(object sender, RoutedEventArgs e)
-        {
-            if ((sender as Button)?.Tag is int id)
+            if (sender is Border border && border.Tag is int id)
             {
-                OpenEditWindow(id);
-            }
-        }
-
-        private void OpenEditWindow(int id)
-        {
-            var equipment = db.EQUIPMENT
-                .Include(e => e.WORKSHOPS)
-                .Include(e => e.MASTERS)
-                .Include(e => e.STATUSASSETS)
-                .FirstOrDefault(e => e.ID == id);
-
-            if (equipment != null)
-            {
-                var window = new EquipmentManage(equipment);
+                var window = new EquipmentManage(id);
+                window.Owner = Window.GetWindow(this);
                 if (window.ShowDialog() == true)
                 {
-                    LoadEquipment();
+                    LoadData();
+                    FillFilters();
+                    ApplyFilters();
                 }
             }
         }
 
+        // Вспомогательный метод для поиска родительского элемента определённого типа
+        private T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parent = VisualTreeHelper.GetParent(child);
+            while (parent != null && !(parent is T))
+            {
+                parent = VisualTreeHelper.GetParent(parent);
+            }
+            return parent as T;
+        }
+
+        // Редактирование
+        private void EditEquipment_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int id)
+            {
+                var window = new EquipmentManage(id);
+                window.Owner = Window.GetWindow(this);
+                if (window.ShowDialog() == true)
+                {
+                    LoadData();
+                    FillFilters();
+                    ApplyFilters();
+                }
+            }
+        }
+
+        // Удаление
         private void DeleteEquipment_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.Tag is not int id) return;
-
-            var result = MessageBox.Show("Удалить это оборудование?", "Подтверждение",
-                                       MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result != MessageBoxResult.Yes) return;
-
-            try
+            if (sender is Button btn && btn.Tag is int id)
             {
-                var item = db.EQUIPMENT.Find(id);
-                if (item != null)
+                var result = MessageBox.Show("Вы уверены, что хотите удалить оборудование?", "Подтверждение", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
                 {
-                    db.EQUIPMENT.Remove(item);
-                    db.SaveChanges();
-                    LoadEquipment();
+                    var equipment = db.EQUIPMENT.Find(id); // синхронный Find
+                    if (equipment != null)
+                    {
+                        db.EQUIPMENT.Remove(equipment);
+                        db.SaveChanges(); // синхронный SaveChanges
+                        LoadData();
+                        FillFilters();
+                        ApplyFilters();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // 🔹 Освобождение ресурсов
-        public void Dispose() => db?.Dispose();
+        protected void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+    }
+
+    /// <summary>
+    /// ViewModel для отображения оборудования в списке
+    /// </summary>
+    public class EquipmentViewModel : INotifyPropertyChanged
+    {
+        private readonly EQUIPMENT _entity;
+
+        public EquipmentViewModel(EQUIPMENT entity)
+        {
+            _entity = entity;
+        }
+
+        public int Id => _entity.ID;
+        public string AssetId => _entity.asset_id;
+
+        // Название актива (собираем из типа и производителя)
+        public string AssetName => $"{_entity.equipment_type} {_entity.manufacturer}".Trim();
+
+        public string EquipmentType => _entity.equipment_type;
+        public string Manufacturer => _entity.manufacturer;
+
+        // Цех
+        public string WorkshopName => _entity.WORKSHOPS?.name;
+
+        // Мастер (используем full_name из USERS)
+        public string MasterName
+        {
+            get
+            {
+                if (_entity.MASTERS?.USERS != null && !string.IsNullOrWhiteSpace(_entity.MASTERS.USERS.full_name))
+                    return _entity.MASTERS.USERS.full_name;
+                return _entity.assigned_to?.ToString() ?? "Не назначен";
+            }
+        }
+
+        // Статус (из справочника STATUSASSETS)
+        public string StatusName => _entity.STATUSASSETS?.Status ?? _entity.operational_status ?? "Неизвестно";
+
+        // Для цветовой индикации статуса
+        public Brush StatusColor
+        {
+            get
+            {
+                return (StatusName ?? "").ToLower() switch
+                {
+                    string s when s.Contains("эксплуатац") => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27AE60")), // зелёный
+                    string s when s.Contains("обслуживан") => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F39C12")), // оранжевый
+                    string s when s.Contains("неисправ") => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E74C3C")),   // красный
+                    string s when s.Contains("списан") => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7F8C8D")),     // серый
+                    _ => new SolidColorBrush(Colors.Gray)
+                };
+            }
+        }
+
+        // Операционный статус (для фильтрации, если нужно)
+        public string OperationalStatus => _entity.operational_status;
+
+        // Наработка
+        public double WorkHours => _entity.current_work_hours ?? 0;
+        public double MaxHours => _entity.max_work_hours_before_maintenance ?? 0;
+        public string WorkHoursDisplay => $"{WorkHours:0} ч";
+        public string MaxHoursDisplay => $"{MaxHours:0} ч";
+        public double WorkHoursPercent => MaxHours > 0 ? (WorkHours / MaxHours) * 100 : 0;
+
+        // Следующее обслуживание
+        public DateTime? NextMaintenance => _entity.next_maintenance_date;
+        public string NextMaintenanceDisplay
+        {
+            get
+            {
+                if (!NextMaintenance.HasValue) return "Не назначено";
+                if (NextMaintenance.Value < DateTime.Now) return "Просрочено!";
+                var days = (NextMaintenance.Value - DateTime.Now).Days;
+                return days == 0 ? "Сегодня" : $"Через {days} дн.";
+            }
+        }
+
+        public Brush MaintenanceColor
+        {
+            get
+            {
+                if (!NextMaintenance.HasValue) return new SolidColorBrush(Colors.Gray);
+                if (NextMaintenance.Value < DateTime.Now) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E74C3C")); // красный
+                if ((NextMaintenance.Value - DateTime.Now).Days <= 7) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F39C12")); // оранжевый
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27AE60")); // зелёный
+            }
+        }
+
+        // Гарантия
+        public DateTime? WarrantyUntil
+        {
+            get
+            {
+                if (_entity.installation_date.HasValue && _entity.warranty_period_months.HasValue)
+                    return _entity.installation_date.Value.AddMonths(_entity.warranty_period_months.Value);
+                return null;
+            }
+        }
+
+        public string WarrantyDisplay
+        {
+            get
+            {
+                if (!WarrantyUntil.HasValue) return "Нет данных";
+                if (WarrantyUntil.Value < DateTime.Now) return "Гарантия истекла";
+                var days = (WarrantyUntil.Value - DateTime.Now).Days;
+                return $"Гарантия: {days} дн.";
+            }
+        }
+
+        public Brush WarrantyColor
+        {
+            get
+            {
+                if (!WarrantyUntil.HasValue) return new SolidColorBrush(Colors.Gray);
+                if (WarrantyUntil.Value < DateTime.Now) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E74C3C")); // красный
+                if ((WarrantyUntil.Value - DateTime.Now).Days <= 30) return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F39C12")); // оранжевый
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27AE60")); // зелёный
+            }
+        }
+
+        // Флаг для статистики (требуется ТО в ближайшие 7 дней или просрочено)
+        public bool IsMaintenanceDue
+        {
+            get
+            {
+                if (!NextMaintenance.HasValue) return false;
+                return NextMaintenance.Value <= DateTime.Now.AddDays(7);
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string name) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

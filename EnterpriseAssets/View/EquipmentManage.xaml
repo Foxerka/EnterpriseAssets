@@ -42,8 +42,8 @@
                         <TextBlock Text="Производственный актив *" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                         <ComboBox x:Name="CmbAsset" 
                                   Padding="10,8"
-                                  SelectionChanged="CmbAsset_SelectionChanged"
-                                  Margin="0,0,0,5"/>
+                                  Margin="0,0,0,5" 
+                                  SelectionChanged="CmbAsset_SelectionChanged" /> 
                         <TextBlock Text="Выберите актив типа «Оборудование» из списка" 
                                    FontSize="11" Foreground="#95A5A6" FontStyle="Italic"/>
                     </StackPanel>
