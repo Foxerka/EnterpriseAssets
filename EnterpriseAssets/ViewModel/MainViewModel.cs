@@ -10,6 +10,7 @@ namespace EnterpriseAssets.ViewModel
     {
         private User _currentUser;
         private string _pageTitle = "Главная панель";
+        public int CurrentUserId => CurrentUser?.Id ?? 0;
 
         public User CurrentUser
         {

@@ -365,6 +365,11 @@ namespace EnterpriseAssets.View
                     _ => new DashboardPage(),
                 };;
 
+                if (page is PurchasesPage purchasesPage && _viewModel?.CurrentUser != null)
+                {
+                    purchasesPage.CurrentUserId = _viewModel.CurrentUserId; // или _viewModel.CurrentUser.Id
+                }
+
                 // Устанавливаем DataContext для страницы, если нужно
                 if (page != null && _viewModel != null)
                 {

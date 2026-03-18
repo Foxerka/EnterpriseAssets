@@ -1,8 +1,7 @@
 ﻿using EnterpriseAssets.Model.DataBase;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
+using System.Data.Common.CommandTrees.ExpressionBuilder;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -11,206 +10,264 @@ using System.Windows.Input;
 
 namespace EnterpriseAssets.View
 {
+    /// <summary>
+    /// Окно добавления / редактирования закупки
+    /// </summary>
     public partial class PurchaseManage : Window
     {
-        private DB_AssetManage db = new DB_AssetManage();
-        private EQUIPMENT_PURCHASES _currentPurchase;
-        private bool _isNewPurchase;
-        private bool _isViewOnly;
+        private DB_AssetManage _context;
+        private int? _purchaseId; // null = добавление, иначе редактирование
+        private int _currentUserId; // ID текущего пользователя (из USERS)
+        private int? _currentMasterId; // ID мастера, соответствующего текущему пользователю
 
-        public PurchaseManage()
+        /// <summary>
+        /// Конструктор для создания новой закупки
+        /// </summary>
+        /// <param name="currentUserId">ID текущего пользователя</param>
+        public PurchaseManage(int currentUserId) : this()
+        {
+            _purchaseId = null;
+            _currentUserId = currentUserId;
+            LoadDataForNew();
+        }
+
+        /// <summary>
+        /// Конструктор для редактирования закупки
+        /// </summary>
+        /// <param name="purchaseId">ID закупки</param>
+        /// <param name="currentUserId">ID текущего пользователя</param>
+        public PurchaseManage(int purchaseId, int currentUserId) : this()
+        {
+            _purchaseId = purchaseId;
+            _currentUserId = currentUserId;
+            LoadDataForEdit();
+        }
+
+        // Приватный конструктор для инициализации компонентов и контекста
+        private PurchaseManage()
         {
             InitializeComponent();
-            _currentPurchase = new EQUIPMENT_PURCHASES();
-            _isNewPurchase = true;
-            _isViewOnly = false;
-            InitializeForm();
-        }
-
-        public PurchaseManage(EQUIPMENT_PURCHASES purchase, bool isViewOnly = false)
-        {
-            InitializeComponent();
-            _currentPurchase = purchase;
-            _isNewPurchase = false;
-            _isViewOnly = isViewOnly;
-            InitializeForm();
-            LoadPurchaseData();
-        }
-
-        private void InitializeForm()
-        {
-            if (_isViewOnly)
-            {
-                WindowTitle.Text = "Просмотр закупки";
-                SetReadOnly(true);
-                BtnDelete.Visibility = Visibility.Collapsed;
-                BtnSave.Content = "Закрыть";
-            }
-            else if (_isNewPurchase)
-            {
-                WindowTitle.Text = "Новая закупка оборудования";
-                BtnDelete.Visibility = Visibility.Collapsed;
-                CreatedAtSection.Visibility = Visibility.Collapsed;
-                DpOrderDate.SelectedDate = DateTime.Now;
-            }
-            else
-            {
-                WindowTitle.Text = "Редактирование закупки";
-                BtnDelete.Visibility = Visibility.Visible;
-                CreatedAtSection.Visibility = Visibility.Visible;
-            }
-
-            LoadAssets();
-            LoadSuppliers();
-            LoadManagers();
-            LoadStatuses();
-        }
-
-        private void SetReadOnly(bool isReadOnly)
-        {
-            CmbEquipment.IsEnabled = !isReadOnly;
-            CmbSupplier.IsEnabled = !isReadOnly;
-            TxtQuantity.IsEnabled = !isReadOnly;
-            TxtUnitPrice.IsEnabled = !isReadOnly;
-            DpOrderDate.IsEnabled = !isReadOnly;
-            DpExpectedDelivery.IsEnabled = !isReadOnly;
-            DpActualDelivery.IsEnabled = !isReadOnly;
-            CmbManager.IsEnabled = !isReadOnly;
-            CmbStatus.IsEnabled = !isReadOnly;
-            TxtNotes.IsEnabled = !isReadOnly;
-            BtnSave.Visibility = isReadOnly ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        private void LoadAssets()
-        {
-            try
-            {
-                // 🔹 Шаг 1: Загружаем данные из БД (БЕЗ форматирования)
-                var assets = db.PRODUCTION_ASSETS
-                    .Include("ASSETTYPE")
-                    .Where(a => a.name != null)
-                    .ToList();  // ✅ Сначала загружаем в память
-
-                // 🔹 Шаг 2: Форматируем УЖЕ в памяти
-                var assetsWithDisplay = assets.Select(a => new
+            _context = new DB_AssetManage();
+            this.Loaded += (s, e) => {
+                // Если создание новой, скрываем кнопку удалить и секцию даты создания
+                if (_purchaseId == null)
                 {
-                    Id = a.id,
-                    DisplayName = $"{a.name} ({GetAssetTypeShortName(a.ASSETTYPE?.AssetType1)})",
-                    FullType = a.ASSETTYPE?.AssetType1
-                }).ToList();
-
-                CmbEquipment.ItemsSource = assetsWithDisplay;
-                CmbEquipment.DisplayMemberPath = "DisplayName";
-                CmbEquipment.SelectedValuePath = "Id";
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка загрузки активов: {ex.Message}", "Ошибка");
-            }
-        }
-
-        private string GetAssetTypeShortName(string typeName)
-        {
-            if (string.IsNullOrEmpty(typeName)) return "Актив";
-
-            var name = typeName.Trim();
-            if (name.Length > 10) name = name.Substring(0, 10);
-
-            return name switch
-            {
-                "Оборудование" => "Оборуд.",
-                "Материалы" => "Матер.",
-                "Запчасти" => "Запчасть",
-                _ => name
+                    BtnDelete.Visibility = Visibility.Collapsed;
+                    CreatedAtSection.Visibility = Visibility.Collapsed;
+                }
+                else
+                {
+                    BtnDelete.Visibility = Visibility.Visible;
+                    CreatedAtSection.Visibility = Visibility.Visible;
+                }
             };
         }
 
-        private void LoadSuppliers()
+        // Загрузка данных для нового окна
+        private void LoadDataForNew()
         {
-            var suppliers = db.SUPPLIERS.OrderBy(s => s.name).ToList();
-            CmbSupplier.ItemsSource = suppliers;
-            CmbSupplier.DisplayMemberPath = "name";
-            CmbSupplier.SelectedValuePath = "id";
-        }
-
-        private void LoadManagers()
-        {
-            // 🔹 Ищем роль "Менеджер" с явной проверкой на null
-            var masterRole = db.ROLES
-                .FirstOrDefault(r => r.name != null && r.name.Trim().ToLower() == "менеджер");
-
-            if (masterRole != null)
+            try
             {
-                var managers = db.USERS
-                    .Where(u => u.role_id == masterRole.id)
-                    .Join(db.MASTERS,
-                        u => u.id,
-                        m => m.user_id,
-                        (u, m) => new
-                        {
-                            MasterId = m.id,
-                            FullName = u.full_name != null ? u.full_name : u.username
-                        })
-                    .OrderBy(m => m.FullName)
-                    .ToList();
+                // Заполнение справочников
+                LoadEquipment();
+                LoadSuppliers();
+                LoadManagers();
+                LoadStatuses();
 
-                var items = new List<dynamic>();
-                items.Add(new { MasterId = (int?)null, FullName = "— Не назначен —" });
-                items.AddRange(managers);
-
-                CmbManager.ItemsSource = items;
-                CmbManager.DisplayMemberPath = "FullName";
-                CmbManager.SelectedValuePath = "MasterId";
+                // Установка значений по умолчанию
+                DpOrderDate.SelectedDate = DateTime.Today;
+                // Статус "Черновик" (предполагаем ID=1)
+                SelectComboBoxItemByValue(CmbStatus, 1);
+                // Менеджер по умолчанию: ищем мастера для текущего пользователя
+                SetDefaultManager();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки данных: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
+        // Загрузка данных для редактирования
+        private void LoadDataForEdit()
+        {
+            try
+            {
+                // Заполнение справочников
+                LoadEquipment();
+                LoadSuppliers();
+                LoadManagers();
+                LoadStatuses();
+
+                // Загружаем данные закупки
+                var purchase = _context.EQUIPMENT_PURCHASES
+                    .Include("EQUIPMENT")
+                    .Include("SUPPLIERS")
+                    .Include("MASTERS")
+                    .Include("STATUS_PURCHASE")
+                    .FirstOrDefault(p => p.id == _purchaseId);
+
+                if (purchase == null)
+                {
+                    MessageBox.Show("Закупка не найдена", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    this.Close();
+                    return;
+                }
+
+                // Заполнение полей
+                WindowTitle.Text = $"Редактирование закупки №{purchase.purchase_number}";
+                // Актив
+                if (purchase.asset_id.HasValue)
+                    SelectComboBoxItemByValue(CmbEquipment, purchase.asset_id.Value);
+                // Поставщик
+                if (purchase.supplier_id.HasValue)
+                    SelectComboBoxItemByValue(CmbSupplier, purchase.supplier_id.Value);
+                // Количество
+                TxtQuantity.Text = purchase.quantity?.ToString();
+                // Цена
+                TxtUnitPrice.Text = purchase.unit_price?.ToString();
+                // Итог
+                UpdateTotalCost();
+                // Даты
+                if (purchase.order_date.HasValue)
+                    DpOrderDate.SelectedDate = purchase.order_date.Value;
+                if (purchase.expected_delivery.HasValue)
+                    DpExpectedDelivery.SelectedDate = purchase.expected_delivery.Value;
+                if (purchase.actual_delivery.HasValue)
+                    DpActualDelivery.SelectedDate = purchase.actual_delivery.Value;
+                // Менеджер
+                if (purchase.purchase_manager_id.HasValue)
+                    SelectComboBoxItemByValue(CmbManager, purchase.purchase_manager_id.Value);
+                // Статус
+                if (purchase.status.HasValue)
+                    SelectComboBoxItemByValue(CmbStatus, purchase.status.Value);
+                // Примечания
+                TxtNotes.Text = purchase.notes;
+                // Дата создания (только для просмотра)
+                if (purchase.created_at.HasValue)
+                    TxtCreatedAt.Text = $"Создано: {purchase.created_at.Value:dd.MM.yyyy HH:mm}";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки данных: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                this.Close();
+            }
+        }
+
+        // Загрузка списка активов
+        private void LoadEquipment()
+        {
+            var equipmentList = _context.EQUIPMENT
+                .OrderBy(e => e.equipment_type)
+                .ToList();
+
+            CmbEquipment.Items.Clear();
+            foreach (var eq in equipmentList)
+            {
+                string display = $"{eq.equipment_type} ({eq.manufacturer})";
+                CmbEquipment.Items.Add(new ComboBoxItem
+                {
+                    Content = display,
+                    Tag = eq.ID
+                });
+            }
+        }
+
+        // Загрузка поставщиков
+        private void LoadSuppliers()
+        {
+            var suppliers = _context.SUPPLIERS
+                .Where(s => s.is_active == true || s.is_active == null)
+                .OrderBy(s => s.name)
+                .ToList();
+
+            CmbSupplier.Items.Clear();
+            foreach (var s in suppliers)
+            {
+                CmbSupplier.Items.Add(new ComboBoxItem
+                {
+                    Content = s.name,
+                    Tag = s.id
+                });
+            }
+        }
+
+        // Загрузка менеджеров (мастеров)
+        private void LoadManagers()
+        {
+            var managers = _context.MASTERS
+                .Include("USERS")
+                .Where(m => m.USERS != null)
+                .OrderBy(m => m.USERS.full_name)
+                .ToList();
+
+            CmbManager.Items.Clear();
+            foreach (var m in managers)
+            {
+                CmbManager.Items.Add(new ComboBoxItem
+                {
+                    Content = m.USERS?.full_name ?? $"Мастер #{m.id}",
+                    Tag = m.id
+                });
+            }
+        }
+
+        // Загрузка статусов
         private void LoadStatuses()
         {
-            var statuses = db.STATUS_PURCHASE.OrderBy(s => s.Status).ToList();
-            CmbStatus.ItemsSource = statuses;
-            CmbStatus.DisplayMemberPath = "Status";
-            CmbStatus.SelectedValuePath = "ID_status";
+            var statuses = _context.STATUS_PURCHASE
+                .OrderBy(s => s.ID_status)
+                .ToList();
+
+            CmbStatus.Items.Clear();
+            foreach (var s in statuses)
+            {
+                CmbStatus.Items.Add(new ComboBoxItem
+                {
+                    Content = s.Status,
+                    Tag = s.ID_status
+                });
+            }
         }
 
-        private void LoadPurchaseData()
+        // Установка менеджера по умолчанию (текущий пользователь)
+        private void SetDefaultManager()
         {
-            if (_currentPurchase == null) return;
-
-            CmbEquipment.SelectedValue = _currentPurchase.asset_id;
-            CmbSupplier.SelectedValue = _currentPurchase.supplier_id;
-            TxtQuantity.Text = _currentPurchase.quantity?.ToString();
-            TxtUnitPrice.Text = _currentPurchase.unit_price?.ToString("F2");
-            UpdateTotalCost();
-
-            if (_currentPurchase.order_date.HasValue) DpOrderDate.SelectedDate = _currentPurchase.order_date.Value;
-            if (_currentPurchase.expected_delivery.HasValue) DpExpectedDelivery.SelectedDate = _currentPurchase.expected_delivery.Value;
-            if (_currentPurchase.actual_delivery.HasValue) DpActualDelivery.SelectedDate = _currentPurchase.actual_delivery.Value;
-
-            CmbManager.SelectedValue = _currentPurchase.purchase_manager_id;
-            CmbStatus.SelectedValue = _currentPurchase.status;
-            TxtNotes.Text = _currentPurchase.notes;
-
-            if (_currentPurchase.created_at.HasValue)
-                TxtCreatedAt.Text = $"Создано: {_currentPurchase.created_at:dd.MM.yyyy HH:mm}";
+            // Ищем мастера с user_id == _currentUserId
+            var master = _context.MASTERS.FirstOrDefault(m => m.user_id == _currentUserId);
+            if (master != null)
+            {
+                _currentMasterId = master.id;
+                SelectComboBoxItemByValue(CmbManager, master.id);
+            }
+            else
+            {
+                // Если мастер не найден, выбираем первый элемент (если есть)
+                if (CmbManager.Items.Count > 0)
+                    CmbManager.SelectedIndex = 0;
+            }
         }
 
-        private void CmbEquipment_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        // Вспомогательный метод: выбрать элемент ComboBox по значению Tag
+        private void SelectComboBoxItemByValue(ComboBox comboBox, object value)
         {
-            // Можно авто-подставить поставщика по умолчанию из оборудования
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                if (item.Tag != null && item.Tag.Equals(value))
+                {
+                    comboBox.SelectedItem = item;
+                    break;
+                }
+            }
         }
 
-        private void TxtQuantityOrPrice_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            UpdateTotalCost();
-        }
-
+        // Обновление итоговой стоимости
         private void UpdateTotalCost()
         {
             if (decimal.TryParse(TxtQuantity.Text, out decimal qty) &&
                 decimal.TryParse(TxtUnitPrice.Text, out decimal price))
             {
-                var total = qty * price;
-                TxtTotalCost.Text = $"{total:C}";
+                decimal total = qty * price;
+                TxtTotalCost.Text = $"{total:N2} ₽";
             }
             else
             {
@@ -218,158 +275,175 @@ namespace EnterpriseAssets.View
             }
         }
 
+        // Обработчик изменения количества или цены
+        private void TxtQuantityOrPrice_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateTotalCost();
+        }
+
+        // Ограничение ввода чисел (только цифры) для количества
         private void TxtNumber_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !Regex.IsMatch(e.Text, @"^[0-9]+$");
+            e.Handled = !Regex.IsMatch(e.Text, @"^\d+$");
         }
 
+        // Ограничение ввода чисел с десятичной точкой/запятой для цены
         private void TxtDecimal_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !Regex.IsMatch(e.Text, @"^[0-9]*\.?[0-9]{0,2}$");
+            // Разрешаем цифры, точку и запятую
+            e.Handled = !Regex.IsMatch(e.Text, @"^[\d.,]+$");
         }
 
+        // Обработчик выбора актива (может быть полезно)
+        private void CmbEquipment_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // Здесь можно, например, подгружать цену по умолчанию, но не обязательно
+        }
+
+        // Кнопка "Сохранить"
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
-            if (_isViewOnly) { DialogResult = false; Close(); return; }
+            // Проверка обязательных полей
+            if (CmbEquipment.SelectedItem == null)
+            {
+                MessageBox.Show("Выберите актив", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (CmbSupplier.SelectedItem == null)
+            {
+                MessageBox.Show("Выберите поставщика", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(TxtQuantity.Text))
+            {
+                MessageBox.Show("Введите количество", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (string.IsNullOrWhiteSpace(TxtUnitPrice.Text))
+            {
+                MessageBox.Show("Введите цену за единицу", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (!decimal.TryParse(TxtQuantity.Text, out decimal quantity) || quantity <= 0)
+            {
+                MessageBox.Show("Количество должно быть положительным числом", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            if (!decimal.TryParse(TxtUnitPrice.Text, out decimal unitPrice) || unitPrice < 0)
+            {
+                MessageBox.Show("Цена должна быть неотрицательным числом", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             try
             {
-                // 🔹 Валидация
-                if (CmbEquipment.SelectedValue == null)
+                EQUIPMENT_PURCHASES purchase;
+
+                if (_purchaseId == null)
                 {
-                    MessageBox.Show("Выберите актив", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                if (CmbSupplier.SelectedValue == null)
-                {
-                    MessageBox.Show("Выберите поставщика", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                if (!int.TryParse(TxtQuantity.Text, out int qty) || qty <= 0)
-                {
-                    MessageBox.Show("Введите корректное количество (> 0)", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                if (!decimal.TryParse(TxtUnitPrice.Text, out decimal price) || price <= 0)
-                {
-                    MessageBox.Show("Введите корректную цену (> 0)", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                // 🔹 Заполнение данных
-                _currentPurchase.asset_id = CmbEquipment.SelectedValue as int?;
-                _currentPurchase.supplier_id = CmbSupplier.SelectedValue as int?;
-                _currentPurchase.quantity = qty;
-                _currentPurchase.unit_price = price;
-                _currentPurchase.total_cost = qty * price;
-                _currentPurchase.order_date = DpOrderDate.SelectedDate;
-                _currentPurchase.expected_delivery = DpExpectedDelivery.SelectedDate;
-                _currentPurchase.actual_delivery = DpActualDelivery.SelectedDate;
-                _currentPurchase.purchase_manager_id = CmbManager.SelectedValue as int?;
-                _currentPurchase.status = CmbStatus.SelectedValue as int?;
-                _currentPurchase.notes = string.IsNullOrWhiteSpace(TxtNotes.Text) ? null : TxtNotes.Text.Trim();
-
-                if (_isNewPurchase)
-                {
-                    _currentPurchase.purchase_number = $"PUR-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000, 9999)}";
-                    _currentPurchase.created_at = DateTime.Now;
-
-                    System.Diagnostics.Debug.WriteLine($"🔹 Creating new purchase:");
-                    System.Diagnostics.Debug.WriteLine($"   asset_id: {_currentPurchase.asset_id}");
-                    System.Diagnostics.Debug.WriteLine($"   supplier_id: {_currentPurchase.supplier_id}");
-                    System.Diagnostics.Debug.WriteLine($"   quantity: {_currentPurchase.quantity}");
-                    System.Diagnostics.Debug.WriteLine($"   unit_price: {_currentPurchase.unit_price}");
-                    System.Diagnostics.Debug.WriteLine($"   total_cost: {_currentPurchase.total_cost}");
-                    System.Diagnostics.Debug.WriteLine($"   purchase_number: {_currentPurchase.purchase_number}");
-
-                    db.EQUIPMENT_PURCHASES.Add(_currentPurchase);
+                    // Новая закупка
+                    purchase = new EQUIPMENT_PURCHASES();
+                    purchase.purchase_number = GeneratePurchaseNumber();
+                    purchase.created_at = DateTime.Now;
+                    _context.EQUIPMENT_PURCHASES.Add(purchase);
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"🔹 Updating purchase ID: {_currentPurchase.id}");
-                    db.Entry(_currentPurchase).State = EntityState.Modified;
-                }
-
-                db.SaveChanges();
-
-                System.Diagnostics.Debug.WriteLine("✅ Purchase saved successfully!");
-
-                MessageBox.Show("Закупка успешно сохранена", "Успех",
-                               MessageBoxButton.OK, MessageBoxImage.Information);
-                DialogResult = true;
-                Close();
-            }
-            catch (System.Data.Entity.Validation.DbEntityValidationException dbEx)
-            {
-                // 🔹 Детальная информация об ошибках валидации EF
-                var errors = new System.Text.StringBuilder();
-                errors.AppendLine("Ошибки валидации данных:\n");
-
-                foreach (var validationErrors in dbEx.EntityValidationErrors)
-                {
-                    foreach (var validationError in validationErrors.ValidationErrors)
+                    // Редактирование
+                    purchase = _context.EQUIPMENT_PURCHASES.Find(_purchaseId);
+                    if (purchase == null)
                     {
-                        errors.AppendLine($"Свойство: {validationError.PropertyName}");
-                        errors.AppendLine($"Ошибка: {validationError.ErrorMessage}\n");
+                        MessageBox.Show("Закупка не найдена", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
                     }
                 }
 
-                System.Diagnostics.Debug.WriteLine($"❌ DbEntityValidationException:\n{errors}");
+                // Заполнение полей из формы
+                purchase.asset_id = (int)((ComboBoxItem)CmbEquipment.SelectedItem).Tag;
+                purchase.supplier_id = (int)((ComboBoxItem)CmbSupplier.SelectedItem).Tag;
+                purchase.quantity = (int)quantity; // в базе int? или decimal? В модели int? (quantity int?). Если надо decimal, измените.
+                purchase.unit_price = unitPrice;
+                purchase.total_cost = quantity * unitPrice;
+                purchase.order_date = DpOrderDate.SelectedDate;
+                purchase.expected_delivery = DpExpectedDelivery.SelectedDate;
+                purchase.actual_delivery = DpActualDelivery.SelectedDate;
+                if (CmbManager.SelectedItem != null)
+                    purchase.purchase_manager_id = (int)((ComboBoxItem)CmbManager.SelectedItem).Tag;
+                if (CmbStatus.SelectedItem != null)
+                    purchase.status = (int)((ComboBoxItem)CmbStatus.SelectedItem).Tag;
+                purchase.notes = TxtNotes.Text;
 
-                MessageBox.Show(errors.ToString(), "Ошибка валидации данных",
-                               MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            catch (System.Data.Entity.Infrastructure.DbUpdateException dbUpdateEx)
-            {
-                // 🔹 Ошибка обновления БД (foreign key, constraints, etc.)
-                var errorMessage = new System.Text.StringBuilder();
-                errorMessage.AppendLine("Ошибка сохранения в базу данных:\n");
-                errorMessage.AppendLine(dbUpdateEx.Message);
+                // Сохранить изменения
+                _context.SaveChanges();
 
-                if (dbUpdateEx.InnerException != null)
-                {
-                    errorMessage.AppendLine("\nВнутренняя ошибка:");
-                    errorMessage.AppendLine(dbUpdateEx.InnerException.Message);
-
-                    if (dbUpdateEx.InnerException.InnerException != null)
-                    {
-                        errorMessage.AppendLine("\nДетали:");
-                        errorMessage.AppendLine(dbUpdateEx.InnerException.InnerException.Message);
-                    }
-                }
-
-                System.Diagnostics.Debug.WriteLine($"❌ DbUpdateException:\n{errorMessage}");
-
-                MessageBox.Show(errorMessage.ToString(), "Ошибка сохранения",
-                               MessageBoxButton.OK, MessageBoxImage.Error);
+                // Успех
+                MessageBox.Show("Закупка сохранена", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                this.DialogResult = true; // для обратной связи
+                this.Close();
             }
             catch (Exception ex)
             {
-                // 🔹 Другие ошибки
-                var errorMsg = $"Произошла ошибка:\n\n{ex.Message}\n\nСтек вызовов:\n{ex.StackTrace}";
-
-                System.Diagnostics.Debug.WriteLine($"❌ General Exception:\n{errorMsg}");
-
-                MessageBox.Show(errorMsg, "Ошибка",
-                               MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка сохранения: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
+        // Генерация номера закупки (пример: PO-20250318-001)
+        private string GeneratePurchaseNumber()
+        {
+            string prefix = "PO";
+            string datePart = DateTime.Today.ToString("yyyyMMdd");
+
+            // Диапазон дат: с начала сегодняшнего дня до начала следующего
+            DateTime startOfDay = DateTime.Today;
+            DateTime endOfDay = startOfDay.AddDays(1);
+
+            var todayPurchases = _context.EQUIPMENT_PURCHASES
+                .Where(p => p.created_at >= startOfDay && p.created_at < endOfDay)
+                .ToList();
+
+            int count = todayPurchases.Count + 1;
+            return $"{prefix}-{datePart}-{count:D3}";
+        }
+
+        // Кнопка "Удалить"
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
-            if (_isNewPurchase || _isViewOnly) return;
-            var result = MessageBox.Show("Удалить закупку?", "Подтверждение", MessageBoxButton.YesNo);
+            if (_purchaseId == null) return;
+
+            var result = MessageBox.Show("Вы действительно хотите удалить эту закупку?", "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (result == MessageBoxResult.Yes)
             {
-                try { db.EQUIPMENT_PURCHASES.Remove(_currentPurchase); db.SaveChanges(); DialogResult = true; Close(); }
-                catch (Exception ex) { MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка"); }
+                try
+                {
+                    var purchase = _context.EQUIPMENT_PURCHASES.Find(_purchaseId);
+                    if (purchase != null)
+                    {
+                        _context.EQUIPMENT_PURCHASES.Remove(purchase);
+                        _context.SaveChanges();
+                        MessageBox.Show("Закупка удалена", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                        this.DialogResult = true;
+                        this.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка удаления: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
-        private void BtnCancel_Click(object sender, RoutedEventArgs e) { DialogResult = false; Close(); }
-        protected override void OnClosed(EventArgs e) { db?.Dispose(); base.OnClosed(e); }
+        // Кнопка "Отмена"
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
+            this.Close();
+        }
+
+        // Освобождение ресурсов
+        protected override void OnClosed(EventArgs e)
+        {
+            _context?.Dispose();
+            base.OnClosed(e);
+        }
     }
 }
