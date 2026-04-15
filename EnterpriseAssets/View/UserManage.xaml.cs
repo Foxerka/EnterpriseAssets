@@ -1,6 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 using EnterpriseAssets.Model.DataBase;
 
 namespace EnterpriseAssets.View
@@ -11,15 +14,19 @@ namespace EnterpriseAssets.View
         private USERS _currentUser;
         private bool _isNewUser;
         private bool _isChangingPassword = false;
+        private byte[] _currentPhotoBytes;
+        private int _currentLoggedInUserId; // ID текущего авторизованного пользователя
 
         // Конструктор для существующего пользователя
-        public UserManage(USERS user)
+        public UserManage(USERS user, int currentLoggedInUserId = 0)
         {
             InitializeComponent();
             _currentUser = user;
             _isNewUser = false;
+            _currentLoggedInUserId = currentLoggedInUserId;
             LoadUserData();
             LoadRoles();
+            LoadUserPhoto();
 
             // Скрываем секцию пароля для существующего пользователя
             PasswordSection.Visibility = Visibility.Collapsed;
@@ -27,11 +34,12 @@ namespace EnterpriseAssets.View
         }
 
         // Конструктор для нового пользователя
-        public UserManage()
+        public UserManage(int currentLoggedInUserId = 0)
         {
             InitializeComponent();
             _currentUser = new USERS();
             _isNewUser = true;
+            _currentLoggedInUserId = currentLoggedInUserId;
             Title = "Добавление нового пользователя";
             LoadRoles();
 
@@ -51,7 +59,6 @@ namespace EnterpriseAssets.View
             TxtEmail.Text = _currentUser.email;
             TxtPhone.Text = _currentUser.phone;
 
-
             // Заголовок
             UserFullName.Text = _currentUser.full_name ?? "Новый пользователь";
             UserRole.Text = GetUserRole(_currentUser.role_id);
@@ -63,6 +70,46 @@ namespace EnterpriseAssets.View
                 TxtCreatedAt.Text = "Новый пользователь";
 
             TxtLastLogin.Text = "Последний вход: не выполнялся";
+        }
+
+        private void LoadUserPhoto()
+        {
+            if (_currentUser?.photo != null && _currentUser.photo.Length > 0)
+            {
+                try
+                {
+                    using (var stream = new MemoryStream(_currentUser.photo))
+                    {
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = stream;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+
+                        AvatarImage.Source = bitmap;
+                        AvatarImage.Visibility = Visibility.Visible;
+                        AvatarPlaceholder.Visibility = Visibility.Collapsed;
+                        _currentPhotoBytes = _currentUser.photo;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Ошибка загрузки фото: {ex.Message}");
+                    SetDefaultAvatar();
+                }
+            }
+            else
+            {
+                SetDefaultAvatar();
+            }
+        }
+
+        private void SetDefaultAvatar()
+        {
+            AvatarImage.Source = null;
+            AvatarImage.Visibility = Visibility.Collapsed;
+            AvatarPlaceholder.Visibility = Visibility.Visible;
+            _currentPhotoBytes = null;
         }
 
         private void LoadRoles()
@@ -85,6 +132,69 @@ namespace EnterpriseAssets.View
             if (!roleId.HasValue) return "Не назначена";
             var role = db.ROLES.FirstOrDefault(r => r.id == roleId.Value);
             return role?.name ?? "Не назначена";
+        }
+
+        private void BtnChangeAvatar_Click(object sender, RoutedEventArgs e)
+        {
+            // Показываем контекстное меню при нажатии на карандашик
+            AvatarContextMenu.IsOpen = true;
+        }
+
+        private void MenuItemSetPhoto_Click(object sender, RoutedEventArgs e)
+        {
+            var openFileDialog = new OpenFileDialog
+            {
+                Title = "Выберите фото для профиля",
+                Filter = "Изображения|*.jpg;*.jpeg;*.png;*.bmp;*.gif",
+                FilterIndex = 1
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    // Загружаем изображение
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(openFileDialog.FileName);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+
+                    AvatarImage.Source = bitmap;
+                    AvatarImage.Visibility = Visibility.Visible;
+                    AvatarPlaceholder.Visibility = Visibility.Collapsed;
+
+                    // Сохраняем изображение в байты
+                    _currentPhotoBytes = File.ReadAllBytes(openFileDialog.FileName);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при загрузке фото: {ex.Message}",
+                                  "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        private void MenuItemDeletePhoto_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPhotoBytes != null || AvatarImage.Source != null)
+            {
+                var result = MessageBox.Show(
+                    "Вы уверены, что хотите удалить фото профиля?",
+                    "Подтверждение удаления",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    SetDefaultAvatar();
+                }
+            }
+            else
+            {
+                MessageBox.Show("Фото профиля не установлено",
+                              "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)
@@ -131,10 +241,8 @@ namespace EnterpriseAssets.View
                     _currentUser.email = TxtEmail.Text;
                     _currentUser.phone = TxtPhone.Text;
                     _currentUser.created_at = DateTime.Now;
-
-                    // ВНИМАНИЕ: Здесь должен быть хеш пароля! 
-                    // Пример: _currentUser.password = PasswordHelper.Hash(TxtPassword.Password);
                     _currentUser.password = TxtPassword.Password;
+                    _currentUser.photo = _currentPhotoBytes; // Сохраняем фото
 
                     if (CmbRole.SelectedItem is ROLES selectedRole)
                     {
@@ -160,6 +268,17 @@ namespace EnterpriseAssets.View
                     userInDb.full_name = TxtFullName.Text;
                     userInDb.email = TxtEmail.Text;
                     userInDb.phone = TxtPhone.Text;
+
+                    // Обновляем фото, если оно было изменено
+                    if (_currentPhotoBytes != null)
+                    {
+                        userInDb.photo = _currentPhotoBytes;
+                    }
+                    else if (_currentPhotoBytes == null && AvatarImage.Source == null)
+                    {
+                        // Если фото было удалено
+                        userInDb.photo = null;
+                    }
 
                     if (CmbRole.SelectedItem is ROLES selectedRole)
                     {
@@ -202,13 +321,23 @@ namespace EnterpriseAssets.View
             }
         }
 
-
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
             if (_isNewUser)
             {
                 DialogResult = false;
                 Close();
+                return;
+            }
+
+            if (_currentLoggedInUserId > 0 && _currentUser.id == _currentLoggedInUserId)
+            {
+                MessageBox.Show(
+                    "Вы не можете удалить свою собственную учетную запись.\n" +
+                    "Это действие запрещено для обеспечения безопасности системы.",
+                    "Ошибка удаления",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
                 return;
             }
 
@@ -231,8 +360,6 @@ namespace EnterpriseAssets.View
                     }
 
                     var hasMasters = db.MASTERS.Any(m => m.user_id == userToDelete.id);
-
-
 
                     if (hasMasters)
                     {

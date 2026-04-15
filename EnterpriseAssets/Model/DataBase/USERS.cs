@@ -27,6 +27,7 @@ namespace EnterpriseAssets.Model.DataBase
         public string phone { get; set; }
         public Nullable<int> role_id { get; set; }
         public Nullable<System.DateTime> created_at { get; set; }
+        public byte[] photo { get; set; }
     
         public virtual ICollection<MASTERS> MASTERS { get; set; }
         public virtual ROLES ROLES { get; set; }

@@ -20,13 +20,15 @@ namespace EnterpriseAssets.View.Pages
         public UsersPage()
         {
             InitializeComponent();
+
+            // Подписываемся на события поиска
+            RolesSearchBox.TextChanged += RolesSearchBox_TextChanged;
+            MastersSearchBox.TextChanged += MastersSearchBox_TextChanged;
+
+            this.Loaded += UsersPage_Loaded;
             RefreshAllData();
         }
 
-        /// <summary>
-        /// Полная перезагрузка всех данных (пользователи, роли, мастера)
-        /// Вызывается после добавления/удаления/изменения
-        /// </summary>
         private void RefreshAllData()
         {
             try
@@ -35,16 +37,11 @@ namespace EnterpriseAssets.View.Pages
                 _allRoles = null;
                 _allMasters = null;
 
-
                 db.Dispose();
                 db = new DB_AssetManage();
 
-                // Загружаем пользователей
-                _allUsers = db.USERS
-                    .Include("ROLES")
-                    .ToList();
+                _allUsers = db.USERS.Include("ROLES").ToList();
 
-                // Загружаем роли
                 _allRoles = db.ROLES
                     .Select(r => new RoleViewModel
                     {
@@ -56,11 +53,9 @@ namespace EnterpriseAssets.View.Pages
                     .OrderBy(r => r.Name)
                     .ToList();
 
-                // Загружаем мастеров
                 LoadMasters();
+                ApplyAllFilters();
 
-                // Применяем сортировку и фильтр, обновляем UI
-                ApplyUserSort();
                 RolesList.ItemsSource = null;
                 RolesList.ItemsSource = _allRoles;
             }
@@ -70,7 +65,6 @@ namespace EnterpriseAssets.View.Pages
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
         private void LoadMasters()
         {
@@ -98,8 +92,7 @@ namespace EnterpriseAssets.View.Pages
                                    EquipmentCount = db.EQUIPMENT.Count(e => e.assigned_to == m.user_id)
                                }).ToList();
 
-                MastersList.ItemsSource = null;
-                MastersList.ItemsSource = _allMasters;
+                ApplyMasterFilters();
             }
             catch (Exception ex)
             {
@@ -108,266 +101,302 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        // ===== Обработчики для пользователей =====
+        private void UsersPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Устанавливаем начальное состояние после загрузки всех элементов
+            SetActiveTab("Users");
+        }
 
+        private void SetActiveTab(string tabName)
+        {
+            // Скрываем все вкладки и фильтры
+            if (UsersTabContent != null) UsersTabContent.Visibility = Visibility.Collapsed;
+            if (RolesTabContent != null) RolesTabContent.Visibility = Visibility.Collapsed;
+            if (MastersTabContent != null) MastersTabContent.Visibility = Visibility.Collapsed;
+
+            if (UsersFilters != null) UsersFilters.Visibility = Visibility.Collapsed;
+            if (RolesFilters != null) RolesFilters.Visibility = Visibility.Collapsed;
+            if (MastersFilters != null) MastersFilters.Visibility = Visibility.Collapsed;
+
+            // Показываем нужную вкладку и фильтры
+            switch (tabName)
+            {
+                case "Users":
+                    if (UsersTabContent != null) UsersTabContent.Visibility = Visibility.Visible;
+                    if (UsersFilters != null) UsersFilters.Visibility = Visibility.Visible;
+                    ApplyUserFilters();
+                    break;
+                case "Roles":
+                    if (RolesTabContent != null) RolesTabContent.Visibility = Visibility.Visible;
+                    if (RolesFilters != null) RolesFilters.Visibility = Visibility.Visible;
+                    ApplyRolesFilter();
+                    break;
+                case "Masters":
+                    if (MastersTabContent != null) MastersTabContent.Visibility = Visibility.Visible;
+                    if (MastersFilters != null) MastersFilters.Visibility = Visibility.Visible;
+                    ApplyMasterFilters();
+                    break;
+            }
+        }
+
+        // ===== Переключение вкладок =====
+        private void TabUsers_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded) return; // Пропускаем если страница ещё не загружена
+            SetActiveTab("Users");
+        }
+
+        private void TabRoles_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            SetActiveTab("Roles");
+        }
+
+        private void TabMasters_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!IsLoaded) return;
+            SetActiveTab("Masters");
+        }
+
+        // ===== Переключение вкладок =====
+        
+
+        // ===== Поиск =====
+        private void UsersSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ClearUsersSearchButton.Visibility = string.IsNullOrEmpty(UsersSearchBox.Text)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ApplyUserFilters();
+        }
+
+        private void ClearUsersSearch_Click(object sender, RoutedEventArgs e)
+        {
+            UsersSearchBox.Text = string.Empty;
+            ApplyUserFilters();
+        }
+
+        // ===== Поиск для ролей =====
+        private void RolesSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ClearRolesSearchButton.Visibility = string.IsNullOrEmpty(RolesSearchBox.Text)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ApplyRolesFilter();
+        }
+
+        private void ClearRolesSearch_Click(object sender, RoutedEventArgs e)
+        {
+            RolesSearchBox.Text = string.Empty;
+            ApplyRolesFilter();
+        }
+
+        // ===== Поиск для мастеров =====
+        private void MastersSearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ClearMastersSearchButton.Visibility = string.IsNullOrEmpty(MastersSearchBox.Text)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+            ApplyMasterFilters();
+        }
+
+        private void ClearMastersSearch_Click(object sender, RoutedEventArgs e)
+        {
+            MastersSearchBox.Text = string.Empty;
+            ApplyMasterFilters();
+        }
+
+
+        // ===== Пользователи =====
         private void RefreshUsers_Click(object sender, RoutedEventArgs e)
         {
             RefreshAllData();
         }
 
-        private void SortUsers(object sender, RoutedEventArgs e)
+        private void SortUsers(object sender, SelectionChangedEventArgs e)
         {
-            ApplyUserSort();
+            ApplyUserFilters();
         }
 
         private void FilterUsers(object sender, SelectionChangedEventArgs e)
         {
-            ApplyUserFilter();
+            ApplyUserFilters();
         }
 
-        private void ApplyUserSort()
+        private void ApplyUserFilters()
         {
             if (_allUsers == null) return;
 
-            IEnumerable<USERS> sortedUsers = _allUsers;
+            IEnumerable<USERS> filteredUsers = _allUsers;
 
-            if (SortByUsername.IsChecked == true)
-                sortedUsers = _allUsers.OrderBy(u => u.username);
-            else if (SortByFullName.IsChecked == true)
-                sortedUsers = _allUsers.OrderBy(u => u.full_name);
-            else if (SortByRole.IsChecked == true)
-                sortedUsers = _allUsers.OrderBy(u => u.ROLES != null ? u.ROLES.name : "");
-            else
-                sortedUsers = _allUsers.OrderBy(u => u.username);
-
-            ApplyUserFilter(sortedUsers);
-        }
-
-        private void ApplyUserFilter(IEnumerable<USERS> sortedUsers = null)
-        {
-            if (_allUsers == null) return;
-
-            var source = sortedUsers ?? _allUsers.AsEnumerable();
-            var selectedRole = (RoleFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
-
-            if (selectedRole != "Все роли" && !string.IsNullOrEmpty(selectedRole))
+            // Поиск
+            string searchText = UsersSearchBox.Text?.Trim().ToLower() ?? "";
+            if (!string.IsNullOrEmpty(searchText))
             {
-                source = source.Where(u => u.ROLES != null && u.ROLES.name == selectedRole);
+                filteredUsers = filteredUsers.Where(u =>
+                    (u.username?.ToLower().Contains(searchText) ?? false) ||
+                    (u.full_name?.ToLower().Contains(searchText) ?? false) ||
+                    (u.email?.ToLower().Contains(searchText) ?? false) ||
+                    (u.phone?.ToLower().Contains(searchText) ?? false)
+                );
             }
 
-            var resultList = source.ToList();
-            UsersList.ItemsSource = null; // Сброс для принудительного обновления UI
-            UsersList.ItemsSource = resultList;
+            // Фильтр по роли
+            var selectedRole = (RoleFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+            if (selectedRole != "Все роли" && !string.IsNullOrEmpty(selectedRole))
+            {
+                filteredUsers = filteredUsers.Where(u => u.ROLES != null && u.ROLES.name == selectedRole);
+            }
+
+            // Сортировка
+            var selectedSort = (UsersSortFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+            filteredUsers = selectedSort switch
+            {
+                "По полному имени" => filteredUsers.OrderBy(u => u.full_name),
+                "По роли" => filteredUsers.OrderBy(u => u.ROLES?.name ?? ""),
+                _ => filteredUsers.OrderBy(u => u.username)
+            };
+
+            UsersList.ItemsSource = null;
+            UsersList.ItemsSource = filteredUsers.ToList();
         }
 
         private void AddUser_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new View.UserManage();
             dialog.Owner = Window.GetWindow(this);
-
-            if (dialog.ShowDialog() == true)
-            {
-                RefreshAllData();
-            }
+            if (dialog.ShowDialog() == true) RefreshAllData();
         }
 
         private void UserCard_Click(object sender, MouseButtonEventArgs e)
         {
             var border = sender as Border;
-            if (border?.Tag != null)
+            if (border?.Tag != null && int.TryParse(border.Tag.ToString(), out int userId))
             {
-                int userId = (int)border.Tag;
                 var user = _allUsers?.FirstOrDefault(u => u.id == userId);
-
                 if (user != null)
                 {
                     var dialog = new View.UserManage(user);
                     dialog.Owner = Window.GetWindow(this);
-
-                    if (dialog.ShowDialog() == true)
-                    {
-                        RefreshAllData();
-                    }
+                    if (dialog.ShowDialog() == true) RefreshAllData();
                 }
             }
+        }
+
+        // ===== Роли =====
+        private void ApplyRolesFilter()
+        {
+            if (_allRoles == null) return;
+
+            IEnumerable<RoleViewModel> filteredRoles = _allRoles;
+
+            string searchText = RolesSearchBox.Text?.Trim().ToLower() ?? "";
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                filteredRoles = filteredRoles.Where(r =>
+                    (r.Name?.ToLower().Contains(searchText) ?? false) ||
+                    (r.Description?.ToLower().Contains(searchText) ?? false)
+                );
+            }
+
+            RolesList.ItemsSource = null;
+            RolesList.ItemsSource = filteredRoles.ToList();
         }
 
         private void AddRole_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new View.RoleManage();
             dialog.Owner = Window.GetWindow(this);
-
-            if (dialog.ShowDialog() == true)
-            {
-                RefreshAllData(); // Обновляем все данные (списки ролей и пользователей)
-            }
+            if (dialog.ShowDialog() == true) RefreshAllData();
         }
 
         private void RoleCard_Click(object sender, MouseButtonEventArgs e)
         {
             var border = sender as Border;
-            if (border?.Tag != null)
+            if (border?.Tag != null && int.TryParse(border.Tag.ToString(), out int roleId))
             {
-                int roleId = (int)border.Tag;
-                var role = _allRoles?.FirstOrDefault(r => r.Id == roleId);
-
-                if (role != null)
+                var fullRole = db.ROLES.FirstOrDefault(r => r.id == roleId);
+                if (fullRole != null)
                 {
-                    // Находим полную сущность роли из БД для передачи в окно
-                    var fullRole = db.ROLES.FirstOrDefault(r => r.id == roleId);
-                    if (fullRole != null)
-                    {
-                        var dialog = new View.RoleManage(fullRole);
-                        dialog.Owner = Window.GetWindow(this);
-
-                        if (dialog.ShowDialog() == true)
-                        {
-                            RefreshAllData();
-                        }
-                    }
+                    var dialog = new View.RoleManage(fullRole);
+                    dialog.Owner = Window.GetWindow(this);
+                    if (dialog.ShowDialog() == true) RefreshAllData();
                 }
             }
+        }
+
+        // ===== Мастера =====
+        private void FilterMasters(object sender, RoutedEventArgs e)
+        {
+            ApplyMasterFilters();
+        }
+
+        private void ApplyMasterFilters()
+        {
+            if (_allMasters == null) return;
+
+            IEnumerable<MasterViewModel> filteredMasters = _allMasters;
+
+            // Поиск
+            string searchText = MastersSearchBox.Text?.Trim().ToLower() ?? "";
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                filteredMasters = filteredMasters.Where(m =>
+                    (m.UserName?.ToLower().Contains(searchText) ?? false) ||
+                    (m.SpecialtyName?.ToLower().Contains(searchText) ?? false) ||
+                    (m.QualificationName?.ToLower().Contains(searchText) ?? false)
+                );
+            }
+
+            // Фильтр доступности
+            if (ShowOnlyAvailable.IsChecked == true)
+            {
+                filteredMasters = filteredMasters.Where(m => m.IsAvailable);
+            }
+
+            filteredMasters = filteredMasters.OrderBy(m => m.UserName);
+
+            MastersList.ItemsSource = null;
+            MastersList.ItemsSource = filteredMasters.ToList();
         }
 
         private void AssignMaster_Click(object sender, RoutedEventArgs e)
         {
             var dialog = new View.MasterManage();
             dialog.Owner = Window.GetWindow(this);
-
-            if (dialog.ShowDialog() == true)
-            {
-                RefreshAllData(); // Обновляем все данные
-            }
+            if (dialog.ShowDialog() == true) RefreshAllData();
         }
 
         private void MastersReport_Click(object sender, RoutedEventArgs e)
         {
-            // Логика отчета
-        }
-
-        private void SortMasters(object sender, RoutedEventArgs e)
-        {
-            ApplyMasterSort();
-        }
-
-        private void FilterMasters(object sender, RoutedEventArgs e)
-        {
-            ApplyMasterFilter();
-        }
-
-        private void ApplyMasterSort()
-        {
-            if (_allMasters == null) return;
-
-            IEnumerable<MasterViewModel> sortedMasters = _allMasters;
-
-            if (SortMastersByName.IsChecked == true)
-                sortedMasters = _allMasters.OrderBy(m => m.UserName);
-            else if (SortMastersBySpecialty.IsChecked == true)
-                sortedMasters = _allMasters.OrderBy(m => m.SpecialtyName);
-            else if (SortMastersByAvailability.IsChecked == true)
-                sortedMasters = _allMasters.OrderByDescending(m => m.IsAvailable);
-
-            MastersList.ItemsSource = null;
-            MastersList.ItemsSource = sortedMasters.ToList();
-        }
-
-        private void ApplyMasterFilter()
-        {
-            if (_allMasters == null) return;
-
-            var filteredMasters = _allMasters.AsEnumerable();
-
-            if (ShowOnlyAvailable.IsChecked == true)
-            {
-                filteredMasters = filteredMasters.Where(m => m.IsAvailable);
-            }
-
-            MastersList.ItemsSource = null;
-            MastersList.ItemsSource = filteredMasters.ToList();
+            MessageBox.Show("Функция отчета в разработке", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void MasterCard_Click(object sender, MouseButtonEventArgs e)
         {
             var border = sender as Border;
-            if (border?.Tag != null)
+            if (border?.Tag != null && int.TryParse(border.Tag.ToString(), out int masterId))
             {
-                int masterId = (int)border.Tag;
-                var master = _allMasters?.FirstOrDefault(m => m.Id == masterId);
-
-                if (master != null)
+                var fullMaster = db.MASTERS.FirstOrDefault(m => m.id == masterId);
+                if (fullMaster != null)
                 {
-                    // Находим полную сущность из БД
-                    var fullMaster = db.MASTERS.FirstOrDefault(m => m.id == masterId);
-                    if (fullMaster != null)
-                    {
-                        var dialog = new View.MasterManage(fullMaster);
-                        dialog.Owner = Window.GetWindow(this);
-
-                        if (dialog.ShowDialog() == true)
-                        {
-                            RefreshAllData();
-                        }
-                    }
+                    var dialog = new View.MasterManage(fullMaster);
+                    dialog.Owner = Window.GetWindow(this);
+                    if (dialog.ShowDialog() == true) RefreshAllData();
                 }
             }
         }
 
-        // ===== Очистка ресурсов =====
+        private void ApplyAllFilters()
+        {
+            ApplyUserFilters();
+            ApplyRolesFilter();
+            ApplyMasterFilters();
+        }
+
         ~UsersPage()
         {
             db?.Dispose();
-        }
-
-        private void SearchMasters_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            ApplyFiltersAndSort();
-        }
-        private void ClearSearch_Click(object sender, RoutedEventArgs e)
-        {
-            SearchBox.Text = string.Empty;
-            SearchBox.Focus();
-            ApplyFiltersAndSort();
-        }
-
-        private void ApplyFiltersAndSort()
-        {
-            if (_allMasters == null) return;
-
-            string searchText = SearchBox.Text.Trim().ToLower();
-
-            // Поиск (по Имени, Специальности, Квалификации)
-            var filtered = _allMasters.Where(m =>
-                string.IsNullOrEmpty(searchText) ||
-                (m.UserName != null && m.UserName.ToLower().Contains(searchText)) ||
-                (m.SpecialtyName != null && m.SpecialtyName.ToLower().Contains(searchText)) ||
-                (m.QualificationName != null && m.QualificationName.ToLower().Contains(searchText))
-            ).ToList();
-
-            // Фильтр "Только доступные"
-            if (ShowOnlyAvailable.IsChecked == true)
-            {
-                filtered = filtered.Where(m => m.IsAvailable).ToList();
-            }
-
-            // Сортировка
-            if (SortMastersByName.IsChecked == true)
-            {
-                filtered = filtered.OrderBy(m => m.UserName).ToList();
-            }
-            else if (SortMastersBySpecialty.IsChecked == true)
-            {
-                filtered = filtered.OrderBy(m => m.SpecialtyName).ToList();
-            }
-            else if (SortMastersByAvailability.IsChecked == true)
-            {
-                // Сначала недоступные, потом доступные (или наоборот по желанию)
-                filtered = filtered.OrderByDescending(m => m.IsAvailable).ToList();
-            }
-
-            // Обновление списка
-            MastersList.ItemsSource = null; // Сброс для обновления привязки
-            MastersList.ItemsSource = filtered;
         }
     }
 
@@ -378,7 +407,6 @@ namespace EnterpriseAssets.View.Pages
         public string Name { get; set; }
         public string Description { get; set; }
         public int UsersCount { get; set; }
-        public int PermissionsCount { get; set; }
     }
 
     // ViewModel для мастеров

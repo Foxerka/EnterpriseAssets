@@ -98,6 +98,16 @@
                                         </Border>
                                         <TextBlock Text="{Binding NextMaintenanceDisplay}" 
                                                    FontSize="11" Foreground="{Binding MaintenanceColor}" FontWeight="Medium"/>
+                                        <Button Content="🔧 Провести ТО" 
+        Background="#3498DB" 
+        Foreground="White"
+        Padding="10,5"
+        BorderThickness="0"
+        Cursor="Hand"
+        FontSize="12"
+        Click="PerformMaintenance_Click"
+        Tag="{Binding Id}"
+        Margin="5,0"/>
                                     </StackPanel>
                                 </StackPanel>
 

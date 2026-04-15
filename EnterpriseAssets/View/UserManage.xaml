@@ -13,6 +13,13 @@
         Background="#F5F7FA"
         WindowStyle="SingleBorderWindow">
 
+    <Window.Resources>
+        <DropShadowEffect x:Key="ShadowEffect" 
+                          BlurRadius="5" 
+                          Opacity="0.1" 
+                          ShadowDepth="2"/>
+    </Window.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -32,16 +39,62 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Аватар -->
+                <!-- Аватар с возможностью редактирования -->
                 <Border Grid.Column="0"
                         Width="80" Height="80"
                         CornerRadius="40"
-                        Margin="0,0,20,0">
-                    <TextBlock Text="👤" 
-                               FontSize="42"
-                               Foreground="#4A6FA5"
-                               HorizontalAlignment="Center"
-                               VerticalAlignment="Center"/>
+                        Margin="0,0,20,0"
+                        Background="#F0F2F5">
+                    <Grid>
+                        <!-- Изображение аватара -->
+                        <Image x:Name="AvatarImage" 
+                               Width="80" Height="80"
+                               Stretch="UniformToFill">
+                            <Image.Style>
+                                <Style TargetType="Image">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="Source" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Image.Style>
+                        </Image>
+
+                        <!-- Плейсхолдер если нет фото -->
+                        <TextBlock x:Name="AvatarPlaceholder" 
+                                   Text="👤" 
+                                   FontSize="42"
+                                   Foreground="#4A6FA5"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Visibility="Visible"/>
+
+                        <!-- Кнопка-карандаш для смены аватара -->
+                        <Button x:Name="BtnChangeAvatar"
+                                Width="28" Height="28"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Bottom"
+                                Background="#4A6FA5"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="BtnChangeAvatar_Click"
+                                ToolTip="Изменить фото">
+                            <TextBlock Text="✏️" 
+                                       FontSize="14" 
+                                       Foreground="White"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Button>
+
+                        <Grid.ContextMenu>
+                            <ContextMenu x:Name="AvatarContextMenu">
+                                <MenuItem x:Name="MenuItemSetPhoto" Header="📷 Установить фото" Click="MenuItemSetPhoto_Click"/>
+                                <MenuItem x:Name="MenuItemDeletePhoto" Header="🗑️ Удалить фото" Click="MenuItemDeletePhoto_Click"/>
+                            </ContextMenu>
+                        </Grid.ContextMenu>
+                    </Grid>
                 </Border>
 
                 <!-- Информация -->
@@ -65,7 +118,8 @@
                 <Border Background="White"
                         CornerRadius="8"
                         Padding="15"
-                        Margin="0,0,0,15">
+                        Margin="0,0,0,15"
+                        Effect="{StaticResource ShadowEffect}">
                     <StackPanel>
                         <TextBlock Text="Имя пользователя" 
                                    Foreground="#7F8C8D" 
@@ -224,7 +278,7 @@
         <Border Grid.Row="2" 
                 Background="White"
                 CornerRadius="8"
-                Padding="15"
+                Padding="10"
                 Margin="0,20,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -235,39 +289,91 @@
 
                 <!-- Кнопка удаления -->
                 <Button x:Name="BtnDelete" 
-        Grid.Column="0"
-        Content="🗑️ Удалить"
-        Background="#E74C3C"
-        Foreground="White"
-        Padding="15,10"
-        BorderThickness="0"
-        Margin="0,0,0,0"
-        Cursor="Hand"
-        HorizontalAlignment="Left"
-        Click="BtnDelete_Click"/>
+                        Grid.Column="0"
+                        Background="Transparent"
+                        Foreground="#E74C3C"
+                        BorderBrush="#E74C3C"
+                        BorderThickness="1"
+                        Padding="15,10"
+                        Cursor="Hand"
+                        HorizontalAlignment="Left"
+                        Click="BtnDelete_Click">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#E74C3C"/>
+                            <Setter Property="BorderBrush" Value="#E74C3C"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#E74C3C"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#E74C3C"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🗑️" Margin="0,0,4,0"/>
+                        <TextBlock Text="Удалить"/>
+                    </StackPanel>
+                </Button>
 
                 <!-- Кнопка смены пароля -->
                 <Button x:Name="BtnChangePassword" 
-        Grid.Column="1"
-        Content="🔑 Сменить пароль"
-        Background="#F39C12"
-        Foreground="White"
-        Padding="15,10"
-        BorderThickness="0"
-        Cursor="Hand"
-        Margin="0,0,10,0"
-        Click="BtnChangePassword_Click"/>
+                        Grid.Column="1"
+                        Background="Transparent"
+                        Foreground="#3498DB"
+                        BorderBrush="#3498DB"
+                        BorderThickness="1"
+                        Padding="5,10"
+                        Cursor="Hand"
+                        Margin="10,0,10,0"
+                        Click="BtnChangePassword_Click">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Foreground" Value="#3498DB"/>
+                            <Setter Property="BorderBrush" Value="#3498DB"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#3498DB"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#3498DB"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🔑" Margin="0,0,4,0"/>
+                        <TextBlock Text="Сменить пароль"/>
+                    </StackPanel>
+                </Button>
 
                 <!-- Кнопка сохранения -->
                 <Button x:Name="BtnSave" 
-        Grid.Column="2"
-        Content="💾 Сохранить"
-        Background="#4A6FA5"
-        Foreground="White"
-        Padding="25,10"
-        BorderThickness="0"
-        Cursor="Hand"
-        Click="BtnSave_Click"/>
+                        Grid.Column="2"
+                        Background="#4A6FA5"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Padding="15,10"
+                        Cursor="Hand"
+                        Click="BtnSave_Click">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Background" Value="#4A6FA5"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#3D5A8C"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="💾" Margin="0,0,4,0"/>
+                        <TextBlock Text="Сохранить"/>
+                    </StackPanel>
+                </Button>
             </Grid>
         </Border>
     </Grid>

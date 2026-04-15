@@ -139,9 +139,6 @@
     <Compile Include="Model\DataBase\SUPPLIERS.cs">
       <DependentUpon>DBManage.tt</DependentUpon>
     </Compile>
-    <Compile Include="Model\DataBase\sysdiagrams.cs">
-      <DependentUpon>DBManage.tt</DependentUpon>
-    </Compile>
     <Compile Include="Model\DataBase\Unit.cs">
       <DependentUpon>DBManage.tt</DependentUpon>
     </Compile>
@@ -169,6 +166,9 @@
     </Compile>
     <Compile Include="View\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\MaintenanceDialog.xaml.cs">
+      <DependentUpon>MaintenanceDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\MasterManage.xaml.cs">
       <DependentUpon>MasterManage.xaml</DependentUpon>
@@ -220,6 +220,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\EquipmentManage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\MaintenanceDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

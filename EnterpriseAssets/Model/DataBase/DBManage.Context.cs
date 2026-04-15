@@ -45,7 +45,6 @@ namespace EnterpriseAssets.Model.DataBase
         public DbSet<STATUS_PURCHASE> STATUS_PURCHASE { get; set; }
         public DbSet<STATUSASSETS> STATUSASSETS { get; set; }
         public DbSet<SUPPLIERS> SUPPLIERS { get; set; }
-        public DbSet<sysdiagrams> sysdiagrams { get; set; }
         public DbSet<Unit> Unit { get; set; }
         public DbSet<USERS> USERS { get; set; }
         public DbSet<WORK_ACTS> WORK_ACTS { get; set; }

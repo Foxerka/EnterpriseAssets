@@ -22,7 +22,6 @@
         <EntityTypeShape EntityType="DB_AssetManageModel.STATUS_PURCHASE" Width="1.5" PointX="9.75" PointY="13.125" IsExpanded="true" />
         <EntityTypeShape EntityType="DB_AssetManageModel.STATUSASSETS" Width="1.5" PointX="7.5" PointY="19.25" IsExpanded="true" />
         <EntityTypeShape EntityType="DB_AssetManageModel.SUPPLIERS" Width="1.5" PointX="10.125" PointY="34.375" IsExpanded="true" />
-        <EntityTypeShape EntityType="DB_AssetManageModel.sysdiagrams" Width="1.5" PointX="0.5" PointY="12" IsExpanded="true" />
         <EntityTypeShape EntityType="DB_AssetManageModel.Unit" Width="1.5" PointX="7.5" PointY="38.625" IsExpanded="true" />
         <EntityTypeShape EntityType="DB_AssetManageModel.USERS" Width="1.5" PointX="3" PointY="14.625" IsExpanded="true" />
         <EntityTypeShape EntityType="DB_AssetManageModel.WORK_ACTS" Width="1.5" PointX="12" PointY="22.5" IsExpanded="true" />
