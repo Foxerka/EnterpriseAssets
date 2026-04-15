@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Data.Entity;
+using System.Windows.Input;
+using System.Windows.Media;
 using EnterpriseAssets.Model.DataBase;
 
 namespace EnterpriseAssets.View.Pages
@@ -23,19 +24,34 @@ namespace EnterpriseAssets.View.Pages
             LoadEquipment();
         }
 
-        // 🔹 Загрузка оборудования с данными ТО
+        /// <summary>
+        /// Загрузка оборудования с данными ТО
+        /// </summary>
         private void LoadEquipment()
         {
             try
             {
+                // Проверяем, что EquipmentList существует
+                if (EquipmentList == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("EquipmentList is null!");
+                    return;
+                }
+
                 // Загружаем оборудование с навигационными свойствами
                 var equipment = db.EQUIPMENT
-                    .Include(e => e.WORKSHOPS)
-                    .Include(e => e.MASTERS)
-                    .Include(e => e.MASTERS.USERS)
-                    .Include(e => e.STATUSASSETS)
-                    .Include(e => e.WORK_ACTS)
+                    .Include("WORKSHOPS")
+                    .Include("MASTERS")
+                    .Include("MASTERS.USERS")
+                    .Include("STATUSASSETS")
                     .ToList();
+
+                if (equipment == null || !equipment.Any())
+                {
+                    EquipmentList.ItemsSource = null;
+                    UpdateStats(new List<EQUIPMENT>());
+                    return;
+                }
 
                 // Фильтр по статусу
                 if (CmbStatusFilter.SelectedIndex > 0 && CmbStatusFilter.SelectedItem is ComboBoxItem item)
@@ -43,7 +59,7 @@ namespace EnterpriseAssets.View.Pages
                     var filter = item.Content?.ToString();
                     equipment = filter switch
                     {
-                        "✅ В работе" => equipment.Where(e => e.STATUSASSETS?.Status == "В работе").ToList(),
+                        "✅ В эксплуатации" => equipment.Where(e => e.STATUSASSETS?.Status == "В эксплуатации").ToList(),
                         "⚠️ Требует ТО" => equipment.Where(e => IsMaintenanceDue(e)).ToList(),
                         "🔧 На обслуживании" => equipment.Where(e => e.STATUSASSETS?.Status == "На обслуживании").ToList(),
                         "❌ Неисправен" => equipment.Where(e => e.STATUSASSETS?.Status == "Неисправен").ToList(),
@@ -51,97 +67,108 @@ namespace EnterpriseAssets.View.Pages
                     };
                 }
 
-                // Преобразуем в ViewModel
-                EquipmentList.ItemsSource = equipment.Select(e => {
-                    // Отладка – посмотрим, что пришло
-                    System.Diagnostics.Debug.WriteLine($"Processing equipment ID: {e.ID}");
+                // Преобразуем в ViewModel с безопасной обработкой null
+                var viewModels = equipment.Select(e => new EquipmentViewModel1
+                {
+                    Id = e.ID,
+                    AssetName = e.asset_id ?? "—",
+                    EquipmentType = e.equipment_type ?? "—",
+                    Workshop = e.WORKSHOPS?.name ?? "—",
+                    Master = GetMasterName(e.MASTERS),
+                    StatusName = e.STATUSASSETS?.Status ?? e.operational_status ?? "Неизвестно",
+                    StatusColor = GetStatusColor(e.STATUSASSETS?.Status ?? e.operational_status),
+                    StatusBorderColor = GetStatusBorderColor(e.STATUSASSETS?.Status ?? e.operational_status),
+                    NextMaintenance = e.next_maintenance_date,
+                    NextMaintenanceDisplay = GetNextMaintenanceDisplay(e.next_maintenance_date),
+                    MaintenanceColor = GetMaintenanceColor(e.next_maintenance_date),
+                    DaysToMaintenance = GetDaysToMaintenance(e.next_maintenance_date),
+                    UrgencyIcon = GetUrgencyIcon(e.next_maintenance_date),
+                    UrgencyColor = GetUrgencyColor(e.next_maintenance_date),
+                    WorkHours = e.current_work_hours ?? 0,
+                    MaxWorkHours = e.max_work_hours_before_maintenance ?? 0
+                }).ToList();
 
-                    // Безопасно получаем имя мастера
-                    string masterName = "";
-                    try
-                    {
-                        if (e.MASTERS != null)
-                        {
-                            if (e.MASTERS.USERS != null)
-                            {
-                                masterName = e.MASTERS.USERS.full_name ?? e.MASTERS.USERS.username ?? "";
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error getting master name: {ex.Message}");
-                    }
+                // Сортировка по приоритету
+                viewModels = viewModels.OrderBy(vm => GetMaintenancePriority(vm.NextMaintenance, vm.StatusName)).ToList();
 
-                    // Безопасно получаем статус
-                    string status = e.STATUSASSETS?.Status ?? "";
-
-                    return new EquipmentViewModel
-                    {
-                        Id = e.ID,
-                        AssetName = e.asset_id ?? "",
-                        EquipmentType = e.equipment_type ?? "",
-                        Workshop = e.WORKSHOPS?.name ?? "",
-                        Master = masterName,
-                        StatusName = status,
-                        StatusColor = GetStatusColor(status),
-                        StatusBorderColor = GetStatusBorderColor(status),
-                        NextMaintenance = e.next_maintenance_date,
-                        NextMaintenanceDisplay = GetNextMaintenanceDisplay(e.next_maintenance_date),
-                        MaintenanceColor = GetMaintenanceColor(e.next_maintenance_date),
-                        DaysToMaintenance = GetDaysToMaintenance(e.next_maintenance_date),
-                        UrgencyIcon = GetUrgencyIcon(e.next_maintenance_date),
-                        UrgencyColor = GetUrgencyColor(e.next_maintenance_date)
-                    };
-                })
- .OrderBy(e => GetMaintenancePriority(e.NextMaintenance, e.StatusName))
- .ToList();
-
+                EquipmentList.ItemsSource = viewModels;
                 UpdateStats(equipment);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка");
+                MessageBox.Show($"Ошибка загрузки: {ex.Message}\n\n{ex.StackTrace}",
+                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // 🔹 ViewModel для карточки оборудования
-        public class EquipmentViewModel
+        /// <summary>
+        /// Безопасное получение имени мастера
+        /// </summary>
+        private string GetMasterName(MASTERS master)
         {
-            public int Id { get; set; }
-            public string AssetName { get; set; }
-            public string EquipmentType { get; set; }
-            public string Workshop { get; set; }
-            public string Master { get; set; }
-            public string StatusName { get; set; }
-            public string StatusColor { get; set; }
-            public string StatusBorderColor { get; set; }
-            public DateTime? NextMaintenance { get; set; }
-            public string NextMaintenanceDisplay { get; set; }
-            public string MaintenanceColor { get; set; }
-            public string DaysToMaintenance { get; set; }
-            public string UrgencyIcon { get; set; }
-            public string UrgencyColor { get; set; }
+            try
+            {
+                if (master == null) return "Не назначен";
+                if (master.USERS == null) return $"Мастер ID: {master.id}";
+
+                var userName = master.USERS.full_name;
+                if (string.IsNullOrWhiteSpace(userName))
+                    userName = master.USERS.username;
+
+                return string.IsNullOrWhiteSpace(userName) ? $"Мастер ID: {master.id}" : userName;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error getting master name: {ex.Message}");
+                return "Ошибка загрузки";
+            }
         }
 
-        // 🔹 ViewModel для записи ТО
-        public class MaintenanceViewModel
+        /// <summary>
+        /// Проверка, требуется ли ТО
+        /// </summary>
+        private bool IsMaintenanceDue(EQUIPMENT e)
         {
-            public DateTime? Date { get; set; }
-            public string DateDisplay { get; set; }
-            public string Type { get; set; }
-            public string Description { get; set; }
-            public string Parts { get; set; }
-            public string CostDisplay { get; set; }
-            public string DowntimeDisplay { get; set; }
-            public string NextMaintenance { get; set; }
-            public string NextMaintenanceColor { get; set; }
+            if (e == null || !e.next_maintenance_date.HasValue) return false;
+            var days = (e.next_maintenance_date.Value - DateTime.Now).Days;
+            return days <= 14 && days >= 0;
         }
 
-        // 🔹 Вспомогательные методы
+        /// <summary>
+        /// Получение приоритета для сортировки
+        /// </summary>
+        private int GetMaintenancePriority(DateTime? nextMaint, string status)
+        {
+            if (status == "Неисправен") return 0;
+            if (status == "Неизвестно") return 4;
+            if (nextMaint.HasValue && (nextMaint.Value - DateTime.Now).Days < 0) return 1;
+            if (nextMaint.HasValue && (nextMaint.Value - DateTime.Now).Days <= 7) return 2;
+            return 3;
+        }
+
+        /// <summary>
+        /// Обновление статистики
+        /// </summary>
+        private void UpdateStats(List<EQUIPMENT> equipment)
+        {
+            try
+            {
+                if (TotalCount != null) TotalCount.Text = equipment?.Count.ToString() ?? "0";
+                if (ActiveCount != null) ActiveCount.Text = equipment?.Count(e => e.STATUSASSETS?.Status == "В эксплуатации" || e.operational_status == "В эксплуатации").ToString() ?? "0";
+                if (DueCount != null) DueCount.Text = equipment?.Count(e => IsMaintenanceDue(e)).ToString() ?? "0";
+                if (BrokenCount != null) BrokenCount.Text = equipment?.Count(e => e.STATUSASSETS?.Status == "Неисправен" || e.operational_status == "Неисправен").ToString() ?? "0";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error updating stats: {ex.Message}");
+            }
+        }
+
+        // 🔹 Вспомогательные методы для отображения
         private string GetStatusColor(string status)
         {
-            return status?.Trim().ToLower() switch
+            if (string.IsNullOrEmpty(status)) return "#7F8C8D";
+            return status.Trim().ToLower() switch
             {
                 "в эксплуатации" => "#27AE60",
                 "на обслуживании" => "#F39C12",
@@ -153,7 +180,8 @@ namespace EnterpriseAssets.View.Pages
 
         private string GetStatusBorderColor(string status)
         {
-            return status?.Trim().ToLower() switch
+            if (string.IsNullOrEmpty(status)) return "Transparent";
+            return status.Trim().ToLower() switch
             {
                 "в эксплуатации" => "#27AE60",
                 "на обслуживании" => "#F39C12",
@@ -196,51 +224,29 @@ namespace EnterpriseAssets.View.Pages
             return days < 0 ? "#E74C3C" : days <= 7 ? "#F39C12" : "#27AE60";
         }
 
-        private bool IsMaintenanceDue(EQUIPMENT e)
-        {
-            if (!e.next_maintenance_date.HasValue) return false;
-            var days = (e.next_maintenance_date.Value - DateTime.Now).Days;
-            return days <= 14 && days >= 0;
-        }
-
-        private int GetMaintenancePriority(DateTime? nextMaint, string status)
-        {
-            // Приоритет сортировки: неисправные → просроченные → скоро ТО → остальные
-            if (status == "Неисправен") return 0;
-            if (nextMaint.HasValue && (nextMaint.Value - DateTime.Now).Days < 0) return 1;
-            if (nextMaint.HasValue && (nextMaint.Value - DateTime.Now).Days <= 7) return 2;
-            return 3;
-        }
-
-        private void UpdateStats(List<EQUIPMENT> equipment)
-        {
-            TotalCount.Text = equipment.Count.ToString();
-            ActiveCount.Text = equipment.Count(e => e.STATUSASSETS?.Status == "В эксплуатации").ToString();
-            DueCount.Text = equipment.Count(e => IsMaintenanceDue(e)).ToString();
-            BrokenCount.Text = equipment.Count(e => e.STATUSASSETS?.Status == "Неисправен").ToString();
-        }
-
-        // 🔹 Загрузка истории ТО для выбранного оборудования
+        /// <summary>
+        /// Загрузка истории ТО для выбранного оборудования
+        /// </summary>
         private void LoadMaintenanceHistory(int equipmentId)
         {
             try
             {
+                if (MaintenanceHistoryList == null) return;
+
                 var history = db.MAINTENANCE
-                    .Include(m => m.STATUSASSETS)
-                    .Include(m => m.MASTERS)
-                    .Include(m => m.MASTERS.USERS)
                     .Where(m => m.equipment_id == equipmentId)
                     .OrderByDescending(m => m.maintenance_date)
                     .ToList();
 
-                MaintenanceHistoryList.ItemsSource = history.Select(m => new MaintenanceViewModel
+                var historyViewModels = history.Select(m => new MaintenanceViewModel
                 {
+                    Id = m.id,
                     Date = m.maintenance_date,
                     DateDisplay = m.maintenance_date?.ToString("dd.MM.yyyy") ?? "—",
                     Type = m.maintenance_type ?? "—",
                     Description = m.description ?? "—",
                     Parts = string.IsNullOrEmpty(m.parts_replaced) ? "—" : $"Заменено: {m.parts_replaced}",
-                    CostDisplay = m.cost.HasValue ? $"{m.cost:C}" : "—",
+                    CostDisplay = m.cost.HasValue ? $"{m.cost:N2} руб." : "—",
                     DowntimeDisplay = m.downtime_hours.HasValue ? $"{m.downtime_hours} ч." : "—",
                     NextMaintenance = m.next_maintenance_date.HasValue
                         ? $"След. ТО: {m.next_maintenance_date:dd.MM.yyyy}"
@@ -248,11 +254,38 @@ namespace EnterpriseAssets.View.Pages
                     NextMaintenanceColor = GetMaintenanceColor(m.next_maintenance_date)
                 }).ToList();
 
-                TxtNoHistory.Visibility = history.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+                MaintenanceHistoryList.ItemsSource = historyViewModels;
+
+                if (TxtNoHistory != null)
+                    TxtNoHistory.Visibility = history.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки истории: {ex.Message}", "Ошибка");
+                MessageBox.Show($"Ошибка загрузки истории: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        /// <summary>
+        /// Проведение ТО (открытие диалогового окна)
+        /// </summary>
+        private void PerformMaintenance_Click(object sender, RoutedEventArgs e)
+        {
+            if ((sender as Button)?.Tag is int equipmentId)
+            {
+                var equipment = db.EQUIPMENT.FirstOrDefault(eq => eq.ID == equipmentId);
+                if (equipment != null)
+                {
+                    var dialog = new MaintenanceDialog(equipmentId);
+                    dialog.Owner = Window.GetWindow(this);
+                    if (dialog.ShowDialog() == true)
+                    {
+                        LoadEquipment();
+                        if (_selectedEquipmentId == equipmentId)
+                        {
+                            LoadMaintenanceHistory(equipmentId);
+                        }
+                    }
+                }
             }
         }
 
@@ -263,34 +296,81 @@ namespace EnterpriseAssets.View.Pages
         private void BtnRefresh_Click(object sender, RoutedEventArgs e)
             => LoadEquipment();
 
-        private void EquipmentCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void EquipmentCard_Click(object sender, MouseButtonEventArgs e)
         {
             if ((sender as FrameworkElement)?.Tag is int id)
             {
                 _selectedEquipmentId = id;
 
-                // Загружаем данные оборудования
-                var eq = db.EQUIPMENT
-                    .Include(e => e.STATUSASSETS)
-                    .Include(e => e.WORKSHOPS)
-                    .FirstOrDefault(e => e.ID == id);
-
-                if (eq != null)
+                try
                 {
-                    TxtSelectedAsset.Text = eq.asset_id ?? "—";
-                    TxtSelectedInfo.Text = $"{eq.equipment_type} • {eq.WORKSHOPS?.name ?? "—"}";
-                    TxtCurrentStatus.Text = eq.STATUSASSETS?.Status ?? "—";
-                    StatusBadge.Background = new System.Windows.Media.SolidColorBrush(
-                        (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(
-                            GetStatusColor(eq.STATUSASSETS?.Status)));
-                }
+                    var eq = db.EQUIPMENT
+                        .Include("STATUSASSETS")
+                        .Include("WORKSHOPS")
+                        .FirstOrDefault(e => e.ID == id);
 
-                // Загружаем историю
-                LoadMaintenanceHistory(id);
+                    if (eq != null)
+                    {
+                        if (TxtSelectedAsset != null) TxtSelectedAsset.Text = eq.asset_id ?? "—";
+                        if (TxtSelectedInfo != null) TxtSelectedInfo.Text = $"{eq.equipment_type ?? "—"} • {eq.WORKSHOPS?.name ?? "—"}";
+                        if (TxtCurrentStatus != null) TxtCurrentStatus.Text = eq.STATUSASSETS?.Status ?? eq.operational_status ?? "—";
+                        if (StatusBadge != null)
+                        {
+                            StatusBadge.Background = new SolidColorBrush(
+                                (Color)ColorConverter.ConvertFromString(GetStatusColor(eq.STATUSASSETS?.Status ?? eq.operational_status)));
+                        }
+                    }
+
+                    LoadMaintenanceHistory(id);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error loading equipment details: {ex.Message}");
+                }
             }
         }
 
-        // 🔹 Освобождение ресурсов
         public void Dispose() => db?.Dispose();
+    }
+
+    /// <summary>
+    /// ViewModel для оборудования
+    /// </summary>
+    public class EquipmentViewModel1
+    {
+        public int Id { get; set; }
+        public string AssetName { get; set; }
+        public string EquipmentType { get; set; }
+        public string Workshop { get; set; }
+        public string Master { get; set; }
+        public string StatusName { get; set; }
+        public string StatusColor { get; set; }
+        public string StatusBorderColor { get; set; }
+        public DateTime? NextMaintenance { get; set; }
+        public string NextMaintenanceDisplay { get; set; }
+        public string MaintenanceColor { get; set; }
+        public string DaysToMaintenance { get; set; }
+        public string UrgencyIcon { get; set; }
+        public string UrgencyColor { get; set; }
+        public double WorkHours { get; set; }
+        public double MaxWorkHours { get; set; }
+        public double WorkHoursPercent => MaxWorkHours > 0 ? (WorkHours / MaxWorkHours) * 100 : 0;
+    }
+
+    /// <summary>
+    /// ViewModel для истории ТО
+    /// </summary>
+    public class MaintenanceViewModel
+    {
+        public int Id { get; set; }
+        public DateTime? Date { get; set; }
+        public string DateDisplay { get; set; }
+        public string Type { get; set; }
+        public string Description { get; set; }
+        public string Parts { get; set; }
+        public string CostDisplay { get; set; }
+        public string DowntimeDisplay { get; set; }
+        public string NextMaintenance { get; set; }
+        public string NextMaintenanceColor { get; set; }
     }
 }

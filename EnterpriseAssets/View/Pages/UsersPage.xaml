@@ -9,641 +9,702 @@
       Title="UsersPage"
       Background="#F5F7FA">
 
+    <Page.Resources>
+        <!-- Стиль для вкладок -->
+        <Style x:Key="TabButtonStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#7F8C8D"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="4,4,0,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="#4A6FA5"/>
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="BorderBrush" Value="#E1E5EB"/>
+                                <Setter Property="BorderThickness" Value="1,1,1,0"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#F8F9FA"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Заголовок -->
-        <TextBlock Text="Управление пользователями" 
-                   FontSize="28" 
+        <TextBlock Grid.Row="0" 
+                   Text="Управление пользователями" 
+                   FontSize="24" 
                    FontWeight="SemiBold" 
                    Foreground="#2C3E50"
-                   Margin="0,0,0,20"/>
+                   Margin="0,0,0,15"/>
 
-        <!-- Tab Control -->
-        <TabControl Grid.Row="1" 
-                    Background="White"
-                    BorderBrush="#E1E5EB"
-                    BorderThickness="1"
-                    Padding="20">
+        <!-- Вкладки -->
+        <Border Grid.Row="1" 
+                Background="Transparent" 
+                Padding="0" 
+                Margin="0,0,0,0">
+            <StackPanel Orientation="Horizontal">
+                <RadioButton x:Name="TabUsers" 
+                             Content="Пользователи" 
+                             GroupName="MainTabs" 
+                             IsChecked="True"
+                             Style="{StaticResource TabButtonStyle}"
+                             Checked="TabUsers_Checked"/>
+                <RadioButton x:Name="TabRoles" 
+                             Content="Роли" 
+                             GroupName="MainTabs" 
+                             Style="{StaticResource TabButtonStyle}"
+                             Checked="TabRoles_Checked"/>
+                <RadioButton x:Name="TabMasters" 
+                             Content="Мастера" 
+                             GroupName="MainTabs" 
+                             Style="{StaticResource TabButtonStyle}"
+                             Checked="TabMasters_Checked"/>
+            </StackPanel>
+        </Border>
 
-            <!-- Стиль для вкладок -->
-            <TabControl.Resources>
-                <Style TargetType="TabItem">
-                    <Setter Property="HeaderTemplate">
-                        <Setter.Value>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding}" 
-                                           FontSize="14" 
-                                           FontWeight="SemiBold"
-                                           Padding="20,10"/>
-                            </DataTemplate>
-                        </Setter.Value>
-                    </Setter>
-                    <Setter Property="Background" Value="#F8F9FA"/>
-                    <Setter Property="BorderBrush" Value="#E1E5EB"/>
-                    <Setter Property="BorderThickness" Value="1"/>
-                    <Setter Property="Margin" Value="2,0,2,0"/>
-                    <Setter Property="Padding" Value="10,5"/>
-                    <Style.Triggers>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="White"/>
-                            <Setter Property="BorderThickness" Value="1,1,1,0"/>
-                            <Setter Property="BorderBrush" Value="#4A6FA5"/>
-                        </Trigger>
-                    </Style.Triggers>
-                </Style>
-            </TabControl.Resources>
+        <!-- Строка фильтров -->
+        <Border Grid.Row="2" 
+                Background="White" 
+                BorderBrush="#E1E5EB" 
+                BorderThickness="1" 
+                CornerRadius="0,6,6,6" 
+                Padding="15,10" 
+                Margin="0,0,0,10">
+
+            <Grid>
+                <!-- Фильтры для вкладки Пользователи -->
+                <Grid x:Name="UsersFilters" Visibility="Visible">
+                    <WrapPanel>
+                        <!-- Фильтр по роли -->
+                        <Border Background="#F8F9FA" 
+                                BorderBrush="#E1E5EB" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="8,4" 
+                                Margin="0,0,15,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Роль:" Foreground="#7F8C8D" Margin="0,0,8,0"/>
+                                <ComboBox x:Name="RoleFilter" 
+                                          Width="150"
+                                          BorderThickness="0"
+                                          Background="Transparent"
+                                          SelectionChanged="FilterUsers">
+                                    <ComboBoxItem Content="Все роли" IsSelected="True"/>
+                                    <ComboBoxItem Content="Администратор"/>
+                                    <ComboBoxItem Content="Директор"/>
+                                    <ComboBoxItem Content="Начальник цеха"/>
+                                    <ComboBoxItem Content="Мастер"/>
+                                    <ComboBoxItem Content="Кладовщик"/>
+                                    <ComboBoxItem Content="Оператор"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Сортировка -->
+                        <Border Background="#F8F9FA" 
+                                BorderBrush="#E1E5EB" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="8,4" 
+                                Margin="0,0,15,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Сортировка:" Foreground="#7F8C8D" Margin="0,0,8,0"/>
+                                <ComboBox x:Name="UsersSortFilter" 
+                                          Width="170"
+                                          BorderThickness="0"
+                                          Background="Transparent"
+                                          SelectionChanged="SortUsers">
+                                    <ComboBoxItem Content="По имени пользователя" IsSelected="True"/>
+                                    <ComboBoxItem Content="По полному имени"/>
+                                    <ComboBoxItem Content="По роли"/>
+                                </ComboBox>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Поиск для пользователей -->
+                        <Border Background="#F8F9FA" 
+                                BorderBrush="#E1E5EB" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="8,4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔍" Foreground="#7F8C8D" Margin="0,0,5,0"/>
+                                <TextBox x:Name="UsersSearchBox" 
+                                         Width="200"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         VerticalContentAlignment="Center"
+                                         TextChanged="UsersSearchBox_TextChanged">
+                                    <TextBox.ToolTip>
+                                        Поиск по имени, логину, email или телефону
+                                    </TextBox.ToolTip>
+                                </TextBox>
+                                <Button x:Name="ClearUsersSearchButton"
+                                        Content="✕" 
+                                        Width="20" 
+                                        Height="20" 
+                                        Background="Transparent"
+                                        Foreground="#95A5A6"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        Click="ClearUsersSearch_Click"
+                                        ToolTip="Очистить поиск"
+                                        Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+                </Grid>
+
+                <!-- Фильтры для вкладки Роли -->
+                <Grid x:Name="RolesFilters" Visibility="Collapsed">
+                    <WrapPanel>
+                        <!-- Поиск по ролям -->
+                        <Border Background="#F8F9FA" 
+                                BorderBrush="#E1E5EB" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="8,4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔍" Foreground="#7F8C8D" Margin="0,0,5,0"/>
+                                <TextBox x:Name="RolesSearchBox" 
+                                         Width="250"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         VerticalContentAlignment="Center"
+                                         TextChanged="RolesSearchBox_TextChanged">
+                                    <TextBox.ToolTip>
+                                        Поиск по названию или описанию роли
+                                    </TextBox.ToolTip>
+                                </TextBox>
+                                <Button x:Name="ClearRolesSearchButton"
+                                        Content="✕" 
+                                        Width="20" 
+                                        Height="20" 
+                                        Background="Transparent"
+                                        Foreground="#95A5A6"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        Click="ClearRolesSearch_Click"
+                                        ToolTip="Очистить поиск"
+                                        Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+                </Grid>
+
+                <!-- Фильтры для вкладки Мастера -->
+                <Grid x:Name="MastersFilters" Visibility="Collapsed">
+                    <WrapPanel>
+                        <!-- Фильтр доступности -->
+                        <Border Background="#F8F9FA" 
+                                BorderBrush="#E1E5EB" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="8,4" 
+                                Margin="0,0,15,0">
+                            <CheckBox x:Name="ShowOnlyAvailable" 
+                                      Content="Только доступные"
+                                      Foreground="#2C3E50"
+                                      Checked="FilterMasters"
+                                      Unchecked="FilterMasters"
+                                      VerticalAlignment="Center"
+                                      Margin="5,0"/>
+                        </Border>
+
+                        <!-- Поиск по мастерам -->
+                        <Border Background="#F8F9FA" 
+                                BorderBrush="#E1E5EB" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="8,4">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🔍" Foreground="#7F8C8D" Margin="0,0,5,0"/>
+                                <TextBox x:Name="MastersSearchBox" 
+                                         Width="250"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         VerticalContentAlignment="Center"
+                                         TextChanged="MastersSearchBox_TextChanged">
+                                    <TextBox.ToolTip>
+                                        Поиск по имени, специальности или квалификации
+                                    </TextBox.ToolTip>
+                                </TextBox>
+                                <Button x:Name="ClearMastersSearchButton"
+                                        Content="✕" 
+                                        Width="20" 
+                                        Height="20" 
+                                        Background="Transparent"
+                                        Foreground="#95A5A6"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        Click="ClearMastersSearch_Click"
+                                        ToolTip="Очистить поиск"
+                                        Visibility="Collapsed"/>
+                            </StackPanel>
+                        </Border>
+                    </WrapPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Контейнер для содержимого вкладок -->
+        <Grid Grid.Row="3">
 
             <!-- Вкладка: Пользователи -->
-            <TabItem Header="Пользователи">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+            <Grid x:Name="UsersTabContent" Visibility="Visible">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                    <!-- Панель инструментов -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
-                        <Button Content="➕ Добавить пользователя" 
-                                Background="#4A6FA5"
-                                Foreground="White"
-                                Padding="15,8"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Margin="0,0,10,0"
-                                Click="AddUser_Click"/>
-                        <Button Content="🔄 Обновить" 
-                                Background="#95A5A6"
-                                Foreground="White"
-                                Padding="15,8"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Click="RefreshUsers_Click"/>
-                    </StackPanel>
+                <!-- Панель инструментов -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
+                    <Button Content="➕ Добавить пользователя" 
+                            Background="#4A6FA5"
+                            Foreground="White"
+                            Padding="15,8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Margin="0,0,10,0"
+                            Click="AddUser_Click"/>
+                    <Button Content="🔄 Обновить" 
+                            Background="#95A5A6"
+                            Foreground="White"
+                            Padding="15,8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="RefreshUsers_Click"/>
+                </StackPanel>
 
-                    <!-- Панель сортировки -->
-                    <Border Grid.Row="1" 
-                            Background="#F8F9FA" 
-                            Padding="10" 
-                            CornerRadius="4" 
-                            Margin="0,0,0,15">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Сортировать по:" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <RadioButton x:Name="SortByUsername" 
-                                         Content="Имя пользователя" 
-                                         GroupName="UserSort" 
-                                         IsChecked="True"
-                                         Foreground="#2C3E50"
-                                         Margin="0,0,20,0"
-                                         Checked="SortUsers"/>
-                            <RadioButton x:Name="SortByFullName" 
-                                         Content="Полное имя" 
-                                         GroupName="UserSort" 
-                                         Foreground="#2C3E50"
-                                         Margin="0,0,20,0"
-                                         Checked="SortUsers"/>
-                            <RadioButton x:Name="SortByRole" 
-                                         Content="Роль" 
-                                         GroupName="UserSort" 
-                                         Foreground="#2C3E50"
-                                         Margin="0,0,20,0"
-                                         Checked="SortUsers"/>
+                <!-- Список пользователей -->
+                <ScrollViewer Grid.Row="1" 
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="UsersList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Vertical"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
 
-                            <TextBlock Text="Фильтр по роли:" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="20,0,10,0"/>
-                            <ComboBox x:Name="RoleFilter" 
-                                      Width="150"
-                                      SelectionChanged="FilterUsers">
-                                <ComboBoxItem Content="Все роли" IsSelected="True"/>
-                                <ComboBoxItem Content="Администратор"/>
-                                <ComboBoxItem Content="Директор"/>
-                                <ComboBoxItem Content="Начальник цеха"/>
-                                <ComboBoxItem Content="Мастер"/>
-                                <ComboBoxItem Content="Кладовщик"/>
-                                <ComboBoxItem Content="Оператор"/>
-                            </ComboBox>
-                        </StackPanel>
-                    </Border>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White"
+                                        BorderBrush="#E1E5EB"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Margin="0,0,0,10"
+                                        Padding="15"
+                                        Cursor="Hand"
+                                        MouseLeftButtonUp="UserCard_Click"
+                                        Tag="{Binding id}">
 
-                    <!-- Список пользователей -->
-                    <ScrollViewer Grid.Row="2" 
-              VerticalScrollBarVisibility="Auto"
-              HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl x:Name="UsersList">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Vertical"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
+                                    <Border.Effect>
+                                        <DropShadowEffect ShadowDepth="2" BlurRadius="8" Opacity="0.1"/>
+                                    </Border.Effect>
 
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- Карточка пользователя -->
-                                    <Border Background="White"
-                        BorderBrush="#E1E5EB"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Margin="0,0,0,10"
-                        Padding="15"
-                        Cursor="Hand"
-                        MouseLeftButtonUp="UserCard_Click"
-                        Tag="{Binding id}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                                        <Border.Effect>
-                                            <DropShadowEffect ShadowDepth="2" BlurRadius="8" Opacity="0.1"/>
-                                        </Border.Effect>
+                                        <!-- Аватар -->
+                                        <Border Grid.Column="0"
+                                                Width="50" Height="50"
+                                                CornerRadius="25"
+                                                Background="#E8F0FE"
+                                                BorderBrush="#4A6FA5"
+                                                BorderThickness="2"
+                                                Margin="0,0,15,0">
+                                            <TextBlock Text="👤" 
+                                                       FontSize="28"
+                                                       Foreground="#4A6FA5"
+                                                       HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                                        </Border>
 
-                                        <Grid>
+                                        <!-- Информация -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding full_name}" 
+                                                       FontSize="16" 
+                                                       FontWeight="SemiBold" 
+                                                       Foreground="#2C3E50"/>
+
+                                            <TextBlock Text="{Binding username}" 
+                                                       FontSize="14" 
+                                                       Foreground="#7F8C8D"
+                                                       Margin="0,2,0,0"/>
+
+                                            <WrapPanel Margin="0,5,0,0">
+                                                <TextBlock Text="{Binding ROLES.name}" 
+                                                           Foreground="#4A6FA5" 
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Margin="0,0,10,0"/>
+
+                                                <TextBlock Text="•" 
+                                                           Foreground="#95A5A6" 
+                                                           Margin="0,0,10,0"
+                                                           FontSize="12"/>
+
+                                                <TextBlock Text="📧" 
+                                                           Foreground="#95A5A6" 
+                                                           Margin="0,0,5,0"
+                                                           FontSize="12"/>
+                                                <TextBlock Text="{Binding email}" 
+                                                           Foreground="#5D6D7E" 
+                                                           FontSize="12" 
+                                                           Margin="0,0,15,0"/>
+
+                                                <TextBlock Text="📞" 
+                                                           Foreground="#95A5A6" 
+                                                           Margin="0,0,5,0"
+                                                           FontSize="12"/>
+                                                <TextBlock Text="{Binding phone}" 
+                                                           Foreground="#5D6D7E" 
+                                                           FontSize="12"/>
+                                            </WrapPanel>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- Вкладка: Роли -->
+            <Grid x:Name="RolesTabContent" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
+                    <Button Content="➕ Добавить роль" 
+                            Background="#4A6FA5"
+                            Foreground="White"
+                            Padding="15,8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="AddRole_Click"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" 
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="RolesList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White"
+                                        BorderBrush="#E1E5EB"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Width="280"
+                                        MinHeight="160"
+                                        Margin="10"
+                                        Padding="15"
+                                        Cursor="Hand"
+                                        MouseLeftButtonUp="RoleCard_Click"
+                                        Tag="{Binding Id}">
+
+                                    <Border.Effect>
+                                        <DropShadowEffect ShadowDepth="2" BlurRadius="8" Opacity="0.05"/>
+                                    </Border.Effect>
+
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                            <Border Width="40" Height="40"
+                                                    CornerRadius="20"
+                                                    Background="#F8F9FA"
+                                                    BorderBrush="#E1E5EB"
+                                                    BorderThickness="1"
+                                                    Margin="0,0,10,0">
+                                                <TextBlock Text="🔑" 
+                                                           FontSize="20"
+                                                           Foreground="#7F8C8D"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" 
+                                                           FontSize="16" 
+                                                           FontWeight="SemiBold" 
+                                                           Foreground="#2C3E50"/>
+                                                <TextBlock Text="Роль" 
+                                                           FontSize="11" 
+                                                           Foreground="#95A5A6"
+                                                           Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <Border Grid.Row="1"
+                                                Background="#F8F9FA"
+                                                CornerRadius="6"
+                                                Padding="10"
+                                                Margin="0,0,0,10">
+                                            <TextBlock Text="{Binding Description}"
+                                                       Foreground="#5D6D7E"
+                                                       FontSize="13"
+                                                       TextWrapping="Wrap"
+                                                       TextAlignment="Left"
+                                                       LineHeight="18"/>
+                                        </Border>
+
+                                        <Border Grid.Row="2"
+                                                Background="White"
+                                                BorderBrush="#E1E5EB"
+                                                BorderThickness="1"
+                                                CornerRadius="4"
+                                                Padding="8">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="👥" 
+                                                           Foreground="#95A5A6" 
+                                                           FontSize="14"
+                                                           Margin="0,0,5,0"/>
+                                                <TextBlock Text="Пользователей:" 
+                                                           Foreground="#7F8C8D" 
+                                                           FontSize="11"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding UsersCount}" 
+                                                           Foreground="#2C3E50" 
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Margin="5,0,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- Вкладка: Мастера -->
+            <Grid x:Name="MastersTabContent" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
+                    <Button Content="➕ Назначить мастера" 
+                            Background="#4A6FA5"
+                            Foreground="White"
+                            Padding="15,8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Margin="0,0,10,0"
+                            Click="AssignMaster_Click"/>
+                    <Button Content="📋 Отчет" 
+                            Background="#95A5A6"
+                            Foreground="White"
+                            Padding="15,8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Click="MastersReport_Click"/>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="1" 
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="MastersList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White"
+                                        BorderBrush="{Binding AvailabilityBorderColor}"
+                                        BorderThickness="2"
+                                        CornerRadius="8"
+                                        Width="280"
+                                        Margin="10"
+                                        Padding="15"
+                                        Cursor="Hand"
+                                        MouseLeftButtonUp="MasterCard_Click"
+                                        Tag="{Binding Id}">
+
+                                    <Border.Effect>
+                                        <DropShadowEffect ShadowDepth="2" BlurRadius="8" Opacity="0.1"/>
+                                    </Border.Effect>
+
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Row="0">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
 
-                                            <!-- Аватар пользователя -->
                                             <Border Grid.Column="0"
-                                Width="50" Height="50"
-                                CornerRadius="25"
-                                Background="#E8F0FE"
-                                BorderBrush="#4A6FA5"
-                                BorderThickness="2"
-                                Margin="0,0,15,0">
-                                                <TextBlock Text="👤" 
-                                       FontSize="28"
-                                       Foreground="#4A6FA5"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center"/>
+                                                    Width="60" Height="60"
+                                                    CornerRadius="30"
+                                                    Background="#4A6FA5"
+                                                    Margin="0,0,15,0">
+                                                <TextBlock Text="🔧" 
+                                                           FontSize="32"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
                                             </Border>
 
-                                            <!-- Информация о пользователе -->
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <!-- Полное имя и username -->
-                                                <TextBlock Text="{Binding full_name}" 
-                                       FontSize="16" 
-                                       FontWeight="SemiBold" 
-                                       Foreground="#2C3E50"/>
+                                                <TextBlock Text="{Binding UserName}" 
+                                                           FontSize="16" 
+                                                           FontWeight="SemiBold" 
+                                                           Foreground="#2C3E50"/>
 
-                                                <TextBlock Text="{Binding username}" 
-                                       FontSize="14" 
-                                       Foreground="#7F8C8D"
-                                       Margin="0,2,0,0"/>
-
-                                                <!-- Роль и контакты -->
-                                                <WrapPanel Margin="0,5,0,0">
-                                                    <!-- Название роли без фона, просто текст -->
-                                                    <TextBlock Text="{Binding ROLES.name}" 
-                                           Foreground="#4A6FA5" 
-                                           FontSize="12"
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,10,0"/>
-
-                                                    <TextBlock Text="•" 
-                                           Foreground="#95A5A6" 
-                                           Margin="0,0,10,0"
-                                           FontSize="12"/>
-
-                                                    <TextBlock Text="📧" 
-                                           Foreground="#95A5A6" 
-                                           Margin="0,0,5,0"
-                                           FontSize="12"/>
-                                                    <TextBlock Text="{Binding email}" 
-                                           Foreground="#5D6D7E" 
-                                           FontSize="12" 
-                                           Margin="0,0,15,0"/>
-
-                                                    <TextBlock Text="📞" 
-                                           Foreground="#95A5A6" 
-                                           Margin="0,0,5,0"
-                                           FontSize="12"/>
-                                                    <TextBlock Text="{Binding phone}" 
-                                           Foreground="#5D6D7E" 
-                                           FontSize="12"/>
-                                                </WrapPanel>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Grid>
-            </TabItem>
-
-            <!-- Вкладка: Роли -->
-            <TabItem Header="Роли">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Панель инструментов -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
-                        <Button Content="➕ Добавить роль" 
-                                Background="#4A6FA5"
-                                Foreground="White"
-                                Padding="15,8"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Click="AddRole_Click"/>
-                    </StackPanel>
-
-                    <!-- Список ролей -->
-                    <ScrollViewer Grid.Row="2" 
-              VerticalScrollBarVisibility="Auto"
-              HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl x:Name="RolesList">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- Карточка роли -->
-                                    <Border Background="White"
-                        BorderBrush="#E1E5EB"
-                        BorderThickness="1"
-                        CornerRadius="8"
-                        Width="280"
-                        MinHeight="160"
-                        Margin="10"
-                        Padding="15"
-                        Cursor="Hand"
-                        MouseLeftButtonUp="RoleCard_Click"
-                        Tag="{Binding Id}">
-
-                                        <Border.Effect>
-                                            <DropShadowEffect ShadowDepth="2" BlurRadius="8" Opacity="0.05"/>
-                                        </Border.Effect>
-
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="*"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-
-                                            <!-- Иконка и название (без цветного фона) -->
-                                            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                                                <Border Width="40" Height="40"
-                                    CornerRadius="20"
-                                    Background="#F8F9FA"
-                                    BorderBrush="#E1E5EB"
-                                    BorderThickness="1"
-                                    Margin="0,0,10,0">
-                                                    <TextBlock Text="🔑" 
-                                           FontSize="20"
-                                           Foreground="#7F8C8D"
-                                           HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"/>
+                                                <Border Background="{Binding StatusColor}"
+                                                        CornerRadius="4"
+                                                        Padding="8,3"
+                                                        HorizontalAlignment="Left"
+                                                        Margin="0,5,0,0">
+                                                    <TextBlock Text="{Binding StatusText}" 
+                                                               Foreground="White" 
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"/>
                                                 </Border>
-                                                <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" 
-                                           FontSize="16" 
-                                           FontWeight="SemiBold" 
-                                           Foreground="#2C3E50"/>
-                                                    <TextBlock Text="Роль" 
-                                           FontSize="11" 
-                                           Foreground="#95A5A6"
-                                           Margin="0,2,0,0"/>
-                                                </StackPanel>
                                             </StackPanel>
-
-                                            <!-- Описание (более заметное) -->
-                                            <Border Grid.Row="1"
-                                Background="#F8F9FA"
-                                CornerRadius="6"
-                                Padding="10"
-                                Margin="0,0,0,10">
-                                                <TextBlock Text="{Binding Description}"
-                                       Foreground="#5D6D7E"
-                                       FontSize="13"
-                                       TextWrapping="Wrap"
-                                       TextAlignment="Left"
-                                       LineHeight="18"/>
-                                            </Border>
-
-                                            <!-- Статистика (более информативная) -->
-                                            <Border Grid.Row="2"
-                                Background="White"
-                                BorderBrush="#E1E5EB"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                Padding="8">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <!-- Количество пользователей -->
-                                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                        <TextBlock Text="👥" 
-                                               Foreground="#95A5A6" 
-                                               FontSize="14"
-                                               Margin="0,0,5,0"/>
-                                                        <TextBlock Text="Пользователей:" 
-                                               Foreground="#7F8C8D" 
-                                               FontSize="11"
-                                               VerticalAlignment="Center"/>
-                                                        <TextBlock Text="{Binding UsersCount}" 
-                                               Foreground="#2C3E50" 
-                                               FontSize="13"
-                                               FontWeight="SemiBold"
-                                               Margin="5,0,0,0"/>
-                                                    </StackPanel>
-
-                                                  
-                                                </Grid>
-                                            </Border>
                                         </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Grid>
-            </TabItem>
 
-            <!-- Вкладка: Мастера -->
-            <TabItem Header="Мастера">
-                <Grid Margin="10">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Панель инструментов -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,15">
-                        <Button Content="➕ Назначить мастера" 
-                                Background="#4A6FA5"
-                                Foreground="White"
-                                Padding="15,8"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Margin="0,0,10,0"
-                                Click="AssignMaster_Click"/>
-                        <Button Content="📋 Отчет" 
-                                Background="#95A5A6"
-                                Foreground="White"
-                                Padding="15,8"
-                                BorderThickness="0"
-                                Cursor="Hand"
-                                Click="MastersReport_Click"/>
-                    </StackPanel>
-
-                    <!-- Панель сортировки и фильтров -->
-                    <Border Grid.Row="1" 
-                Background="#F8F9FA" 
-                Padding="10" 
-                CornerRadius="4" 
-                Margin="0,0,0,15">
-                        <WrapPanel>
-                            <!-- БЛОК ПОИСКА -->
-                            <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
-                                <TextBlock Text="🔍 Поиск:" 
-                               Foreground="#7F8C8D" 
-                               VerticalAlignment="Center" 
-                               Margin="0,0,5,0"
-                               FontWeight="SemiBold"/>
-                                <TextBox x:Name="SearchBox" 
-                             Width="250"
-                             Padding="8,5"
-                             BorderBrush="#BDC3C7"
-                             BorderThickness="1"
-                             TextChanged="SearchMasters_TextChanged"
-                             VerticalContentAlignment="Center">
-                                    <TextBox.ToolTip>
-                                        Поиск по имени, специальности или квалификации
-                                    </TextBox.ToolTip>
-                                </TextBox>
-                                <!-- Кнопка очистки поиска (опционально) -->
-                                <Button Content="✕" 
-                            Width="25" 
-                            Height="28" 
-                            Margin="5,0,0,0"
-                            Background="#E74C3C"
-                            Foreground="White"
-                            BorderThickness="0"
-                            Cursor="Hand"
-                            Click="ClearSearch_Click"
-                            ToolTip="Очистить поиск"/>
-                            </StackPanel>
-
-                            <!-- Разделитель -->
-                            <Border Width="1" Background="#BDC3C7" Margin="10,0" VerticalAlignment="Stretch"/>
-
-                            <!-- Сортировка -->
-                            <TextBlock Text="Сортировать по:" Foreground="#7F8C8D" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                            <RadioButton x:Name="SortMastersByName" 
-                             Content="Имя" 
-                             GroupName="MasterSort" 
-                             IsChecked="True"
-                             Foreground="#2C3E50"
-                             Margin="0,0,20,0"
-                             Checked="SortMasters"/>
-                            <RadioButton x:Name="SortMastersBySpecialty" 
-                             Content="Специальность" 
-                             GroupName="MasterSort" 
-                             Foreground="#2C3E50"
-                             Margin="0,0,20,0"
-                             Checked="SortMasters"/>
-                            <RadioButton x:Name="SortMastersByAvailability" 
-                             Content="Доступность" 
-                             GroupName="MasterSort" 
-                             Foreground="#2C3E50"
-                             Margin="0,0,20,0"
-                             Checked="SortMasters"/>
-
-                            <!-- Фильтр доступности -->
-                            <Border Width="1" Background="#BDC3C7" Margin="10,0" VerticalAlignment="Stretch"/>
-
-                            <CheckBox x:Name="ShowOnlyAvailable" 
-                          Content="Только доступные"
-                          Foreground="#2C3E50"
-                          Checked="FilterMasters"
-                          Unchecked="FilterMasters"
-                          VerticalAlignment="Center"/>
-                        </WrapPanel>
-                    </Border>
-
-                    <!-- Список мастеров -->
-                    <ScrollViewer Grid.Row="2" 
-                                  VerticalScrollBarVisibility="Auto"
-                                  HorizontalScrollBarVisibility="Disabled">
-                        <ItemsControl x:Name="MastersList">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel Orientation="Horizontal" HorizontalAlignment="Center"/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- Карточка мастера -->
-                                    <Border Background="White"
-                                            BorderBrush="{Binding AvailabilityBorderColor}"
-                                            BorderThickness="2"
-                                            CornerRadius="8"
-                                            Width="280"
-                                            Margin="10"
-                                            Padding="15"
-                                            Cursor="Hand"
-                                            MouseLeftButtonUp="MasterCard_Click"
-                                            Tag="{Binding Id}">
-
-                                        <Border.Effect>
-                                            <DropShadowEffect ShadowDepth="2" BlurRadius="8" Opacity="0.1"/>
-                                        </Border.Effect>
-
-                                        <Grid>
-                                            <Grid.RowDefinitions>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                                <RowDefinition Height="Auto"/>
-                                            </Grid.RowDefinitions>
-
-                                            <!-- Шапка с аватаром и статусом -->
-                                            <Grid Grid.Row="0">
+                                        <Border Grid.Row="1"
+                                                Background="#F8F9FA"
+                                                CornerRadius="4"
+                                                Padding="8"
+                                                Margin="0,10,0,5">
+                                            <Grid>
                                                 <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
 
-                                                <!-- Аватар -->
-                                                <Border Grid.Column="0"
-                                                        Width="60" Height="60"
-                                                        CornerRadius="30"
+                                                <TextBlock Grid.Column="0" 
+                                                           Text="{Binding SpecialtyName}"
+                                                           Foreground="#2C3E50"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"/>
+
+                                                <Border Grid.Column="1"
                                                         Background="#4A6FA5"
-                                                        Margin="0,0,15,0">
-                                                    <TextBlock Text="🔧" 
-                                                               FontSize="32"
-                                                               Foreground="White"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"/>
-                                                </Border>
-
-                                                <!-- Имя и статус -->
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding UserName}" 
-                                                               FontSize="16" 
-                                                               FontWeight="SemiBold" 
-                                                               Foreground="#2C3E50"/>
-
-                                                    <Border Background="{Binding StatusColor}"
-                                                            CornerRadius="4"
-                                                            Padding="8,3"
-                                                            HorizontalAlignment="Left"
-                                                            Margin="0,5,0,0">
-                                                        <TextBlock Text="{Binding StatusText}" 
-                                                                   Foreground="White" 
-                                                                   FontSize="11"
-                                                                   FontWeight="SemiBold"/>
-                                                    </Border>
-                                                </StackPanel>
-                                            </Grid>
-
-                                            <!-- Специальность и квалификация -->
-                                            <Border Grid.Row="1"
-                                                    Background="#F8F9FA"
-                                                    CornerRadius="4"
-                                                    Padding="8"
-                                                    Margin="0,10,0,5">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <TextBlock Grid.Column="0" 
-                                                               Text="{Binding SpecialtyName}"
-                                                               Foreground="#2C3E50"
-                                                               FontSize="12"
-                                                               FontWeight="SemiBold"/>
-
-                                                    <Border Grid.Column="1"
-                                                            Background="#4A6FA5"
-                                                            CornerRadius="4"
-                                                            Padding="5,2">
-                                                        <TextBlock Text="{Binding QualificationName}" 
-                                                                   Foreground="White" 
-                                                                   FontSize="10"
-                                                                   FontWeight="SemiBold"/>
-                                                    </Border>
-                                                </Grid>
-                                            </Border>
-
-                                            <!-- Детали -->
-                                            <WrapPanel Grid.Row="2" Margin="0,5,0,5">
-                                                <Border Background="{Binding SkillLevelColor}"
                                                         CornerRadius="4"
-                                                        Padding="5,2"
-                                                        Margin="0,0,5,0">
-                                                    <TextBlock Text="{Binding SkillLevel}" 
+                                                        Padding="5,2">
+                                                    <TextBlock Text="{Binding QualificationName}" 
                                                                Foreground="White" 
                                                                FontSize="10"
                                                                FontWeight="SemiBold"/>
                                                 </Border>
+                                            </Grid>
+                                        </Border>
 
-                                                <TextBlock Text="📅" Foreground="#95A5A6" Margin="5,0,2,0"/>
-                                                <TextBlock Text="{Binding HireDate, StringFormat={}{0:dd.MM.yyyy}}" 
-                                                           Foreground="#5D6D7E" 
-                                                           FontSize="11"/>
-                                            </WrapPanel>
-
-                                            <!-- Статистика работ -->
-                                            <Border Grid.Row="3"
-                                                    Background="#E8F0FE"
+                                        <WrapPanel Grid.Row="2" Margin="0,5,0,5">
+                                            <Border Background="{Binding SkillLevelColor}"
                                                     CornerRadius="4"
-                                                    Padding="8"
-                                                    Margin="0,5,0,0">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                                        <TextBlock Text="📝" Foreground="#4A6FA5" Margin="0,0,3,0"/>
-                                                        <TextBlock Text="{Binding WorkActsCount}" 
-                                                                   Foreground="#2C3E50" 
-                                                                   FontSize="11"
-                                                                   FontWeight="SemiBold"/>
-                                                    </StackPanel>
-
-                                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                                        <TextBlock Text="✅" Foreground="#27AE60" Margin="0,0,3,0"/>
-                                                        <TextBlock Text="{Binding CompletionActsCount}" 
-                                                                   Foreground="#2C3E50" 
-                                                                   FontSize="11"
-                                                                   FontWeight="SemiBold"/>
-                                                    </StackPanel>
-
-                                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
-                                                        <TextBlock Text="⚙️" Foreground="#E67E22" Margin="0,0,3,0"/>
-                                                        <TextBlock Text="{Binding EquipmentCount}" 
-                                                                   Foreground="#2C3E50" 
-                                                                   FontSize="11"
-                                                                   FontWeight="SemiBold"/>
-                                                    </StackPanel>
-                                                </Grid>
+                                                    Padding="5,2"
+                                                    Margin="0,0,5,0">
+                                                <TextBlock Text="{Binding SkillLevel}" 
+                                                           Foreground="White" 
+                                                           FontSize="10"
+                                                           FontWeight="SemiBold"/>
                                             </Border>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </Grid>
-            </TabItem>
-        </TabControl>
+
+                                            <TextBlock Text="📅" Foreground="#95A5A6" Margin="5,0,2,0"/>
+                                            <TextBlock Text="{Binding HireDate, StringFormat={}{0:dd.MM.yyyy}}" 
+                                                       Foreground="#5D6D7E" 
+                                                       FontSize="11"/>
+                                        </WrapPanel>
+
+                                        <Border Grid.Row="3"
+                                                Background="#E8F0FE"
+                                                CornerRadius="4"
+                                                Padding="8"
+                                                Margin="0,5,0,0">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                    <TextBlock Text="📝" Foreground="#4A6FA5" Margin="0,0,3,0"/>
+                                                    <TextBlock Text="{Binding WorkActsCount}" 
+                                                               Foreground="#2C3E50" 
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"/>
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                    <TextBlock Text="✅" Foreground="#27AE60" Margin="0,0,3,0"/>
+                                                    <TextBlock Text="{Binding CompletionActsCount}" 
+                                                               Foreground="#2C3E50" 
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"/>
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                    <TextBlock Text="⚙️" Foreground="#E67E22" Margin="0,0,3,0"/>
+                                                    <TextBlock Text="{Binding EquipmentCount}" 
+                                                               Foreground="#2C3E50" 
+                                                               FontSize="11"
+                                                               FontWeight="SemiBold"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
     </Grid>
 </Page>
