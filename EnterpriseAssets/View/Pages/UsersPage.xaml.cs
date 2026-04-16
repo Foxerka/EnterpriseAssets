@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using EnterpriseAssets.Model.DataBase;
 
 namespace EnterpriseAssets.View.Pages
@@ -159,7 +161,7 @@ namespace EnterpriseAssets.View.Pages
         }
 
         // ===== Переключение вкладок =====
-        
+
 
         // ===== Поиск =====
         private void UsersSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -257,13 +259,178 @@ namespace EnterpriseAssets.View.Pages
                 _ => filteredUsers.OrderBy(u => u.username)
             };
 
+            // Применяем шаблон с аватарами
             UsersList.ItemsSource = null;
             UsersList.ItemsSource = filteredUsers.ToList();
         }
 
+        // Метод для получения изображения аватара из байтов
+        private ImageSource GetAvatarImage(byte[] photoBytes)
+        {
+            if (photoBytes == null || photoBytes.Length == 0)
+                return null;
+
+            try
+            {
+                using (var stream = new MemoryStream(photoBytes))
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = stream;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    return bitmap;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        // Метод для создания DataTemplate с аватаром
+        private DataTemplate CreateUserDataTemplate()
+        {
+            var template = new DataTemplate();
+            template.VisualTree = new FrameworkElementFactory(typeof(Border));
+            var border = template.VisualTree as FrameworkElementFactory;
+
+            border.SetValue(Border.BackgroundProperty, Brushes.White);
+            border.SetValue(Border.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E1E5EB")));
+            border.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
+            border.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 0, 10));
+            border.SetValue(FrameworkElement.PaddingProperty, new Thickness(15));
+            border.SetValue(FrameworkElement.CursorProperty, Cursors.Hand);
+            border.AddHandler(UIElement.MouseLeftButtonUpEvent, new MouseButtonEventHandler(UserCard_Click));
+
+            var borderEffect = new FrameworkElementFactory(typeof(System.Windows.Media.Effects.DropShadowEffect));
+            borderEffect.SetValue(System.Windows.Media.Effects.DropShadowEffect.ShadowDepthProperty, 2);
+            borderEffect.SetValue(System.Windows.Media.Effects.DropShadowEffect.BlurRadiusProperty, 8);
+            borderEffect.SetValue(System.Windows.Media.Effects.DropShadowEffect.OpacityProperty, 0.1);
+            border.SetValue(Border.EffectProperty, borderEffect);
+
+            // Grid
+            var grid = new FrameworkElementFactory(typeof(Grid));
+            var columnDef1 = new FrameworkElementFactory(typeof(ColumnDefinition));
+            columnDef1.SetValue(ColumnDefinition.WidthProperty, new GridLength(1, GridUnitType.Auto));
+            var columnDef2 = new FrameworkElementFactory(typeof(ColumnDefinition));
+            columnDef2.SetValue(ColumnDefinition.WidthProperty, new GridLength(1, GridUnitType.Star));
+            grid.AppendChild(columnDef1);
+            grid.AppendChild(columnDef2);
+
+            // Avatar Border
+            var avatarBorder = new FrameworkElementFactory(typeof(Border));
+            avatarBorder.SetValue(Border.WidthProperty, 50.0);
+            avatarBorder.SetValue(Border.HeightProperty, 50.0);
+            avatarBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(25));
+            avatarBorder.SetValue(Border.BackgroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E8F0FE")));
+            avatarBorder.SetValue(Border.BorderBrushProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4A6FA5")));
+            avatarBorder.SetValue(Border.BorderThicknessProperty, new Thickness(2));
+            avatarBorder.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 15, 0));
+
+            // Avatar Grid
+            var avatarGrid = new FrameworkElementFactory(typeof(Grid));
+
+            // Image
+            var image = new FrameworkElementFactory(typeof(Image));
+            image.SetValue(Image.WidthProperty, 50.0);
+            image.SetValue(Image.HeightProperty, 50.0);
+            image.SetValue(Image.StretchProperty, Stretch.UniformToFill);
+            image.SetBinding(Image.SourceProperty, new System.Windows.Data.Binding("Photo") { Converter = new ByteArrayToImageConverter() });
+
+            // Placeholder
+            var placeholder = new FrameworkElementFactory(typeof(TextBlock));
+            placeholder.SetValue(TextBlock.TextProperty, "👤");
+            placeholder.SetValue(TextBlock.FontSizeProperty, 28.0);
+            placeholder.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4A6FA5")));
+            placeholder.SetValue(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+            placeholder.SetValue(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center);
+
+            avatarGrid.AppendChild(image);
+            avatarGrid.AppendChild(placeholder);
+            avatarBorder.AppendChild(avatarGrid);
+
+            // Info StackPanel
+            var infoPanel = new FrameworkElementFactory(typeof(StackPanel));
+            infoPanel.SetValue(StackPanel.VerticalAlignmentProperty, VerticalAlignment.Center);
+
+            var fullName = new FrameworkElementFactory(typeof(TextBlock));
+            fullName.SetValue(TextBlock.FontSizeProperty, 16.0);
+            fullName.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
+            fullName.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#2C3E50")));
+            fullName.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding("full_name"));
+
+            var username = new FrameworkElementFactory(typeof(TextBlock));
+            username.SetValue(TextBlock.FontSizeProperty, 14.0);
+            username.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7F8C8D")));
+            username.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 2, 0, 0));
+            username.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding("username"));
+
+            var wrapPanel = new FrameworkElementFactory(typeof(WrapPanel));
+            wrapPanel.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 5, 0, 0));
+
+            var role = new FrameworkElementFactory(typeof(TextBlock));
+            role.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding("ROLES.name"));
+            role.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#4A6FA5")));
+            role.SetValue(TextBlock.FontSizeProperty, 12.0);
+            role.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
+            role.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 10, 0));
+
+            var dot = new FrameworkElementFactory(typeof(TextBlock));
+            dot.SetValue(TextBlock.TextProperty, "•");
+            dot.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#95A5A6")));
+            dot.SetValue(TextBlock.FontSizeProperty, 12.0);
+            dot.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 10, 0));
+
+            var emailIcon = new FrameworkElementFactory(typeof(TextBlock));
+            emailIcon.SetValue(TextBlock.TextProperty, "📧");
+            emailIcon.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#95A5A6")));
+            emailIcon.SetValue(TextBlock.FontSizeProperty, 12.0);
+            emailIcon.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 5, 0));
+
+            var email = new FrameworkElementFactory(typeof(TextBlock));
+            email.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding("email"));
+            email.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5D6D7E")));
+            email.SetValue(TextBlock.FontSizeProperty, 12.0);
+            email.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 15, 0));
+
+            var phoneIcon = new FrameworkElementFactory(typeof(TextBlock));
+            phoneIcon.SetValue(TextBlock.TextProperty, "📞");
+            phoneIcon.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#95A5A6")));
+            phoneIcon.SetValue(TextBlock.FontSizeProperty, 12.0);
+            phoneIcon.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 5, 0));
+
+            var phone = new FrameworkElementFactory(typeof(TextBlock));
+            phone.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding("phone"));
+            phone.SetValue(TextBlock.ForegroundProperty, new SolidColorBrush((Color)ColorConverter.ConvertFromString("#5D6D7E")));
+            phone.SetValue(TextBlock.FontSizeProperty, 12.0);
+
+            wrapPanel.AppendChild(role);
+            wrapPanel.AppendChild(dot);
+            wrapPanel.AppendChild(emailIcon);
+            wrapPanel.AppendChild(email);
+            wrapPanel.AppendChild(phoneIcon);
+            wrapPanel.AppendChild(phone);
+
+            infoPanel.AppendChild(fullName);
+            infoPanel.AppendChild(username);
+            infoPanel.AppendChild(wrapPanel);
+
+            grid.AppendChild(avatarBorder);
+            grid.AppendChild(infoPanel);
+            border.AppendChild(grid);
+
+            template.DataType = typeof(USERS);
+            return template;
+        }
+
         private void AddUser_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new View.UserManage();
+            // Получаем ID текущего пользователя из глобального контекста
+            // Вам нужно передавать ID текущего авторизованного пользователя
+            int currentUserId = GetCurrentUserId(); // Реализуйте этот метод
+            var dialog = new View.UserManage(currentUserId);
             dialog.Owner = Window.GetWindow(this);
             if (dialog.ShowDialog() == true) RefreshAllData();
         }
@@ -271,16 +438,21 @@ namespace EnterpriseAssets.View.Pages
         private void UserCard_Click(object sender, MouseButtonEventArgs e)
         {
             var border = sender as Border;
-            if (border?.Tag != null && int.TryParse(border.Tag.ToString(), out int userId))
+            if (border?.DataContext is USERS user)
             {
-                var user = _allUsers?.FirstOrDefault(u => u.id == userId);
-                if (user != null)
-                {
-                    var dialog = new View.UserManage(user);
-                    dialog.Owner = Window.GetWindow(this);
-                    if (dialog.ShowDialog() == true) RefreshAllData();
-                }
+                int currentUserId = GetCurrentUserId(); // Реализуйте этот метод
+                var dialog = new View.UserManage(user, currentUserId);
+                dialog.Owner = Window.GetWindow(this);
+                if (dialog.ShowDialog() == true) RefreshAllData();
             }
+        }
+
+        // Метод для получения ID текущего пользователя
+        private int GetCurrentUserId()
+        {
+            // Здесь должна быть ваша логика получения ID авторизованного пользователя
+            // Например, из статического класса App.CurrentUser или из Properties.Settings
+            return App.CurrentUser?.id ?? 0; // Реализуйте по своему
         }
 
         // ===== Роли =====
@@ -397,6 +569,39 @@ namespace EnterpriseAssets.View.Pages
         ~UsersPage()
         {
             db?.Dispose();
+        }
+    }
+
+    // Конвертер для преобразования byte[] в ImageSource
+    public class ByteArrayToImageConverter : System.Windows.Data.IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value is byte[] bytes && bytes.Length > 0)
+            {
+                try
+                {
+                    using (var stream = new MemoryStream(bytes))
+                    {
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = stream;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        return bitmap;
+                    }
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+            return null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 
