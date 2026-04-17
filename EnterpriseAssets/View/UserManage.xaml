@@ -91,6 +91,8 @@
                         <Grid.ContextMenu>
                             <ContextMenu x:Name="AvatarContextMenu">
                                 <MenuItem x:Name="MenuItemSetPhoto" Header="📷 Установить фото" Click="MenuItemSetPhoto_Click"/>
+                                <MenuItem x:Name="MenuItemEditPhoto" Header="✂️ Редактировать фото" Click="MenuItemEditPhoto_Click"/>
+                                <Separator/>
                                 <MenuItem x:Name="MenuItemDeletePhoto" Header="🗑️ Удалить фото" Click="MenuItemDeletePhoto_Click"/>
                             </ContextMenu>
                         </Grid.ContextMenu>

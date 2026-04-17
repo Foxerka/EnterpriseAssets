@@ -67,6 +67,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BoolToVisibilityConverter.cs" />
+    <Compile Include="ByteArrayToImageConverter.cs" />
+    <Compile Include="ByteArrayToVisibilityConverter.cs" />
+    <Compile Include="Model\CurrentUser.cs" />
     <Compile Include="Model\DataBase\ActStatus.cs">
       <DependentUpon>DBManage.tt</DependentUpon>
     </Compile>
@@ -164,6 +167,9 @@
     <Compile Include="View\EquipmentManage.xaml.cs">
       <DependentUpon>EquipmentManage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\ImageEditorDialog.xaml.cs">
+      <DependentUpon>ImageEditorDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
@@ -220,6 +226,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\EquipmentManage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ImageEditorDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

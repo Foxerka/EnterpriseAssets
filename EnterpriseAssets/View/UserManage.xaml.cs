@@ -175,6 +175,40 @@ namespace EnterpriseAssets.View
             }
         }
 
+        private void MenuItemEditPhoto_Click(object sender, RoutedEventArgs e)
+        {
+            if (_currentPhotoBytes == null || _currentPhotoBytes.Length == 0)
+            {
+                MessageBox.Show("Сначала установите фото", "Информация",
+                              MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var dialog = new ImageEditorDialog(_currentPhotoBytes);
+            dialog.Owner = this;
+            if (dialog.ShowDialog() == true)
+            {
+                _currentPhotoBytes = dialog.EditedImageBytes;
+
+                // Обновляем отображение
+                using (var stream = new MemoryStream(_currentPhotoBytes))
+                {
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = stream;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+
+                    AvatarImage.Source = bitmap;
+                    AvatarImage.Visibility = Visibility.Visible;
+                    AvatarPlaceholder.Visibility = Visibility.Collapsed;
+                }
+
+                MessageBox.Show("Фото успешно отредактировано", "Успех",
+                              MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
         private void MenuItemDeletePhoto_Click(object sender, RoutedEventArgs e)
         {
             if (_currentPhotoBytes != null || AvatarImage.Source != null)

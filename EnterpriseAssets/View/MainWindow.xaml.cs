@@ -361,7 +361,7 @@ namespace EnterpriseAssets.View
                     //case "Analytics":
                     //    page = new AnalyticsPage();
                     //    break;
-                    "Users" => new UsersPage(),
+                    "Users" => new UsersPage(_viewModel?.CurrentUser?.Id ?? 0),
                     _ => new DashboardPage(),
                 };;
 
