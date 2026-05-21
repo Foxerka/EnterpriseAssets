@@ -50,6 +50,7 @@ namespace EnterpriseAssets.Model.DataBase
         public DbSet<WORK_ACTS> WORK_ACTS { get; set; }
         public DbSet<WORK_ACTS_MATERIALS> WORK_ACTS_MATERIALS { get; set; }
         public DbSet<WORKSHOPS> WORKSHOPS { get; set; }
+        public DbSet<USER_LOGS> USER_LOGS { get; set; }
     
         public virtual int sp_alterdiagram(string diagramname, Nullable<int> owner_id, Nullable<int> version, byte[] definition)
         {

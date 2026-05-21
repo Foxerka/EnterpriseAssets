@@ -214,6 +214,22 @@
           <Property Name="unit" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="quantity" Type="decimal" Precision="15" Scale="2" />
         </EntityType>
+        <EntityType Name="USER_LOGS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="user_id" Type="int" Nullable="false" />
+          <Property Name="action_type" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="entity_type" Type="nvarchar" MaxLength="50" />
+          <Property Name="entity_id" Type="int" />
+          <Property Name="old_value" Type="nvarchar(max)" />
+          <Property Name="new_value" Type="nvarchar(max)" />
+          <Property Name="description" Type="nvarchar" MaxLength="500" />
+          <Property Name="ip_address" Type="nvarchar" MaxLength="50" />
+          <Property Name="user_agent" Type="nvarchar" MaxLength="500" />
+          <Property Name="created_at" Type="datetime" Nullable="false" />
+        </EntityType>
         <EntityType Name="USERS">
           <Key>
             <PropertyRef Name="id" />
@@ -538,6 +554,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_USER_LOGS_USERS">
+          <End Role="USERS" Type="Self.USERS" Multiplicity="1" />
+          <End Role="USER_LOGS" Type="Self.USER_LOGS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="USER_LOGS">
+              <PropertyRef Name="user_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_USERS_ROLES">
           <End Role="ROLES" Type="Self.ROLES" Multiplicity="0..1" />
           <End Role="USERS" Type="Self.USERS" Multiplicity="*" />
@@ -653,6 +681,7 @@
           <EntitySet Name="STATUSASSETS" EntityType="Self.STATUSASSETS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="SUPPLIERS" EntityType="Self.SUPPLIERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="Unit" EntityType="Self.Unit" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="USER_LOGS" EntityType="Self.USER_LOGS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="USERS" EntityType="Self.USERS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WORK_ACTS" EntityType="Self.WORK_ACTS" Schema="dbo" store:Type="Tables" />
           <EntitySet Name="WORK_ACTS_MATERIALS" EntityType="Self.WORK_ACTS_MATERIALS" Schema="dbo" store:Type="Tables" />
@@ -748,6 +777,10 @@
           <AssociationSet Name="FK_REPORTS_MASTER" Association="Self.FK_REPORTS_MASTER">
             <End Role="MASTERS" EntitySet="MASTERS" />
             <End Role="REPORTS" EntitySet="REPORTS" />
+          </AssociationSet>
+          <AssociationSet Name="FK_USER_LOGS_USERS" Association="Self.FK_USER_LOGS_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="USER_LOGS" EntitySet="USER_LOGS" />
           </AssociationSet>
           <AssociationSet Name="FK_USERS_ROLES" Association="Self.FK_USERS_ROLES">
             <End Role="ROLES" EntitySet="ROLES" />
@@ -1059,6 +1092,7 @@
           <NavigationProperty Name="MASTERS" Relationship="Self.FK_MASTERS_USERS" FromRole="USERS" ToRole="MASTERS" />
           <NavigationProperty Name="ROLES" Relationship="Self.FK_USERS_ROLES" FromRole="USERS" ToRole="ROLES" />
           <Property Name="photo" Type="Binary" MaxLength="Max" FixedLength="false" />
+          <NavigationProperty Name="USER_LOGS" Relationship="DB_AssetManageModel.FK_USER_LOGS_USERS" FromRole="USERS" ToRole="USER_LOGS" />
         </EntityType>
         <EntityType Name="WORK_ACTS">
           <Key>
@@ -1654,6 +1688,11 @@
             <Parameter Name="new_diagramname" Mode="In" Type="String" />
           </FunctionImport>
           <FunctionImport Name="sp_upgraddiagrams" />
+          <EntitySet Name="USER_LOGS" EntityType="DB_AssetManageModel.USER_LOGS" />
+          <AssociationSet Name="FK_USER_LOGS_USERS" Association="DB_AssetManageModel.FK_USER_LOGS_USERS">
+            <End Role="USERS" EntitySet="USERS" />
+            <End Role="USER_LOGS" EntitySet="USER_LOGS" />
+          </AssociationSet>
         </EntityContainer>
         <ComplexType Name="sp_helpdiagramdefinition_Result">
           <Property Type="Int32" Name="version" Nullable="true" />
@@ -1666,6 +1705,35 @@
           <Property Type="String" Name="Owner" Nullable="true" MaxLength="128" />
           <Property Type="Int32" Name="OwnerID" Nullable="false" />
         </ComplexType>
+        <EntityType Name="USER_LOGS">
+          <Key>
+            <PropertyRef Name="id" />
+          </Key>
+          <Property Name="id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="user_id" Type="Int32" Nullable="false" />
+          <Property Name="action_type" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="entity_type" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="entity_id" Type="Int32" />
+          <Property Name="old_value" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="new_value" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="description" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="ip_address" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="user_agent" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="created_at" Type="DateTime" Nullable="false" Precision="3" />
+          <NavigationProperty Name="USERS" Relationship="DB_AssetManageModel.FK_USER_LOGS_USERS" FromRole="USER_LOGS" ToRole="USERS" />
+        </EntityType>
+        <Association Name="FK_USER_LOGS_USERS">
+          <End Type="DB_AssetManageModel.USERS" Role="USERS" Multiplicity="1" />
+          <End Type="DB_AssetManageModel.USER_LOGS" Role="USER_LOGS" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="USERS">
+              <PropertyRef Name="id" />
+            </Principal>
+            <Dependent Role="USER_LOGS">
+              <PropertyRef Name="user_id" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -1948,6 +2016,23 @@
                 <ScalarProperty Name="location" ColumnName="location" />
                 <ScalarProperty Name="manager_id" ColumnName="manager_id" />
                 <ScalarProperty Name="created_at" ColumnName="created_at" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="USER_LOGS">
+            <EntityTypeMapping TypeName="DB_AssetManageModel.USER_LOGS">
+              <MappingFragment StoreEntitySet="USER_LOGS">
+                <ScalarProperty Name="created_at" ColumnName="created_at" />
+                <ScalarProperty Name="user_agent" ColumnName="user_agent" />
+                <ScalarProperty Name="ip_address" ColumnName="ip_address" />
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="new_value" ColumnName="new_value" />
+                <ScalarProperty Name="old_value" ColumnName="old_value" />
+                <ScalarProperty Name="entity_id" ColumnName="entity_id" />
+                <ScalarProperty Name="entity_type" ColumnName="entity_type" />
+                <ScalarProperty Name="action_type" ColumnName="action_type" />
+                <ScalarProperty Name="user_id" ColumnName="user_id" />
+                <ScalarProperty Name="id" ColumnName="id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

@@ -1,5 +1,6 @@
 ﻿using EnterpriseAssets.Model;
 using EnterpriseAssets.Model.DataBase;
+using EnterpriseAssets.Services;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -171,6 +172,9 @@ namespace EnterpriseAssets.ViewModel
                     }
                 }
             });
+
+            var logger = new UserLogger(dbUser.id);
+            logger.LogLogin();
         }
 
         private string GetUserRole(int? roleId)

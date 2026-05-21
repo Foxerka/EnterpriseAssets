@@ -81,9 +81,9 @@
 
                                 <!-- Акт завершения -->
                                 <StackPanel Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                    <Border Background="{Binding HasCompletionAct ? '#27AE60' : '#BDC3C7'}" 
+                                    <Border Background="{Binding HasCompletionAct}" 
                                             CornerRadius="4" Padding="8,4" Margin="0,0,0,5">
-                                        <TextBlock Text="{Binding HasCompletionAct ? '✓ Акт завершения' : '⏳ Ожидает'}" 
+                                        <TextBlock Text="{Binding HasCompletionAct}" 
                                                    Foreground="White" FontSize="10" FontWeight="SemiBold"/>
                                     </Border>
                                     <TextBlock Text="{Binding completion_date, StringFormat='Завершен: dd.MM.yyyy'}" 

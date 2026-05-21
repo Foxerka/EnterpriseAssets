@@ -148,6 +148,9 @@
     <Compile Include="Model\DataBase\USERS.cs">
       <DependentUpon>DBManage.tt</DependentUpon>
     </Compile>
+    <Compile Include="Model\DataBase\USER_LOGS.cs">
+      <DependentUpon>DBManage.tt</DependentUpon>
+    </Compile>
     <Compile Include="Model\DataBase\WORKSHOPS.cs">
       <DependentUpon>DBManage.tt</DependentUpon>
     </Compile>
@@ -159,6 +162,7 @@
     </Compile>
     <Compile Include="Model\User.cs" />
     <Compile Include="Services\ActionLogger.cs" />
+    <Compile Include="Services\UserLogger.cs" />
     <Compile Include="ViewModel\LoginViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\RelayCommand.cs" />

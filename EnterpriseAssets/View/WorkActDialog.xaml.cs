@@ -12,6 +12,13 @@ namespace EnterpriseAssets.View
         private bool _isNewAct;
         private int _currentUserId;
 
+        // Класс для мастера
+        public class MasterItem
+        {
+            public int id { get; set; }
+            public string FullName { get; set; }
+        }
+
         public WorkActDialog(int currentUserId)
         {
             InitializeComponent();
@@ -36,10 +43,10 @@ namespace EnterpriseAssets.View
             // Загрузка оборудования
             CmbEquipment.ItemsSource = db.EQUIPMENT.ToList();
 
-            // Загрузка мастеров
+            // Загрузка мастеров - используем конкретный тип
             var masters = db.MASTERS
                 .Include("USERS")
-                .Select(m => new { m.id, FullName = m.USERS.full_name })
+                .Select(m => new MasterItem { id = m.id, FullName = m.USERS.full_name })
                 .ToList();
             CmbMaster.ItemsSource = masters;
 
@@ -50,8 +57,8 @@ namespace EnterpriseAssets.View
         private void LoadActData()
         {
             TxtActNumber.Text = _currentAct.act_number;
-            DateAct.SelectedDate = _currentAct.act_date;
-            TxtDescription.Text = _currentAct.description;
+            DateAct.SelectedDate = _currentAct.work_date;
+            TxtDescription.Text = _currentAct.work_type;
 
             if (_currentAct.equipment_id.HasValue)
             {
@@ -60,22 +67,28 @@ namespace EnterpriseAssets.View
 
             if (_currentAct.master_id.HasValue)
             {
-                CmbMaster.SelectedValue = _currentAct.master_id;
+                // Ищем мастера по id
+                var master = CmbMaster.ItemsSource.Cast<MasterItem>().FirstOrDefault(m => m.id == _currentAct.master_id);
+                if (master != null)
+                {
+                    CmbMaster.SelectedItem = master;
+                }
             }
 
-            if (_currentAct.status_id.HasValue)
+            if (_currentAct.status.HasValue)
             {
-                CmbStatus.SelectedValue = _currentAct.status_id;
+                CmbStatus.SelectedValue = _currentAct.status;
             }
 
-            // Загрузка акта завершения
-            if (_currentAct.COMPLETION_ACTS != null)
+            // COMPLETION_ACTS - это коллекция, берем первый элемент
+            var completionAct = _currentAct.COMPLETION_ACTS?.FirstOrDefault();
+            if (completionAct != null)
             {
                 ShowCompletionSection();
-                TxtCompletionNumber.Text = _currentAct.COMPLETION_ACTS.act_number;
-                DateCompletion.SelectedDate = _currentAct.COMPLETION_ACTS.completion_date;
-                ChkQualityCheck.IsChecked = _currentAct.COMPLETION_ACTS.quality_check;
-                TxtCompletionComments.Text = _currentAct.COMPLETION_ACTS.comments;
+                TxtCompletionNumber.Text = completionAct.act_number;
+                DateCompletion.SelectedDate = completionAct.completion_date;
+                ChkQualityCheck.IsChecked = completionAct.quality_check;
+                TxtCompletionComments.Text = completionAct.comments;
             }
         }
 
@@ -97,18 +110,19 @@ namespace EnterpriseAssets.View
 
                 // Заполнение акта работ
                 _currentAct.act_number = TxtActNumber.Text;
-                _currentAct.act_date = DateAct.SelectedDate ?? DateTime.Now;
-                _currentAct.description = TxtDescription.Text;
+                _currentAct.work_date = DateAct.SelectedDate ?? DateTime.Now;
+                _currentAct.work_type = TxtDescription.Text;
                 _currentAct.created_at = DateTime.Now;
 
                 if (CmbEquipment.SelectedItem is EQUIPMENT eq)
                     _currentAct.equipment_id = eq.ID;
 
-                if (CmbMaster.SelectedItem is dynamic master)
+                // Используем конкретный тип вместо dynamic
+                if (CmbMaster.SelectedItem is MasterItem master)
                     _currentAct.master_id = master.id;
 
                 if (CmbStatus.SelectedItem is ActStatus status)
-                    _currentAct.status_id = status.ID_status;
+                    _currentAct.status = status.ID_status;
 
                 if (_isNewAct)
                 {
@@ -119,7 +133,9 @@ namespace EnterpriseAssets.View
 
                 // Сохранение акта завершения
                 var selectedStatus = (ActStatus)CmbStatus.SelectedItem;
-                if (selectedStatus?.Status == "Завершен" && _currentAct.COMPLETION_ACTS == null)
+                var existingCompletion = _currentAct.COMPLETION_ACTS?.FirstOrDefault();
+
+                if (selectedStatus?.Status == "Завершен" && existingCompletion == null)
                 {
                     var completionAct = new COMPLETION_ACTS
                     {
@@ -133,12 +149,12 @@ namespace EnterpriseAssets.View
                     db.COMPLETION_ACTS.Add(completionAct);
                     db.SaveChanges();
                 }
-                else if (selectedStatus?.Status == "Завершен" && _currentAct.COMPLETION_ACTS != null)
+                else if (selectedStatus?.Status == "Завершен" && existingCompletion != null)
                 {
-                    _currentAct.COMPLETION_ACTS.act_number = TxtCompletionNumber.Text;
-                    _currentAct.COMPLETION_ACTS.completion_date = DateCompletion.SelectedDate;
-                    _currentAct.COMPLETION_ACTS.quality_check = ChkQualityCheck.IsChecked;
-                    _currentAct.COMPLETION_ACTS.comments = TxtCompletionComments.Text;
+                    existingCompletion.act_number = TxtCompletionNumber.Text;
+                    existingCompletion.completion_date = DateCompletion.SelectedDate;
+                    existingCompletion.quality_check = ChkQualityCheck.IsChecked;
+                    existingCompletion.comments = TxtCompletionComments.Text;
                     db.SaveChanges();
                 }
 

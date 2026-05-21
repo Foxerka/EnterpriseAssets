@@ -357,7 +357,7 @@ namespace EnterpriseAssets.View
                     "Purchases" => new PurchasesPage(),
                     "Suppliers" => new SuppliersPage(),
                     "WorkActs" => new WorkActsPage(_viewModel?.CurrentUserId ?? 0),
-                    "Reports" => new ReportsPage(_viewModel?.CurrentUserId ?? 0),
+                    //"Reports" => new ReportsPage(_viewModel?.CurrentUserId ?? 0),
                     "Maintenance" => new MaintenancePage(),
                     "Users" => new UsersPage(_viewModel?.CurrentUserId ?? 0),
                     _ => new DashboardPage(),
@@ -396,6 +396,16 @@ namespace EnterpriseAssets.View
                 "Users" => "Управление пользователями",
                 _ => "Учет активов предприятия"
             };
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            if (_viewModel?.CurrentUserId > 0)
+            {
+                var logger = new UserLogger(_viewModel.CurrentUserId);
+                logger.LogLogout();
+            }
+            base.OnClosed(e);
         }
     }
 }

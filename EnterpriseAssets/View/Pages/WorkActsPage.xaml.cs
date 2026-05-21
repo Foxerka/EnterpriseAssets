@@ -36,10 +36,10 @@ namespace EnterpriseAssets.View.Pages
                 _allActs = db.WORK_ACTS
                     .Include("MASTERS")
                     .Include("MASTERS.USERS")
-                    .Include("ACT_STATUS")
+                    .Include("ActStatus")
                     .Include("EQUIPMENT")
                     .Include("COMPLETION_ACTS")
-                    .OrderByDescending(a => a.act_date)
+                    .OrderByDescending(a => a.work_date)
                     .ToList();
 
                 ApplyFilter();
@@ -61,28 +61,32 @@ namespace EnterpriseAssets.View.Pages
             string search = SearchBox.Text?.Trim().ToLower();
             if (!string.IsNullOrEmpty(search))
             {
-                filtered = filtered.Where(a => (a.act_number?.ToLower().Contains(search) ?? false) ||
-                                               (a.description?.ToLower().Contains(search) ?? false));
+                filtered = filtered.Where(a => (a.act_number?.ToLower().Contains(search) ?? false));
             }
 
             var result = filtered.Select(a => new
             {
                 a.id,
                 a.act_number,
-                a.act_date,
-                a.description,
-                equipment_name = a.EQUIPMENT?.name ?? "Не указано",
+                act_date = a.work_date,
+                description = a.work_type,
+                equipment_name = a.EQUIPMENT?.asset_id ?? "Не указано",
                 master_name = a.MASTERS?.USERS?.full_name ?? "Не назначен",
-                act_status = a.ACT_STATUS?.Status ?? "Черновик",
-                a.COMPLETION_ACTS,
-                has_completion_act = a.COMPLETION_ACTS != null,
-                completion_date = a.COMPLETION_ACTS != null ? a.COMPLETION_ACTS.completion_date : (DateTime?)null,
-                quality_check = a.COMPLETION_ACTS?.quality_check ?? false,
+                act_status = a.ActStatus?.Status ?? "Черновик",
 
-                Icon = GetStatusIcon(a.ACT_STATUS?.Status),
-                StatusColor = GetStatusColor(a.ACT_STATUS?.Status),
-                StatusTextColor = GetStatusTextColor(a.ACT_STATUS?.Status),
-                HasCompletionAct = a.COMPLETION_ACTS != null
+                // COMPLETION_ACTS - это коллекция, берем первый элемент
+                has_completion_act = a.COMPLETION_ACTS != null && a.COMPLETION_ACTS.Any(),
+                completion_date = a.COMPLETION_ACTS != null && a.COMPLETION_ACTS.Any()
+                    ? a.COMPLETION_ACTS.FirstOrDefault().completion_date
+                    : (DateTime?)null,
+                quality_check = a.COMPLETION_ACTS != null && a.COMPLETION_ACTS.Any()
+                    ? a.COMPLETION_ACTS.FirstOrDefault().quality_check
+                    : false,
+
+                Icon = GetStatusIcon(a.ActStatus?.Status),
+                StatusColor = GetStatusColor(a.ActStatus?.Status),
+                StatusTextColor = GetStatusTextColor(a.ActStatus?.Status),
+                HasCompletionAct = a.COMPLETION_ACTS != null && a.COMPLETION_ACTS.Any()
             }).ToList();
 
             WorkActsList.ItemsSource = result;

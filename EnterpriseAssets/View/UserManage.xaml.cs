@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using EnterpriseAssets.Model.DataBase;
+using EnterpriseAssets.Services;
 
 namespace EnterpriseAssets.View
 {
@@ -344,6 +345,15 @@ namespace EnterpriseAssets.View
                 }
 
                 db.SaveChanges();
+                var logger = new UserLogger(_currentLoggedInUserId);
+                if (_isNewUser)
+                {
+                    logger.LogCreate("USER", _currentUser.id, TxtUsername.Text);
+                }
+                else
+                {
+                    logger.LogUpdate("USER", _currentUser.id, TxtUsername.Text, "Обновлены данные пользователя");
+                }
 
                 MessageBox.Show("Данные успешно сохранены", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 DialogResult = true;

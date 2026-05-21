@@ -12,26 +12,20 @@ namespace EnterpriseAssets.Model.DataBase
     using System;
     using System.Collections.Generic;
     
-    public partial class USERS
+    public partial class USER_LOGS
     {
-        public USERS()
-        {
-            this.MASTERS = new HashSet<MASTERS>();
-            this.USER_LOGS = new HashSet<USER_LOGS>();
-        }
-    
         public int id { get; set; }
-        public string username { get; set; }
-        public string password { get; set; }
-        public string full_name { get; set; }
-        public string email { get; set; }
-        public string phone { get; set; }
-        public Nullable<int> role_id { get; set; }
-        public Nullable<System.DateTime> created_at { get; set; }
-        public byte[] photo { get; set; }
+        public int user_id { get; set; }
+        public string action_type { get; set; }
+        public string entity_type { get; set; }
+        public Nullable<int> entity_id { get; set; }
+        public string old_value { get; set; }
+        public string new_value { get; set; }
+        public string description { get; set; }
+        public string ip_address { get; set; }
+        public string user_agent { get; set; }
+        public System.DateTime created_at { get; set; }
     
-        public virtual ICollection<MASTERS> MASTERS { get; set; }
-        public virtual ROLES ROLES { get; set; }
-        public virtual ICollection<USER_LOGS> USER_LOGS { get; set; }
+        public virtual USERS USERS { get; set; }
     }
 }

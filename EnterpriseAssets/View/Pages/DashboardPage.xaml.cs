@@ -117,73 +117,56 @@ namespace EnterpriseAssets.View.Pages
         {
             try
             {
-                var actions = new List<RecentActionItem>();
-
-                // Последние 3 пользователя
-                var users = db.USERS
-                    .OrderByDescending(u => u.id)
-                    .Take(3)
-                    .Select(u => new RecentActionItem
-                    {
-                        Icon = "👤",
-                        Action = $"Новый пользователь: {u.full_name}",
-                        Time = u.created_at ?? DateTime.Now
-                    });
-
-                // Последние 3 закупки (если есть таблица)
-                try
-                {
-                    var purchases = db.EQUIPMENT_PURCHASES?
-                        .OrderByDescending(p => p.id)
-                        .Take(3)
-                        .Select(p => new RecentActionItem
-                        {
-                            Icon = "📦",
-                            Action = $"Закупка №{p.id}",
-                            Time = DateTime.Now // если нет поля даты
-                        });
-                    if (purchases != null) actions.AddRange(purchases);
-                }
-                catch { }
-
-                // Последнее оборудование
-                try
-                {
-                    var equipment = db.EQUIPMENT?
-                        .OrderByDescending(e => e.ID)
-                        .Take(3)
-                        .Select(e => new RecentActionItem
-                        {
-                            Icon = "🔧",
-                            Action = $"Оборудование: {e.asset_id}",
-                            Time = DateTime.Now
-                        });
-                    if (equipment != null) actions.AddRange(equipment);
-                }
-                catch { }
-
-                actions.AddRange(users);
-
-                var result = actions
-                    .OrderByDescending(a => a.Time)
+                // Получаем последние действия из таблицы USER_LOGS
+                var logs = db.USER_LOGS
+                    .Include("USERS")
+                    .OrderByDescending(l => l.created_at)
                     .Take(10)
-                    .Select(a => new
-                    {
-                        a.Icon,
-                        a.Action,
-                        Time = GetTimeString(a.Time)
-                    })
                     .ToList();
 
-                RecentActionsList.ItemsSource = result;
+                if (logs.Any())
+                {
+                    var result = logs.Select(l => new
+                    {
+                        Icon = GetIconForAction(l.action_type),
+                        Action = $"{l.USERS?.full_name ?? "Пользователь"}: {l.description}",
+                        Time = GetTimeString(l.created_at)
+                    }).ToList();
+
+                    RecentActionsList.ItemsSource = result;
+                }
+                else
+                {
+                    // Если логов нет, показываем демо-данные
+                    RecentActionsList.ItemsSource = new[]
+                    {
+                new { Icon = "👤", Action = "Система готова к работе", Time = "только что" },
+                new { Icon = "📋", Action = "Начните добавлять данные", Time = "только что" }
+            };
+                }
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки логов: {ex.Message}");
                 RecentActionsList.ItemsSource = new[]
                 {
             new { Icon = "👤", Action = "Добро пожаловать!", Time = "только что" }
         };
             }
+        }
+
+        private string GetIconForAction(string actionType)
+        {
+            return actionType switch
+            {
+                "LOGIN" => "🔑",
+                "LOGOUT" => "🚪",
+                "CREATE" => "➕",
+                "UPDATE" => "✏️",
+                "DELETE" => "🗑️",
+                "VIEW" => "👁️",
+                _ => "📌"
+            };
         }
 
         private string GetTimeString(DateTime time)
@@ -192,6 +175,7 @@ namespace EnterpriseAssets.View.Pages
             if (diff.TotalMinutes < 1) return "только что";
             if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} мин назад";
             if (diff.TotalHours < 24) return $"{(int)diff.TotalHours} ч назад";
+            if (diff.TotalDays < 7) return $"{(int)diff.TotalDays} дн назад";
             return time.ToString("dd.MM.yyyy");
         }
 
