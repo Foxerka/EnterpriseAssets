@@ -5,14 +5,314 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:EnterpriseAssets.View.Pages"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="DashboardPage">
+      d:DesignHeight="600" d:DesignWidth="900"
+      Title="DashboardPage"
+      Background="#F5F7FA"
+      Loaded="Page_Loaded">
 
-    <Grid>
-        <TextBlock Text="Основная фигня" 
-                   FontSize="24" 
-                   FontWeight="Bold" 
-                   Foreground="#2C3E50"
-                   VerticalAlignment="Top"/>
-    </Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Приветствие -->
+            <Border Grid.Row="0" 
+                    Background="White" 
+                    CornerRadius="12" 
+                    Padding="20" 
+                    Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock x:Name="WelcomeText" 
+                               FontSize="24" 
+                               FontWeight="SemiBold" 
+                               Foreground="#2C3E50"/>
+                    <TextBlock x:Name="RoleText" 
+                               FontSize="14" 
+                               Foreground="#4A6FA5" 
+                               Margin="0,5,0,0"/>
+                    <TextBlock x:Name="DateText" 
+                               FontSize="12" 
+                               Foreground="#7F8C8D" 
+                               Margin="0,10,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Статистика -->
+            <Border Grid.Row="1" 
+                    Background="White" 
+                    CornerRadius="12" 
+                    Padding="15" 
+                    Margin="0,0,0,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="#E8F0FE" CornerRadius="8" Padding="15" Margin="5">
+                        <StackPanel>
+                            <TextBlock x:Name="Stat1Value" Text="0" FontSize="28" FontWeight="Bold" Foreground="#2C3E50"/>
+                            <TextBlock x:Name="Stat1Label" Text="Пользователей" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Background="#E8F0FE" CornerRadius="8" Padding="15" Margin="5">
+                        <StackPanel>
+                            <TextBlock x:Name="Stat2Value" Text="0" FontSize="28" FontWeight="Bold" Foreground="#2C3E50"/>
+                            <TextBlock x:Name="Stat2Label" Text="Оборудования" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="#E8F0FE" CornerRadius="8" Padding="15" Margin="5">
+                        <StackPanel>
+                            <TextBlock x:Name="Stat3Value" Text="0" FontSize="28" FontWeight="Bold" Foreground="#2C3E50"/>
+                            <TextBlock x:Name="Stat3Label" Text="Активов" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="3" Background="#E8F0FE" CornerRadius="8" Padding="15" Margin="5">
+                        <StackPanel>
+                            <TextBlock x:Name="Stat4Value" Text="0" FontSize="28" FontWeight="Bold" Foreground="#2C3E50"/>
+                            <TextBlock x:Name="Stat4Label" Text="Закупок" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Контент в зависимости от роли -->
+            <Border Grid.Row="2">
+                <StackPanel>
+
+                    <!-- Администратор -->
+                    <StackPanel x:Name="AdminContent" Visibility="Collapsed">
+                        <TextBlock Text="⚙️ Администрирование" FontSize="18" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+                        <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <Button x:Name="AdminUsersBtn" Content="👥 Управление пользователями" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="AdminUsersBtn_Click" Margin="0,0,0,10"/>
+                                    <Button x:Name="AdminRolesBtn" Content="🔑 Управление ролями" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="AdminRolesBtn_Click"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <Button x:Name="AdminMastersBtn" Content="🔧 Управление мастерами" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="AdminMastersBtn_Click" Margin="0,0,0,10"/>
+                                    <Button x:Name="AdminReportsBtn" Content="📊 Отчеты" Background="#95A5A6" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="AdminReportsBtn_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="📋 Последние действия" FontSize="16" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                        <ItemsControl x:Name="RecentActionsList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Icon}" FontSize="20" Margin="0,0,15,0"/>
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Action}" FontWeight="SemiBold" Foreground="#2C3E50"/>
+                                                <TextBlock Text="{Binding Time}" FontSize="11" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Директор -->
+                    <StackPanel x:Name="DirectorContent" Visibility="Collapsed">
+                        <TextBlock Text="📈 Бизнес-показатели" FontSize="18" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+                        <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <Button x:Name="DirectorReportsBtn" Content="📊 Финансовые отчеты" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="DirectorReportsBtn_Click" Margin="0,0,0,10"/>
+                                    <Button x:Name="DirectorAnalyticsBtn" Content="📈 Аналитика" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="DirectorAnalyticsBtn_Click"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <Button x:Name="DirectorAssetsBtn" Content="🏭 Обзор активов" Background="#95A5A6" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="DirectorAssetsBtn_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="📊 Ключевые показатели" FontSize="16" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                        <ItemsControl x:Name="KPIList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Name}" Foreground="#2C3E50"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Value}" FontWeight="Bold" Foreground="#4A6FA5"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Начальник цеха -->
+                    <StackPanel x:Name="WorkshopManagerContent" Visibility="Collapsed">
+                        <TextBlock Text="🏭 Управление производством" FontSize="18" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+                        <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <Button x:Name="WorkshopEquipmentBtn" Content="🔧 Оборудование" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="WorkshopEquipmentBtn_Click" Margin="0,0,0,10"/>
+                                    <Button x:Name="WorkshopMastersBtn" Content="👷 Мастера" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="WorkshopMastersBtn_Click"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <Button x:Name="WorkshopTasksBtn" Content="📋 Задачи" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="WorkshopTasksBtn_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="⏳ Активные задачи" FontSize="16" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                        <ItemsControl x:Name="ActiveTasksList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="#2C3E50"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <Border Grid.Column="1" Background="{Binding StatusColor}" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Status}" Foreground="White" FontSize="11"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Мастер -->
+                    <StackPanel x:Name="MasterContent" Visibility="Collapsed">
+                        <TextBlock Text="🔧 Мои задачи" FontSize="18" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+                        <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                            <Button x:Name="MasterMyTasksBtn" Content="📋 Текущие задачи" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="MasterMyTasksBtn_Click" HorizontalAlignment="Stretch"/>
+                        </Border>
+                        <TextBlock Text="📌 Мои задачи" FontSize="16" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                        <ItemsControl x:Name="MasterTasksList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding TaskName}" FontWeight="SemiBold" Foreground="#2C3E50"/>
+                                                <TextBlock Text="{Binding Equipment}" FontSize="11" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                                                <TextBlock Text="{Binding Deadline}" FontSize="11" Foreground="#E74C3C" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="1" Content="В работу" Background="#27AE60" Foreground="White" BorderThickness="0" Padding="10,5" Cursor="Hand" Click="StartTask_Click" Tag="{Binding TaskId}" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Кладовщик -->
+                    <StackPanel x:Name="StorekeeperContent" Visibility="Collapsed">
+                        <TextBlock Text="📦 Управление складом" FontSize="18" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+                        <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <Button x:Name="StorekeeperStockBtn" Content="📊 Остатки на складе" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="StorekeeperStockBtn_Click" Margin="0,0,0,10"/>
+                                    <Button x:Name="StorekeeperIncomingBtn" Content="📥 Поступления" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="StorekeeperIncomingBtn_Click"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <Button x:Name="StorekeeperOutgoingBtn" Content="📤 Отгрузки" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="StorekeeperOutgoingBtn_Click" Margin="0,0,0,10"/>
+                                    <Button x:Name="StorekeeperReportBtn" Content="📄 Отчеты" Background="#95A5A6" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="StorekeeperReportBtn_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="⚠️ Требуется внимание" FontSize="16" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                        <ItemsControl x:Name="LowStockList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="#FFF3E0" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding ItemName}" Foreground="#2C3E50"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding Quantity}" FontWeight="Bold" Foreground="#E74C3C"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- Оператор -->
+                    <StackPanel x:Name="OperatorContent" Visibility="Collapsed">
+                        <TextBlock Text="📋 Работа с документами" FontSize="18" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,15"/>
+                        <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,15">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <Button x:Name="OperatorPurchaseBtn" Content="📝 Закупки" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="OperatorPurchaseBtn_Click" Margin="0,0,0,10"/>
+                                    <Button x:Name="OperatorMaintenanceBtn" Content="🔧 Обслуживание" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="OperatorMaintenanceBtn_Click"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <Button x:Name="OperatorDocumentsBtn" Content="📄 Документы" Background="#4A6FA5" Foreground="White" Padding="15" BorderThickness="0" Cursor="Hand" Click="OperatorDocumentsBtn_Click"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="📝 Последние документы" FontSize="16" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                        <ItemsControl x:Name="RecentDocumentsList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,10">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <TextBlock Text="{Binding DocNumber}" FontWeight="SemiBold" Foreground="#2C3E50"/>
+                                                <TextBlock Text="{Binding Date}" FontSize="11" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding Status}" FontSize="12" Foreground="{Binding StatusColor}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                </StackPanel>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </Page>

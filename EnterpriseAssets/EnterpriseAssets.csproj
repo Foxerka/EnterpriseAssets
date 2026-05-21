@@ -158,6 +158,7 @@
       <DependentUpon>DBManage.tt</DependentUpon>
     </Compile>
     <Compile Include="Model\User.cs" />
+    <Compile Include="Services\ActionLogger.cs" />
     <Compile Include="ViewModel\LoginViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\RelayCommand.cs" />
@@ -206,6 +207,9 @@
     <Compile Include="View\Pages\WarehousePage.xaml.cs">
       <DependentUpon>WarehousePage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\Pages\WorkActsPage.xaml.cs">
+      <DependentUpon>WorkActsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\PurchaseManage.xaml.cs">
       <DependentUpon>PurchaseManage.xaml</DependentUpon>
     </Compile>
@@ -217,6 +221,9 @@
     </Compile>
     <Compile Include="View\UserManage.xaml.cs">
       <DependentUpon>UserManage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\WorkActDialog.xaml.cs">
+      <DependentUpon>WorkActDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\WorkshopManage.xaml.cs">
       <DependentUpon>WorkshopManage.xaml</DependentUpon>
@@ -293,6 +300,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\Pages\WorkActsPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\PurchaseManage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -306,6 +317,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\UserManage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\WorkActDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

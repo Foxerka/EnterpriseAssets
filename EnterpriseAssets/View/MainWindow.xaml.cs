@@ -1,4 +1,6 @@
-﻿using EnterpriseAssets.View.Pages;
+﻿using EnterpriseAssets.Model.DataBase;
+using EnterpriseAssets.Services;
+using EnterpriseAssets.View.Pages;
 using EnterpriseAssets.ViewModel;
 using System;
 using System.Collections.Generic;
@@ -69,7 +71,7 @@ namespace EnterpriseAssets.View
             // Скрываем тексты кнопок
             var buttonTexts = new[] {
                 BtnDashboardText, BtnAssetsText, BtnEquipmentText, BtnWarehouseText,
-                BtnWorkActsText, BtnSessionsText, BtnProductsText, BtnPurchasesText,
+                BtnWorkActsText, BtnSessionsText, BtnPurchasesText,
                 BtnSuppliersText, BtnMaintenanceText, BtnReportsText, BtnAnalyticsText,
                 BtnUsersText
             };
@@ -85,7 +87,7 @@ namespace EnterpriseAssets.View
             // Центрируем иконки кнопок
             var buttons = new[] {
                 BtnDashboard, BtnAssets, BtnEquipment, BtnWarehouse,
-                BtnWorkActs, BtnSessions, BtnProducts, BtnPurchases,
+                BtnWorkActs, BtnSessions,  BtnPurchases,
                 BtnSuppliers, BtnMaintenance, BtnReports, BtnAnalytics,
                 BtnUsers
             };
@@ -172,7 +174,7 @@ namespace EnterpriseAssets.View
             // Показываем тексты кнопок
             var buttonTexts = new[] {
                 BtnDashboardText, BtnAssetsText, BtnEquipmentText, BtnWarehouseText,
-                BtnWorkActsText, BtnSessionsText, BtnProductsText, BtnPurchasesText,
+                BtnWorkActsText, BtnSessionsText, BtnPurchasesText,
                 BtnSuppliersText, BtnMaintenanceText, BtnReportsText, BtnAnalyticsText,
                 BtnUsersText
             };
@@ -188,7 +190,7 @@ namespace EnterpriseAssets.View
             // Возвращаем выравнивание кнопок
             var buttons = new[] {
                 BtnDashboard, BtnAssets, BtnEquipment, BtnWarehouse,
-                BtnWorkActs, BtnSessions, BtnProducts, BtnPurchases,
+                BtnWorkActs, BtnSessions, BtnPurchases,
                 BtnSuppliers, BtnMaintenance, BtnReports, BtnAnalytics,
                 BtnUsers
             };
@@ -285,7 +287,7 @@ namespace EnterpriseAssets.View
             var buttons = new[]
             {
                 BtnDashboard, BtnAssets, BtnEquipment, BtnWarehouse,
-                BtnWorkActs, BtnSessions, BtnProducts, BtnPurchases,
+                BtnWorkActs, BtnSessions, BtnPurchases,
                 BtnSuppliers, BtnMaintenance, BtnReports, BtnAnalytics,
                 BtnUsers
             };
@@ -325,7 +327,7 @@ namespace EnterpriseAssets.View
             }
         }
 
-        private void NavigateToPage(string pageName)
+        public void NavigateToPage(string pageName)
         {
             if (_viewModel != null)
             {
@@ -336,45 +338,34 @@ namespace EnterpriseAssets.View
             {
                 Page? page = null;
 
+                // Получаем USERS из базы по ID из ViewModel
+                USERS currentUser = null;
+                if (_viewModel?.CurrentUserId > 0)
+                {
+                    using (var db = new DB_AssetManage())
+                    {
+                        currentUser = db.USERS.Include("ROLES").FirstOrDefault(u => u.id == _viewModel.CurrentUserId);
+                    }
+                }
+
                 page = pageName switch
                 {
-                    "Dashboard" => new DashboardPage(),
+                    "Dashboard" => new DashboardPage(currentUser ?? new USERS()),
                     "Assets" => new AssetsPage(_viewModel?.RoleName == "Администратор"),
-
                     "Equipment" => new EquipmentPage(),
                     "Warehouse" => new WarehousePage(),
-                    //case "WorkActs":
-                    //    page = new WorkActsPage();
-                    //    break;
-                    //case "Sessions":
-                    //    page = new SessionsPage();
-                    //    break;
-                    //case "Products":
-                    //    page = new ProductsPage();
-                    //    break;
-                    "Purchases" => new PurchasesPage(), 
+                    "Purchases" => new PurchasesPage(),
                     "Suppliers" => new SuppliersPage(),
+                    "WorkActs" => new WorkActsPage(_viewModel?.CurrentUserId ?? 0),
+                    "Reports" => new ReportsPage(_viewModel?.CurrentUserId ?? 0),
                     "Maintenance" => new MaintenancePage(),
-                    //case "Reports":
-                    //    page = new ReportsPage();
-                    //    break;
-                    //case "Analytics":
-                    //    page = new AnalyticsPage();
-                    //    break;
-                    "Users" => new UsersPage(_viewModel?.CurrentUser?.Id ?? 0),
+                    "Users" => new UsersPage(_viewModel?.CurrentUserId ?? 0),
                     _ => new DashboardPage(),
-                };;
+                };
 
                 if (page is PurchasesPage purchasesPage && _viewModel?.CurrentUser != null)
                 {
-                    purchasesPage.CurrentUserId = _viewModel.CurrentUserId; // или _viewModel.CurrentUser.Id
-                }
-
-                // Устанавливаем DataContext для страницы, если нужно
-                if (page != null && _viewModel != null)
-                {
-                    // Здесь можно передавать данные в страницу
-                    // Например: page.DataContext = someViewModel;
+                    purchasesPage.CurrentUserId = _viewModel.CurrentUserId;
                 }
 
                 MainFrame.Navigate(page);
