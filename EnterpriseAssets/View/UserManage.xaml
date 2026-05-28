@@ -14,10 +14,17 @@
         WindowStyle="SingleBorderWindow">
 
     <Window.Resources>
-        <DropShadowEffect x:Key="ShadowEffect" 
-                          BlurRadius="5" 
-                          Opacity="0.1" 
-                          ShadowDepth="2"/>
+        <Style x:Key="InfoTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#95A5A6"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+        </Style>
+
+        <Style x:Key="RequiredLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#5D6D7E"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
     </Window.Resources>
 
     <Grid Margin="20">
@@ -46,7 +53,6 @@
                         Margin="0,0,20,0"
                         Background="#F0F2F5">
                     <Grid>
-                        <!-- Изображение аватара -->
                         <Image x:Name="AvatarImage" 
                                Width="80" Height="80"
                                Stretch="UniformToFill">
@@ -62,7 +68,6 @@
                             </Image.Style>
                         </Image>
 
-                        <!-- Плейсхолдер если нет фото -->
                         <TextBlock x:Name="AvatarPlaceholder" 
                                    Text="👤" 
                                    FontSize="42"
@@ -71,7 +76,6 @@
                                    VerticalAlignment="Center"
                                    Visibility="Visible"/>
 
-                        <!-- Кнопка-карандаш для смены аватара -->
                         <Button x:Name="BtnChangeAvatar"
                                 Width="28" Height="28"
                                 HorizontalAlignment="Right"
@@ -99,7 +103,6 @@
                     </Grid>
                 </Border>
 
-                <!-- Информация -->
                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock x:Name="UserFullName" 
                                FontSize="20" 
@@ -120,18 +123,16 @@
                 <Border Background="White"
                         CornerRadius="8"
                         Padding="15"
-                        Margin="0,0,0,15"
-                        Effect="{StaticResource ShadowEffect}">
+                        Margin="0,0,0,15">
                     <StackPanel>
-                        <TextBlock Text="Имя пользователя" 
-                                   Foreground="#7F8C8D" 
-                                   FontSize="12"
-                                   Margin="0,0,0,5"/>
+                        <TextBlock Text="Имя пользователя *" Foreground="#5D6D7E" FontSize="12" Margin="0,0,0,5"/>
                         <TextBox x:Name="TxtUsername" 
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"/>
+                                 BorderThickness="1"
+                                 ToolTip="Логин для входа в систему, только латиница"/>
+                        <TextBlock Text="💡 Только латинские буквы и цифры, без пробелов" Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -141,15 +142,14 @@
                         Padding="15"
                         Margin="0,0,0,15">
                     <StackPanel>
-                        <TextBlock Text="Полное имя" 
-                                   Foreground="#7F8C8D" 
-                                   FontSize="12"
-                                   Margin="0,0,0,5"/>
+                        <TextBlock Text="Полное имя *" Foreground="#5D6D7E" FontSize="12" Margin="0,0,0,5"/>
                         <TextBox x:Name="TxtFullName" 
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"/>
+                                 BorderThickness="1"
+                                 ToolTip="Фамилия Имя Отчество"/>
+                        <TextBlock Text="💡 Пример: Иванов Иван Иванович" Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -159,15 +159,14 @@
                         Padding="15"
                         Margin="0,0,0,15">
                     <StackPanel>
-                        <TextBlock Text="Email" 
-                                   Foreground="#7F8C8D" 
-                                   FontSize="12"
-                                   Margin="0,0,0,5"/>
+                        <TextBlock Text="Email" Foreground="#5D6D7E" FontSize="12" Margin="0,0,0,5"/>
                         <TextBox x:Name="TxtEmail" 
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"/>
+                                 BorderThickness="1"
+                                 ToolTip="Электронная почта пользователя"/>
+                        <TextBlock Text="💡 Пример: user@mail.ru" Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -177,15 +176,14 @@
                         Padding="15"
                         Margin="0,0,0,15">
                     <StackPanel>
-                        <TextBlock Text="Телефон" 
-                                   Foreground="#7F8C8D" 
-                                   FontSize="12"
-                                   Margin="0,0,0,5"/>
+                        <TextBlock Text="Телефон" Foreground="#5D6D7E" FontSize="12" Margin="0,0,0,5"/>
                         <TextBox x:Name="TxtPhone" 
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"/>
+                                 BorderThickness="1"
+                                 ToolTip="Контактный телефон"/>
+                        <TextBlock Text="💡 Формат: +7(XXX)XXX-XX-XX" Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -195,16 +193,14 @@
                         Padding="15"
                         Margin="0,0,0,15">
                     <StackPanel>
-                        <TextBlock Text="Роль" 
-                                   Foreground="#7F8C8D" 
-                                   FontSize="12"
-                                   Margin="0,0,0,5"/>
+                        <TextBlock Text="Роль *" Foreground="#5D6D7E" FontSize="12" Margin="0,0,0,5"/>
                         <ComboBox x:Name="CmbRole" 
                                   Padding="8"
                                   FontSize="14"
                                   BorderBrush="#E1E5EB"
                                   BorderThickness="1"
-                                  DisplayMemberPath="name"/>
+                                  DisplayMemberPath="name"
+                                  ToolTip="Выберите роль пользователя в системе"/>
                     </StackPanel>
                 </Border>
 
@@ -216,20 +212,15 @@
                         Margin="0,0,0,15"
                         Visibility="Collapsed">
                     <StackPanel>
-                        <TextBlock Text="Пароль" 
-                                   Foreground="#7F8C8D" 
-                                   FontSize="12"
-                                   Margin="0,0,0,5"/>
+                        <TextBlock Text="Пароль *" Foreground="#5D6D7E" FontSize="12" Margin="0,0,0,5"/>
                         <PasswordBox x:Name="TxtPassword" 
                                      Padding="8"
                                      FontSize="14"
                                      BorderBrush="#E1E5EB"
                                      BorderThickness="1"
-                                     PasswordChar="●"/>
-                        <TextBlock Text="Минимум 6 символов" 
-                                   Foreground="#95A5A6" 
-                                   FontSize="10"
-                                   Margin="0,5,0,0"/>
+                                     PasswordChar="●"
+                                     ToolTip="Пароль для входа в систему"/>
+                        <TextBlock Text="💡 Минимум 6 символов, латиница и цифры" Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -241,16 +232,15 @@
                         Margin="0,0,0,15"
                         Visibility="Collapsed">
                     <StackPanel>
-                        <TextBlock Text="Подтверждение пароля" 
-                                   Foreground="#7F8C8D" 
-                                   FontSize="12"
-                                   Margin="0,0,0,5"/>
+                        <TextBlock Text="Подтверждение пароля *" Foreground="#5D6D7E" FontSize="12" Margin="0,0,0,5"/>
                         <PasswordBox x:Name="TxtConfirmPassword" 
                                      Padding="8"
                                      FontSize="14"
                                      BorderBrush="#E1E5EB"
                                      BorderThickness="1"
-                                     PasswordChar="●"/>
+                                     PasswordChar="●"
+                                     ToolTip="Повторите пароль для подтверждения"/>
+                        <TextBlock Text="💡 Введите пароль еще раз" Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -289,7 +279,6 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Кнопка удаления -->
                 <Button x:Name="BtnDelete" 
                         Grid.Column="0"
                         Background="Transparent"
@@ -299,28 +288,14 @@
                         Padding="15,10"
                         Cursor="Hand"
                         HorizontalAlignment="Left"
-                        Click="BtnDelete_Click">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="Foreground" Value="#E74C3C"/>
-                            <Setter Property="BorderBrush" Value="#E74C3C"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#E74C3C"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                    <Setter Property="BorderBrush" Value="#E74C3C"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
+                        Click="BtnDelete_Click"
+                        ToolTip="Удалить пользователя (нельзя удалить себя)">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🗑️" Margin="0,0,4,0"/>
                         <TextBlock Text="Удалить"/>
                     </StackPanel>
                 </Button>
 
-                <!-- Кнопка смены пароля -->
                 <Button x:Name="BtnChangePassword" 
                         Grid.Column="1"
                         Background="Transparent"
@@ -330,28 +305,14 @@
                         Padding="5,10"
                         Cursor="Hand"
                         Margin="10,0,10,0"
-                        Click="BtnChangePassword_Click">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="Foreground" Value="#3498DB"/>
-                            <Setter Property="BorderBrush" Value="#3498DB"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#3498DB"/>
-                                    <Setter Property="Foreground" Value="White"/>
-                                    <Setter Property="BorderBrush" Value="#3498DB"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
+                        Click="BtnChangePassword_Click"
+                        ToolTip="Изменить пароль пользователя">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="🔑" Margin="0,0,4,0"/>
                         <TextBlock Text="Сменить пароль"/>
                     </StackPanel>
                 </Button>
 
-                <!-- Кнопка сохранения -->
                 <Button x:Name="BtnSave" 
                         Grid.Column="2"
                         Background="#4A6FA5"
@@ -359,18 +320,8 @@
                         BorderThickness="0"
                         Padding="15,10"
                         Cursor="Hand"
-                        Click="BtnSave_Click">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="#4A6FA5"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#3D5A8C"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
+                        Click="BtnSave_Click"
+                        ToolTip="Сохранить изменения">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="💾" Margin="0,0,4,0"/>
                         <TextBlock Text="Сохранить"/>

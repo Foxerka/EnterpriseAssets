@@ -7,6 +7,22 @@
         ResizeMode="NoResize"
         Background="#F5F7FA">
 
+    <Window.Resources>
+        <Style x:Key="InfoTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#95A5A6"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Margin" Value="0,3,0,8"/>
+        </Style>
+
+        <Style x:Key="WarningBoxStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FFF9E6"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -42,29 +58,35 @@
 
                         <TextBlock Text="Дата проведения ТО *" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                         <DatePicker x:Name="DpMaintenanceDate" 
-                                    
                                     Padding="8,6" 
                                     BorderBrush="#BDC3C7"
-                                    Margin="0,0,0,12"/>
+                                    Margin="0,0,0,12"
+                                    ToolTip="Выберите дату проведения обслуживания"/>
 
                         <TextBlock Text="Тип обслуживания *" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                         <ComboBox x:Name="CmbMaintenanceType" 
                                   Padding="8,6" 
-                                  Margin="0,0,0,12">
+                                  Margin="0,0,0,5"
+                                  ToolTip="Выберите тип обслуживания">
                             <ComboBoxItem Content="Плановое" IsSelected="True"/>
                             <ComboBoxItem Content="Внеплановое"/>
                             <ComboBoxItem Content="Капитальное"/>
                             <ComboBoxItem Content="Аварийное"/>
                         </ComboBox>
+                        <TextBlock Text="💡 Плановое - по графику, Внеплановое - при необходимости" 
+                                   Style="{StaticResource InfoTextStyle}"/>
 
-                        <TextBlock Text="Описание работ" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                        <TextBlock Text="Описание работ" Foreground="#5D6D7E" Margin="0,12,0,5"/>
                         <TextBox x:Name="TxtDescription" 
                                  Padding="10,8" 
                                  BorderBrush="#BDC3C7"
                                  TextWrapping="Wrap" 
                                  AcceptsReturn="True" 
                                  Height="80" 
-                                 VerticalContentAlignment="Top"/>
+                                 VerticalContentAlignment="Top"
+                                 ToolTip="Подробное описание выполненных работ"/>
+                        <TextBlock Text="💡 Детальное описание выполненных работ" 
+                                   Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -83,9 +105,12 @@
                                  AcceptsReturn="True" 
                                  Height="60" 
                                  VerticalContentAlignment="Top"
-                                 Margin="0,0,0,12"/>
+                                 Margin="0,0,0,5"
+                                 ToolTip="Перечень замененных деталей"/>
+                        <TextBlock Text="💡 Пример: подшипники, ремни, масло, фильтры" 
+                                   Style="{StaticResource InfoTextStyle}"/>
 
-                        <Grid Margin="0,0,0,12">
+                        <Grid Margin="0,12,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="15"/>
@@ -93,11 +118,14 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Стоимость (руб.)" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <TextBlock Text="Стоимость (₸)" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                                 <TextBox x:Name="TxtCost" 
                                          Padding="10,8" 
                                          BorderBrush="#BDC3C7"
-                                         PreviewTextInput="TxtNumber_PreviewTextInput"/>
+                                         PreviewTextInput="TxtDecimal_PreviewTextInput"
+                                         ToolTip="Общая стоимость ремонта"/>
+                                <TextBlock Text="💡 Формат: 12500.50" 
+                                           Style="{StaticResource InfoTextStyle}"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
@@ -105,7 +133,10 @@
                                 <TextBox x:Name="TxtDowntime" 
                                          Padding="10,8" 
                                          BorderBrush="#BDC3C7"
-                                         PreviewTextInput="TxtNumber_PreviewTextInput"/>
+                                         PreviewTextInput="TxtNumber_PreviewTextInput"
+                                         ToolTip="Время простоя оборудования"/>
+                                <TextBlock Text="💡 Целое число часов" 
+                                           Style="{StaticResource InfoTextStyle}"/>
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -132,6 +163,8 @@
                                          BorderBrush="#BDC3C7"
                                          PreviewTextInput="TxtNumber_PreviewTextInput"
                                          ToolTip="Общая наработка оборудования на данный момент"/>
+                                <TextBlock Text="💡 Целое число часов" 
+                                           Style="{StaticResource InfoTextStyle}"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
@@ -140,10 +173,12 @@
                                             Padding="8,6" 
                                             BorderBrush="#BDC3C7"
                                             ToolTip="Дата следующего планового обслуживания"/>
+                                <TextBlock Text="💡 Дата следующего ТО" 
+                                           Style="{StaticResource InfoTextStyle}"/>
                             </StackPanel>
                         </Grid>
 
-                        <Border Background="#FFF9E6" CornerRadius="4" Padding="10" Margin="0,5,0,0">
+                        <Border Style="{StaticResource WarningBoxStyle}">
                             <StackPanel>
                                 <TextBlock Text="💡 Рекомендация" FontSize="11" FontWeight="SemiBold" 
                                            Foreground="#E67E22" Margin="0,0,0,4"/>
@@ -160,7 +195,8 @@
                     <StackPanel>
                         <TextBlock Text="📊 Статус после ТО" FontSize="14" FontWeight="SemiBold" 
                                    Foreground="#2C3E50" Margin="0,0,0,12"/>
-                        <ComboBox x:Name="CmbNewStatus" Padding="8,6">
+                        <ComboBox x:Name="CmbNewStatus" Padding="8,6"
+                                  ToolTip="Новый статус оборудования после обслуживания">
                             <ComboBoxItem Content="В эксплуатации" IsSelected="True"/>
                             <ComboBoxItem Content="На обслуживании"/>
                             <ComboBoxItem Content="Неисправен"/>
@@ -181,14 +217,16 @@
                     BorderThickness="0" 
                     Cursor="Hand" 
                     Margin="0,0,10,0"
-                    Click="BtnCancel_Click"/>
+                    Click="BtnCancel_Click"
+                    ToolTip="Отменить изменения и закрыть окно"/>
             <Button Content="✅ Сохранить" 
                     Background="#27AE60" 
                     Foreground="White"
                     Padding="20,8" 
                     BorderThickness="0" 
                     Cursor="Hand" 
-                    Click="BtnSave_Click"/>
+                    Click="BtnSave_Click"
+                    ToolTip="Сохранить информацию о проведенном ТО"/>
         </StackPanel>
     </Grid>
 </Window>

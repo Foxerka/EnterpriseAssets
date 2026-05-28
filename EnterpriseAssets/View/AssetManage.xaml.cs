@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Validation;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
@@ -16,7 +17,6 @@ namespace EnterpriseAssets.View
         private PRODUCTION_ASSETS _currentAsset;
         private bool _isNewAsset;
 
-        // 🔹 Конструктор для нового актива
         public AssetManage()
         {
             InitializeComponent();
@@ -26,9 +26,9 @@ namespace EnterpriseAssets.View
             BtnDelete.Visibility = Visibility.Collapsed;
             CreatedAtSection.Visibility = Visibility.Collapsed;
             InitializeData();
+            SetupInputMasks();
         }
 
-        // 🔹 Конструктор для редактирования
         public AssetManage(PRODUCTION_ASSETS asset)
         {
             InitializeComponent();
@@ -39,9 +39,26 @@ namespace EnterpriseAssets.View
             CreatedAtSection.Visibility = Visibility.Visible;
             InitializeData();
             LoadAssetData();
+            SetupInputMasks();
         }
 
-        // 🔹 Загрузка справочников в ComboBox
+        private void SetupInputMasks()
+        {
+            TxtSerialNumber.PreviewTextInput += (s, e) =>
+            {
+                e.Handled = !Regex.IsMatch(e.Text, @"^[a-zA-Z0-9\-_]+$");
+            };
+            TxtSerialNumber.PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Space) e.Handled = true;
+            };
+
+            TxtName.PreviewTextInput += (s, e) =>
+            {
+                e.Handled = !Regex.IsMatch(e.Text, @"^[a-zA-Zа-яА-Я0-9\s\-\.\(\)]+$");
+            };
+        }
+
         private void InitializeData()
         {
             LoadAssetTypes();
@@ -57,16 +74,13 @@ namespace EnterpriseAssets.View
             try
             {
                 var types = db.ASSETTYPE.OrderBy(t => t.AssetType1).ToList();
-
                 CmbAssetType.ItemsSource = types;
                 CmbAssetType.DisplayMemberPath = "AssetType1";
                 CmbAssetType.SelectedValuePath = "ID_ASSETTYPE";
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки типов: {ex.Message}");
-                MessageBox.Show($"Ошибка загрузки типов активов: {ex.Message}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowError($"Ошибка загрузки типов активов: {ex.Message}");
             }
         }
 
@@ -75,14 +89,13 @@ namespace EnterpriseAssets.View
             try
             {
                 var categories = db.CATEGORY.OrderBy(c => c.Category1).ToList();
-
                 CmbCategory.ItemsSource = categories;
                 CmbCategory.DisplayMemberPath = "Category1";
                 CmbCategory.SelectedValuePath = "ID_category";
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки категорий: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки категорий: {ex.Message}");
             }
         }
 
@@ -91,16 +104,13 @@ namespace EnterpriseAssets.View
             try
             {
                 var units = db.Unit.OrderBy(u => u.unit1).ToList();
-
                 CmbUnit.ItemsSource = units;
                 CmbUnit.DisplayMemberPath = "unit1";
                 CmbUnit.SelectedValuePath = "ID";
-
-
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки единиц: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки единиц: {ex.Message}");
             }
         }
 
@@ -109,15 +119,13 @@ namespace EnterpriseAssets.View
             try
             {
                 var workshops = db.WORKSHOPS.OrderBy(w => w.name).ToList();
-
                 CmbWorkshop.ItemsSource = workshops;
                 CmbWorkshop.DisplayMemberPath = "name";
                 CmbWorkshop.SelectedValuePath = "id";
-
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки цехов: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки цехов: {ex.Message}");
             }
         }
 
@@ -126,16 +134,13 @@ namespace EnterpriseAssets.View
             try
             {
                 var suppliers = db.SUPPLIERS.OrderBy(s => s.name).ToList();
-
                 CmbSupplier.ItemsSource = suppliers;
                 CmbSupplier.DisplayMemberPath = "name";
                 CmbSupplier.SelectedValuePath = "id";
-
-                System.Diagnostics.Debug.WriteLine($"✅ Поставщики загружены: {suppliers.Count} записей");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки поставщиков: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки поставщиков: {ex.Message}");
             }
         }
 
@@ -144,20 +149,16 @@ namespace EnterpriseAssets.View
             try
             {
                 var statuses = db.STATUSASSETS.OrderBy(s => s.Status).ToList();
-
                 CmbStatus.ItemsSource = statuses;
                 CmbStatus.DisplayMemberPath = "Status";
                 CmbStatus.SelectedValuePath = "ID_status";
-
-                System.Diagnostics.Debug.WriteLine($"✅ Статусы загружены: {statuses.Count} записей");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки статусов: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки статусов: {ex.Message}");
             }
         }
 
-        // 🔹 Заполнение полей данными актива (для редактирования)
         private void LoadAssetData()
         {
             if (_currentAsset == null) return;
@@ -183,7 +184,7 @@ namespace EnterpriseAssets.View
 
             if (_currentAsset.created_at.HasValue)
             {
-                TxtCreatedAt.Text = $"Создан: {_currentAsset.created_at:dd.MM.yyyy HH:mm}";
+                TxtCreatedAt.Text = $"📅 Создан: {_currentAsset.created_at:dd.MM.yyyy HH:mm}";
             }
 
             UpdateStatusVisibility();
@@ -208,125 +209,179 @@ namespace EnterpriseAssets.View
             UpdateStatusVisibility();
         }
 
-        // 🔹 Валидация: только целые числа (для количества)
         private void TxtQuantity_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
             e.Handled = !Regex.IsMatch(e.Text, @"^[0-9]+$");
         }
 
-        // 🔹 Валидация: числа с точкой (для стоимости)
         private void TxtDecimal_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = !Regex.IsMatch(e.Text, @"^[0-9]*\.?[0-9]{0,2}$");
+            var textBox = sender as TextBox;
+            string currentText = textBox?.Text ?? "";
+
+            if (!Regex.IsMatch(e.Text, @"^[0-9\.]$"))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Text == "." && currentText.Contains("."))
+            {
+                e.Handled = true;
+                return;
+            }
+
+            if (currentText.Contains("."))
+            {
+                int dotIndex = currentText.IndexOf('.');
+                int decimalDigits = currentText.Length - dotIndex - 1;
+                if (decimalDigits >= 2 && textBox.SelectionStart > dotIndex)
+                {
+                    e.Handled = true;
+                    return;
+                }
+            }
         }
 
-        // 🔹 Сохранение актива
+        private bool ValidateInputs()
+        {
+            if (string.IsNullOrWhiteSpace(TxtName.Text))
+            {
+                ShowWarning("Введите название актива");
+                TxtName.Focus();
+                return false;
+            }
+
+            if (!decimal.TryParse(TxtQuantity.Text, out decimal quantity) || quantity < 0)
+            {
+                ShowWarning("Введите корректное количество (≥ 0)");
+                TxtQuantity.Focus();
+                return false;
+            }
+
+            if (!string.IsNullOrWhiteSpace(TxtMinQuantity.Text) && (!decimal.TryParse(TxtMinQuantity.Text, out decimal minQty) || minQty < 0))
+            {
+                ShowWarning("Введите корректное минимальное количество");
+                TxtMinQuantity.Focus();
+                return false;
+            }
+
+            if (CmbAssetType.SelectedItem == null)
+            {
+                ShowWarning("Выберите тип актива");
+                CmbAssetType.Focus();
+                return false;
+            }
+
+            return true;
+        }
+
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // Валидация
-                if (string.IsNullOrWhiteSpace(TxtName.Text))
-                {
-                    MessageBox.Show("Введите название актива", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Warning);
-                    TxtName.Focus();
+                if (!ValidateInputs())
                     return;
-                }
 
-                if (!decimal.TryParse(TxtQuantity.Text, out decimal quantity) || quantity < 0)
+                // 🔹 ИСПРАВЛЕНИЕ: Для существующего актива загружаем свежую копию из БД
+                if (!_isNewAsset)
                 {
-                    MessageBox.Show("Введите корректное количество (≥ 0)", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Warning);
-                    TxtQuantity.Focus();
-                    return;
-                }
+                    var existingAsset = db.PRODUCTION_ASSETS
+                        .FirstOrDefault(a => a.id == _currentAsset.id);
 
-                // Заполнение свойств
-                _currentAsset.name = TxtName.Text.Trim();
-                _currentAsset.description = string.IsNullOrWhiteSpace(TxtDescription.Text) ? null : TxtDescription.Text.Trim();
-                _currentAsset.serial_number = string.IsNullOrWhiteSpace(TxtSerialNumber.Text) ? null : TxtSerialNumber.Text.Trim();
+                    if (existingAsset == null)
+                    {
+                        ShowError("Актив не найден в базе данных");
+                        return;
+                    }
 
-                _currentAsset.quantity = quantity;
-                _currentAsset.min_quantity = string.IsNullOrWhiteSpace(TxtMinQuantity.Text)
-                    ? (decimal?)null : decimal.Parse(TxtMinQuantity.Text);
+                    // Обновляем свойства существующего объекта
+                    existingAsset.name = TxtName.Text.Trim();
+                    existingAsset.description = string.IsNullOrWhiteSpace(TxtDescription.Text) ? null : TxtDescription.Text.Trim();
+                    existingAsset.serial_number = string.IsNullOrWhiteSpace(TxtSerialNumber.Text) ? null : TxtSerialNumber.Text.Trim();
+                    existingAsset.quantity = decimal.Parse(TxtQuantity.Text);
+                    existingAsset.min_quantity = string.IsNullOrWhiteSpace(TxtMinQuantity.Text) ? (decimal?)null : decimal.Parse(TxtMinQuantity.Text);
+                    existingAsset.warehouse_location = string.IsNullOrWhiteSpace(TxtWarehouseLocation.Text) ? null : TxtWarehouseLocation.Text.Trim();
 
-                _currentAsset.warehouse_location = string.IsNullOrWhiteSpace(TxtWarehouseLocation.Text)
-                    ? null : TxtWarehouseLocation.Text.Trim();
+                    // Обработка стоимости - заменяем запятую на точку
+                    string purchaseCost = TxtPurchaseCost.Text.Replace(',', '.');
+                    string currentValue = TxtCurrentValue.Text.Replace(',', '.');
 
-                _currentAsset.purchase_cost = string.IsNullOrWhiteSpace(TxtPurchaseCost.Text)
-                    ? (decimal?)null : decimal.Parse(TxtPurchaseCost.Text);
+                    existingAsset.purchase_cost = string.IsNullOrWhiteSpace(purchaseCost) ? (decimal?)null : decimal.Parse(purchaseCost, System.Globalization.CultureInfo.InvariantCulture);
+                    existingAsset.current_value = string.IsNullOrWhiteSpace(currentValue) ? (decimal?)null : decimal.Parse(currentValue, System.Globalization.CultureInfo.InvariantCulture);
+                    existingAsset.purchase_date = DpPurchaseDate.SelectedDate;
 
-                _currentAsset.current_value = string.IsNullOrWhiteSpace(TxtCurrentValue.Text)
-                    ? (decimal?)null : decimal.Parse(TxtCurrentValue.Text);
+                    existingAsset.asset_type = CmbAssetType.SelectedValue as int?;
+                    existingAsset.id_category = CmbCategory.SelectedValue as int?;
+                    existingAsset.unit = CmbUnit.SelectedValue as int?;
+                    existingAsset.workshop_id = CmbWorkshop.SelectedValue as int?;
+                    existingAsset.supplier_id = CmbSupplier.SelectedValue as int?;
+                    existingAsset.status = CmbStatus.SelectedValue as int?;
 
-                _currentAsset.purchase_date = DpPurchaseDate.SelectedDate;
-
-                // ✅ Безопасное получение SelectedValue
-                _currentAsset.asset_type = CmbAssetType.SelectedValue is int at ? at : (int?)null;
-                _currentAsset.id_category = CmbCategory.SelectedValue is int cat ? cat : (int?)null;
-                _currentAsset.unit = CmbUnit.SelectedValue is int u ? u : (int?)null;
-                _currentAsset.workshop_id = CmbWorkshop.SelectedValue is int w ? w : (int?)null;
-                _currentAsset.supplier_id = CmbSupplier.SelectedValue is int s ? s : (int?)null;
-                _currentAsset.status = CmbStatus.SelectedValue is int st ? st : (int?)null;
-
-                if (_isNewAsset)
-                {
-                    _currentAsset.created_at = DateTime.Now;
-                    db.PRODUCTION_ASSETS.Add(_currentAsset);
+                    // Помечаем как изменённый
+                    db.Entry(existingAsset).State = EntityState.Modified;
                 }
                 else
                 {
-                    // ✅ Для редактирования: прикрепляем и помечаем как изменённый
-                    var tracked = db.PRODUCTION_ASSETS.Local.FirstOrDefault(a => a.id == _currentAsset.id);
-                    if (tracked != null)
-                    {
-                        db.Entry(tracked).CurrentValues.SetValues(_currentAsset);
-                    }
-                    else
-                    {
-                        db.PRODUCTION_ASSETS.Attach(_currentAsset);
-                        db.Entry(_currentAsset).State = EntityState.Modified;
-                    }
+                    // Для нового актива создаём объект
+                    _currentAsset.name = TxtName.Text.Trim();
+                    _currentAsset.description = string.IsNullOrWhiteSpace(TxtDescription.Text) ? null : TxtDescription.Text.Trim();
+                    _currentAsset.serial_number = string.IsNullOrWhiteSpace(TxtSerialNumber.Text) ? null : TxtSerialNumber.Text.Trim();
+                    _currentAsset.quantity = decimal.Parse(TxtQuantity.Text);
+                    _currentAsset.min_quantity = string.IsNullOrWhiteSpace(TxtMinQuantity.Text) ? (decimal?)null : decimal.Parse(TxtMinQuantity.Text);
+                    _currentAsset.warehouse_location = string.IsNullOrWhiteSpace(TxtWarehouseLocation.Text) ? null : TxtWarehouseLocation.Text.Trim();
+
+                    // Обработка стоимости
+                    string purchaseCost = TxtPurchaseCost.Text.Replace(',', '.');
+                    string currentValue = TxtCurrentValue.Text.Replace(',', '.');
+
+                    _currentAsset.purchase_cost = string.IsNullOrWhiteSpace(purchaseCost) ? (decimal?)null : decimal.Parse(purchaseCost, System.Globalization.CultureInfo.InvariantCulture);
+                    _currentAsset.current_value = string.IsNullOrWhiteSpace(currentValue) ? (decimal?)null : decimal.Parse(currentValue, System.Globalization.CultureInfo.InvariantCulture);
+                    _currentAsset.purchase_date = DpPurchaseDate.SelectedDate;
+
+                    _currentAsset.asset_type = CmbAssetType.SelectedValue as int?;
+                    _currentAsset.id_category = CmbCategory.SelectedValue as int?;
+                    _currentAsset.unit = CmbUnit.SelectedValue as int?;
+                    _currentAsset.workshop_id = CmbWorkshop.SelectedValue as int?;
+                    _currentAsset.supplier_id = CmbSupplier.SelectedValue as int?;
+                    _currentAsset.status = CmbStatus.SelectedValue as int?;
+                    _currentAsset.created_at = DateTime.Now;
+
+                    db.PRODUCTION_ASSETS.Add(_currentAsset);
                 }
 
                 db.SaveChanges();
-
-                MessageBox.Show("Актив успешно сохранён", "Успех",
-                              MessageBoxButton.OK, MessageBoxImage.Information);
-
+                ShowSuccess("Актив успешно сохранён");
                 DialogResult = true;
                 Close();
             }
-            catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+            catch (DbEntityValidationException ex)
             {
                 var errors = string.Join("\n", ex.EntityValidationErrors
                     .SelectMany(ev => ev.ValidationErrors)
                     .Select(v => $"{v.PropertyName}: {v.ErrorMessage}"));
-                MessageBox.Show($"Ошибка валидации:\n{errors}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowError($"Ошибка валидации:\n{errors}");
+            }
+            catch (FormatException ex)
+            {
+                ShowError($"Ошибка формата числа: {ex.Message}\n\nИспользуйте точку вместо запятой для десятичных чисел.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка сохранения: {ex.GetBaseException().Message}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowError($"Ошибка сохранения: {ex.GetBaseException().Message}");
             }
         }
 
-        // 🔹 Удаление актива с проверкой зависимостей
         private void BtnDelete_Click(object sender, RoutedEventArgs e)
         {
-            // Нельзя удалить несуществующую запись
             if (_isNewAsset || _currentAsset.id <= 0)
             {
-                MessageBox.Show("Нельзя удалить актив, который ещё не сохранён", "Предупреждение",
-                              MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowWarning("Нельзя удалить актив, который ещё не сохранён");
                 return;
             }
 
             var result = MessageBox.Show(
-                $"Вы уверены, что хотите удалить актив «{_currentAsset.name}»?\n\n" +
-                $"Это действие нельзя отменить.",
+                $"Вы уверены, что хотите удалить актив «{_currentAsset.name}»?\n\nЭто действие нельзя отменить.",
                 "Подтверждение удаления",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning);
@@ -335,61 +390,57 @@ namespace EnterpriseAssets.View
 
             try
             {
-                // Находим актуальную запись в БД
+                // Перезагружаем актив из БД для проверки
                 var assetToDelete = db.PRODUCTION_ASSETS
+                    .Include("WORK_ACTS")
+                    .Include("WORK_ACTS_MATERIALS")
                     .FirstOrDefault(a => a.id == _currentAsset.id);
 
                 if (assetToDelete == null)
                 {
-                    MessageBox.Show("Актив не найден в базе данных", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowError("Актив не найден в базе данных");
                     return;
                 }
 
-                // 🔍 Проверка зависимостей в WORK_ACTS (прямая ссылка asset_id)
-                bool hasDirectWorkActs = db.WORK_ACTS.Any(wa => wa.asset_id == assetToDelete.id);
+                // Проверяем использование в WORK_ACTS
+                var workActs = db.WORK_ACTS.Where(wa => wa.asset_id == assetToDelete.id).ToList();
+                bool hasDirectWorkActs = workActs.Any();
 
-                // 🔍 Проверка зависимостей в WORK_ACTS_MATERIALS (расход материалов)
-                bool hasMaterialUsage = db.WORK_ACTS_MATERIALS.Any(wam => wam.asset_id == assetToDelete.id);
+                // Проверяем использование в WORK_ACTS_MATERIALS
+                var materialUsage = db.WORK_ACTS_MATERIALS.Where(wam => wam.asset_id == assetToDelete.id).ToList();
+                bool hasMaterialUsage = materialUsage.Any();
 
                 if (hasDirectWorkActs || hasMaterialUsage)
                 {
-                    var reasons = new List<string>();
+                    var reasons = new System.Text.StringBuilder();
+                    reasons.AppendLine("❌ Невозможно удалить актив, так как он используется:\n");
                     if (hasDirectWorkActs)
                     {
-                        var count = db.WORK_ACTS.Count(wa => wa.asset_id == assetToDelete.id);
-                        reasons.Add($"• Акты выполненных работ: {count} записей (поле asset_id)");
+                        reasons.AppendLine($"• Акты выполненных работ: {workActs.Count} записей");
+                        foreach (var act in workActs.Take(5))
+                        {
+                            reasons.AppendLine($"  - Акт №{act.act_number} от {act.work_date:dd.MM.yyyy}");
+                        }
+                        if (workActs.Count > 5) reasons.AppendLine($"  ... и еще {workActs.Count - 5} записей");
                     }
                     if (hasMaterialUsage)
                     {
-                        var count = db.WORK_ACTS_MATERIALS.Count(wam => wam.asset_id == assetToDelete.id);
-                        reasons.Add($"• Использован в работах как материал: {count} записей");
+                        reasons.AppendLine($"• Использован в работах как материал: {materialUsage.Count} записей");
                     }
-
-                    MessageBox.Show(
-                        $"❌ Невозможно удалить актив, так как он используется:\n\n" +
-                        string.Join("\n", reasons) +
-                        $"\n\n💡 Решение: сначала удалите или измените связанные записи в актах работ.",
-                        "Ошибка удаления",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                    reasons.AppendLine("\n💡 Решение: сначала удалите или измените связанные записи.");
+                    ShowError(reasons.ToString());
                     return;
                 }
 
-                // ✅ Все проверки пройдены — удаляем
                 db.PRODUCTION_ASSETS.Remove(assetToDelete);
                 db.SaveChanges();
-
-                MessageBox.Show("✅ Актив успешно удалён", "Успех",
-                              MessageBoxButton.OK, MessageBoxImage.Information);
-
+                ShowSuccess("✅ Актив успешно удалён");
                 DialogResult = true;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"❌ Ошибка удаления: {ex.GetBaseException().Message}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowError($"❌ Ошибка удаления: {ex.GetBaseException().Message}");
             }
         }
 
@@ -399,7 +450,21 @@ namespace EnterpriseAssets.View
             Close();
         }
 
-        // 🔹 Освобождение ресурсов
+        private void ShowWarning(string message)
+        {
+            MessageBox.Show(message, "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        private void ShowError(string message)
+        {
+            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void ShowSuccess(string message)
+        {
+            MessageBox.Show(message, "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
         protected override void OnClosed(EventArgs e)
         {
             db?.Dispose();

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EnterpriseAssets.View"
         mc:Ignorable="d"
-        Title="Управление цехом" 
+        Title="Управление местом хранения" 
         Height="450" 
         Width="450"
         WindowStartupLocation="CenterOwner"
@@ -38,7 +38,7 @@
                         CornerRadius="30"
                         Background="#4A6FA5"
                         Margin="0,0,15,0">
-                    <TextBlock Text="🏭" 
+                    <TextBlock Text="📍" 
                                FontSize="30"
                                Foreground="White"
                                HorizontalAlignment="Center"
@@ -58,13 +58,13 @@
         <!-- Форма -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <!-- Название цеха -->
+                <!-- Название места -->
                 <Border Background="White"
                         CornerRadius="8"
                         Padding="15"
                         Margin="0,0,0,15">
                     <StackPanel>
-                        <TextBlock Text="Название цеха *" 
+                        <TextBlock Text="Название места *" 
                                    Foreground="#7F8C8D" 
                                    FontSize="12"
                                    Margin="0,0,0,5"/>
@@ -72,7 +72,8 @@
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"/>
+                                 BorderThickness="1"
+                                 ToolTip="Например: Склад №1, Кабинет 301, Корпус А"/>
                     </StackPanel>
                 </Border>
 
@@ -82,7 +83,7 @@
                         Padding="15"
                         Margin="0,0,0,15">
                     <StackPanel>
-                        <TextBlock Text="Местоположение" 
+                        <TextBlock Text="Адрес / Описание" 
                                    Foreground="#7F8C8D" 
                                    FontSize="12"
                                    Margin="0,0,0,5"/>
@@ -90,17 +91,23 @@
                                  Padding="10"
                                  FontSize="14"
                                  BorderBrush="#E1E5EB"
-                                 BorderThickness="1"/>
+                                 BorderThickness="1"
+                                 ToolTip="Например: 3 этаж, Комната 12"/>
+                        <TextBlock Text="💡 Подробное описание расположения" 
+                                   FontSize="10" 
+                                   Foreground="#95A5A6"
+                                   FontStyle="Italic"
+                                   Margin="0,3,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Менеджер (выбор из пользователей с ролью "Начальник цеха") -->
+                <!-- Ответственное лицо (МОЛ) -->
                 <Border Background="White"
                         CornerRadius="8"
                         Padding="15"
                         Margin="0,0,0,15">
                     <StackPanel>
-                        <TextBlock Text="Менеджер цеха" 
+                        <TextBlock Text="Ответственное лицо (МОЛ)" 
                                    Foreground="#7F8C8D" 
                                    FontSize="12"
                                    Margin="0,0,0,5"/>
@@ -109,10 +116,14 @@
                                   FontSize="14"
                                   BorderBrush="#E1E5EB"
                                   BorderThickness="1"
-                                  DisplayMemberPath="FullName"
-                                  SelectedValuePath="Id">
-                            <ComboBoxItem IsEnabled="False">-- Не назначен --</ComboBoxItem>
-                        </ComboBox>
+                                  DisplayMemberPath="DisplayName"
+                                  SelectedValuePath="MasterId"
+                                  ToolTip="Выберите материально-ответственное лицо"/>
+                        <TextBlock Text="💡 Материально-ответственное лицо (МОЛ)" 
+                                   FontSize="10" 
+                                   Foreground="#95A5A6"
+                                   FontStyle="Italic"
+                                   Margin="0,3,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -149,7 +160,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Кнопка удаления (только для существующих) -->
+                <!-- Кнопка удаления -->
                 <Button x:Name="BtnDelete" 
                         Grid.Column="0"
                         Content="🗑️ Удалить"
@@ -161,7 +172,8 @@
                         Cursor="Hand"
                         HorizontalAlignment="Left"
                         Click="BtnDelete_Click"
-                        Visibility="Collapsed"/>
+                        Visibility="Collapsed"
+                        ToolTip="Удалить место хранения"/>
 
                 <!-- Кнопка отмены -->
                 <Button x:Name="BtnCancel" 
@@ -173,7 +185,8 @@
                         BorderThickness="0"
                         Cursor="Hand"
                         Margin="0,0,10,0"
-                        Click="BtnCancel_Click"/>
+                        Click="BtnCancel_Click"
+                        ToolTip="Отменить изменения"/>
 
                 <!-- Кнопка сохранения -->
                 <Button x:Name="BtnSave" 
@@ -184,7 +197,8 @@
                         Padding="25,10"
                         BorderThickness="0"
                         Cursor="Hand"
-                        Click="BtnSave_Click"/>
+                        Click="BtnSave_Click"
+                        ToolTip="Сохранить изменения"/>
             </Grid>
         </Border>
     </Grid>

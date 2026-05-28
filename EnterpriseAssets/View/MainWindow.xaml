@@ -110,7 +110,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="⚙️" FontSize="14" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="BtnEquipmentText" 
-                                           Text="Оборуд." 
+                                           Text="Оборудование" 
                                            FontSize="14"
                                            Foreground="White"
                                            VerticalAlignment="Center"
@@ -125,7 +125,7 @@
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="📦" FontSize="14" VerticalAlignment="Center"/>
                                 <TextBlock x:Name="BtnWarehouseText" 
-                                           Text="Цеха" 
+                                           Text="Расположение" 
                                            FontSize="14"
                                            Foreground="White"
                                            VerticalAlignment="Center"

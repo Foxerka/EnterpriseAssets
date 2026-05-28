@@ -93,7 +93,7 @@ namespace EnterpriseAssets.View.Pages
 
                 // Проверяем наличие таблиц, если нет - ставим 0
                 int assetsCount = 0;
-                try { assetsCount = db.EQUIPMENT.Count(); } catch { assetsCount = 0; }
+                try { assetsCount = db.PRODUCTION_ASSETS.Count(); } catch { assetsCount = 0; }
                 Stat3Value.Text = assetsCount.ToString();
                 Stat3Label.Text = "Активов";
 

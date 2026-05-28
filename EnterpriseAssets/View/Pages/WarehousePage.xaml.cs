@@ -12,7 +12,7 @@ namespace EnterpriseAssets.View.Pages
     public partial class WarehousePage : Page
     {
         private DB_AssetManage db = new DB_AssetManage();
-        private List<WorkshopViewModel> _allWorkshops;
+        private List<LocationViewModel> _allLocations; // Переименовано
 
         public WarehousePage()
         {
@@ -28,8 +28,8 @@ namespace EnterpriseAssets.View.Pages
         {
             try
             {
-                var workshops = db.WORKSHOPS.ToList();
-                _allWorkshops = workshops.Select(w => new WorkshopViewModel(w, db)).ToList();
+                var locations = db.WORKSHOPS.ToList(); // Переименовано
+                _allLocations = locations.Select(w => new LocationViewModel(w, db)).ToList(); // Переименовано
                 ApplyFilter();
                 UpdateStats();
             }
@@ -42,9 +42,9 @@ namespace EnterpriseAssets.View.Pages
 
         private void ApplyFilter()
         {
-            if (_allWorkshops == null) return;
+            if (_allLocations == null) return;
 
-            var filtered = _allWorkshops.AsEnumerable();
+            var filtered = _allLocations.AsEnumerable();
 
             if (TxtSearch != null && !string.IsNullOrWhiteSpace(TxtSearch.Text))
             {
@@ -59,10 +59,10 @@ namespace EnterpriseAssets.View.Pages
 
         private void UpdateStats()
         {
-            if (_allWorkshops == null) return;
+            if (_allLocations == null) return;
 
-            TotalCount.Text = _allWorkshops.Count.ToString();
-            WithManagerCount.Text = _allWorkshops.Count(w => w.ManagerId.HasValue).ToString();
+            TotalCount.Text = _allLocations.Count.ToString();
+            WithManagerCount.Text = _allLocations.Count(w => w.ManagerId.HasValue).ToString();
         }
 
         private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
@@ -91,10 +91,10 @@ namespace EnterpriseAssets.View.Pages
             if (border?.Tag != null)
             {
                 int id = (int)border.Tag;
-                var workshop = db.WORKSHOPS.FirstOrDefault(w => w.id == id);
-                if (workshop != null)
+                var location = db.WORKSHOPS.FirstOrDefault(w => w.id == id); // Переименовано
+                if (location != null)
                 {
-                    var dialog = new WorkshopManage(workshop);
+                    var dialog = new WorkshopManage(location);
                     dialog.Owner = Window.GetWindow(this);
                     if (dialog.ShowDialog() == true)
                     {
@@ -110,10 +110,10 @@ namespace EnterpriseAssets.View.Pages
             if (button?.Tag != null)
             {
                 int id = (int)button.Tag;
-                var workshop = db.WORKSHOPS.FirstOrDefault(w => w.id == id);
-                if (workshop != null)
+                var location = db.WORKSHOPS.FirstOrDefault(w => w.id == id); // Переименовано
+                if (location != null)
                 {
-                    var dialog = new WorkshopManage(workshop);
+                    var dialog = new WorkshopManage(location);
                     dialog.Owner = Window.GetWindow(this);
                     if (dialog.ShowDialog() == true)
                     {
@@ -129,11 +129,11 @@ namespace EnterpriseAssets.View.Pages
             if (button?.Tag != null)
             {
                 int id = (int)button.Tag;
-                var workshop = db.WORKSHOPS.FirstOrDefault(w => w.id == id);
-                if (workshop != null)
+                var location = db.WORKSHOPS.FirstOrDefault(w => w.id == id); // Переименовано
+                if (location != null)
                 {
                     var result = MessageBox.Show(
-                        $"Вы уверены, что хотите удалить цех '{workshop.name}'?",
+                        $"Вы уверены, что хотите удалить место хранения '{location.name}'?", // Изменен текст
                         "Подтверждение удаления",
                         MessageBoxButton.YesNo,
                         MessageBoxImage.Warning);
@@ -149,14 +149,14 @@ namespace EnterpriseAssets.View.Pages
                             if (hasEquipment || hasAssets)
                             {
                                 MessageBox.Show(
-                                    "Невозможно удалить цех, так как к нему привязано оборудование или активы.",
+                                    "Невозможно удалить место хранения, так как к нему привязано оборудование или активы.", // Изменен текст
                                     "Ошибка удаления",
                                     MessageBoxButton.OK,
                                     MessageBoxImage.Error);
                                 return;
                             }
 
-                            db.WORKSHOPS.Remove(workshop);
+                            db.WORKSHOPS.Remove(location);
                             db.SaveChanges();
                             LoadData();
                         }
@@ -170,35 +170,37 @@ namespace EnterpriseAssets.View.Pages
             }
         }
     }
-    public class WorkshopViewModel
+
+    // Переименовано с WorkshopViewModel на LocationViewModel
+    public class LocationViewModel
     {
-        private WORKSHOPS _workshop;
+        private WORKSHOPS _location; // Переименовано
         private DB_AssetManage _db;
 
-        public WorkshopViewModel(WORKSHOPS workshop, DB_AssetManage db)
+        public LocationViewModel(WORKSHOPS location, DB_AssetManage db) // Переименовано
         {
-            _workshop = workshop;
+            _location = location;
             _db = db;
         }
 
-        public int Id => _workshop.id;
-        public string Name => _workshop.name ?? "Без названия";
-        public string Location => _workshop.location ?? "Не указано";
-        public int? ManagerId => _workshop.manager_id;
+        public int Id => _location.id;
+        public string Name => _location.name ?? "Без названия";
+        public string Location => _location.location ?? "Не указано";
+        public int? ManagerId => _location.manager_id;
 
         public string ManagerName
         {
             get
             {
-                if (_workshop.manager_id.HasValue)
+                if (_location.manager_id.HasValue)
                 {
-                    var manager = _db.USERS.FirstOrDefault(u => u.id == _workshop.manager_id.Value);
-                    return manager?.full_name ?? "Не назначен";
+                    var responsiblePerson = _db.USERS.FirstOrDefault(u => u.id == _location.manager_id.Value); // Переименовано
+                    return responsiblePerson?.full_name ?? "Не назначен";
                 }
                 return "Не назначен";
             }
         }
 
-        public FontWeight ManagerWeight => _workshop.manager_id.HasValue ? FontWeights.Normal : FontWeights.Light;
+        public FontWeight ManagerWeight => _location.manager_id.HasValue ? FontWeights.Normal : FontWeights.Light;
     }
 }

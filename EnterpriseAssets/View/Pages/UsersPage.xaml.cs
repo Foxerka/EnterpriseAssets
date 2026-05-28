@@ -18,14 +18,13 @@ namespace EnterpriseAssets.View.Pages
         private DB_AssetManage db = new();
         private List<USERS> _allUsers;
         private List<RoleViewModel> _allRoles;
-        private List<MasterViewModel> _allMasters;
+        private List<ResponsiblePersonViewModel> _allResponsiblePersons;
         private int _currentUserId;
 
         public UsersPage()
         {
             InitializeComponent();
 
-            // Подписываемся на события поиска
             RolesSearchBox.TextChanged += RolesSearchBox_TextChanged;
             MastersSearchBox.TextChanged += MastersSearchBox_TextChanged;
 
@@ -44,7 +43,7 @@ namespace EnterpriseAssets.View.Pages
             {
                 _allUsers = null;
                 _allRoles = null;
-                _allMasters = null;
+                _allResponsiblePersons = null;
 
                 db.Dispose();
                 db = new DB_AssetManage();
@@ -62,7 +61,8 @@ namespace EnterpriseAssets.View.Pages
                     .OrderBy(r => r.Name)
                     .ToList();
 
-                LoadMasters();
+                LoadResponsiblePersons();
+                LoadRoleFilter(); // Загружаем роли для фильтра
                 ApplyAllFilters();
 
                 RolesList.ItemsSource = null;
@@ -75,37 +75,72 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        private void LoadMasters()
+        private void LoadRoleFilter()
         {
             try
             {
-                _allMasters = (from m in db.MASTERS
-                               join u in db.USERS on m.user_id equals u.id into userJoin
-                               from u in userJoin.DefaultIfEmpty()
-                               join s in db.SPECIALTY on m.specialty equals s.ID_specialty into specialtyJoin
-                               from s in specialtyJoin.DefaultIfEmpty()
-                               join q in db.QUALIFICATION on m.qualifications equals q.ID_Qualification into qualJoin
-                               from q in qualJoin.DefaultIfEmpty()
-                               select new MasterViewModel
-                               {
-                                   Id = m.id,
-                                   UserName = u != null ? u.full_name : "Не назначен",
-                                   SpecialtyName = s != null ? s.Speciality : "Не указана",
-                                   QualificationName = q != null ? q.Qualification1 : "Не указана",
-                                   SkillLevel = m.skill_level ?? "Средний",
-                                   IsAvailable = m.is_available ?? false,
-                                   HireDate = m.hire_date,
-                                   WorkActsCount = db.WORK_ACTS.Count(w => w.master_id == m.id),
-                                   CompletionActsCount = db.COMPLETION_ACTS.Count(c => c.work_act_id.HasValue &&
-                                                                                      db.WORK_ACTS.Any(w => w.id == c.work_act_id && w.master_id == m.id)),
-                                   EquipmentCount = db.EQUIPMENT.Count(e => e.assigned_to == m.user_id)
-                               }).ToList();
+                // Очищаем ComboBox
+                RoleFilter.Items.Clear();
 
-                ApplyMasterFilters();
+                // Добавляем пункт "Все роли"
+                RoleFilter.Items.Add(new ComboBoxItem { Content = "Все роли", IsSelected = true });
+
+                // Загружаем все роли из базы данных
+                var roles = db.ROLES
+                    .OrderBy(r => r.name)
+                    .ToList();
+
+                // Добавляем каждую роль в ComboBox
+                foreach (var role in roles)
+                {
+                    RoleFilter.Items.Add(new ComboBoxItem { Content = role.name });
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки мастеров: {ex.Message}", "Ошибка",
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки ролей для фильтра: {ex.Message}");
+                // Если ошибка, добавляем стандартные варианты
+                RoleFilter.Items.Add(new ComboBoxItem { Content = "Все роли", IsSelected = true });
+                RoleFilter.Items.Add(new ComboBoxItem { Content = "Администратор" });
+                RoleFilter.Items.Add(new ComboBoxItem { Content = "Директор" });
+                RoleFilter.Items.Add(new ComboBoxItem { Content = "Начальник цеха" });
+                RoleFilter.Items.Add(new ComboBoxItem { Content = "Мастер" });
+                RoleFilter.Items.Add(new ComboBoxItem { Content = "Кладовщик" });
+                RoleFilter.Items.Add(new ComboBoxItem { Content = "Оператор" });
+            }
+        }
+
+        private void LoadResponsiblePersons()
+        {
+            try
+            {
+                _allResponsiblePersons = (from m in db.MASTERS
+                                          join u in db.USERS on m.user_id equals u.id into userJoin
+                                          from u in userJoin.DefaultIfEmpty()
+                                          join s in db.SPECIALTY on m.specialty equals s.ID_specialty into specialtyJoin
+                                          from s in specialtyJoin.DefaultIfEmpty()
+                                          join q in db.QUALIFICATION on m.qualifications equals q.ID_Qualification into qualJoin
+                                          from q in qualJoin.DefaultIfEmpty()
+                                          select new ResponsiblePersonViewModel
+                                          {
+                                              Id = m.id,
+                                              UserName = u != null ? u.full_name : "Не назначен",
+                                              SpecialtyName = s != null ? s.Speciality : "Не указана",
+                                              QualificationName = q != null ? q.Qualification1 : "Не указана",
+                                              SkillLevel = m.skill_level ?? "Средний",
+                                              IsAvailable = m.is_available ?? false,
+                                              HireDate = m.hire_date,
+                                              WorkActsCount = db.WORK_ACTS.Count(w => w.master_id == m.id),
+                                              CompletionActsCount = db.COMPLETION_ACTS.Count(c => c.work_act_id.HasValue &&
+                                                                                                 db.WORK_ACTS.Any(w => w.id == c.work_act_id && w.master_id == m.id)),
+                                              EquipmentCount = db.EQUIPMENT.Count(e => e.assigned_to == m.user_id)
+                                          }).ToList();
+
+                ApplyResponsiblePersonFilters();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки МОЛ: {ex.Message}", "Ошибка",
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -117,7 +152,6 @@ namespace EnterpriseAssets.View.Pages
 
         private void SetActiveTab(string tabName)
         {
-            // Скрываем все вкладки и фильтры
             if (UsersTabContent != null) UsersTabContent.Visibility = Visibility.Collapsed;
             if (RolesTabContent != null) RolesTabContent.Visibility = Visibility.Collapsed;
             if (MastersTabContent != null) MastersTabContent.Visibility = Visibility.Collapsed;
@@ -126,7 +160,6 @@ namespace EnterpriseAssets.View.Pages
             if (RolesFilters != null) RolesFilters.Visibility = Visibility.Collapsed;
             if (MastersFilters != null) MastersFilters.Visibility = Visibility.Collapsed;
 
-            // Показываем нужную вкладку и фильтры
             switch (tabName)
             {
                 case "Users":
@@ -142,7 +175,7 @@ namespace EnterpriseAssets.View.Pages
                 case "Masters":
                     if (MastersTabContent != null) MastersTabContent.Visibility = Visibility.Visible;
                     if (MastersFilters != null) MastersFilters.Visibility = Visibility.Visible;
-                    ApplyMasterFilters();
+                    ApplyResponsiblePersonFilters();
                     break;
             }
         }
@@ -150,7 +183,7 @@ namespace EnterpriseAssets.View.Pages
         // ===== Переключение вкладок =====
         private void TabUsers_Checked(object sender, RoutedEventArgs e)
         {
-            if (!IsLoaded) return; // Пропускаем если страница ещё не загружена
+            if (!IsLoaded) return;
             SetActiveTab("Users");
         }
 
@@ -165,9 +198,6 @@ namespace EnterpriseAssets.View.Pages
             if (!IsLoaded) return;
             SetActiveTab("Masters");
         }
-
-        // ===== Переключение вкладок =====
-
 
         // ===== Поиск =====
         private void UsersSearchBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -184,7 +214,6 @@ namespace EnterpriseAssets.View.Pages
             ApplyUserFilters();
         }
 
-        // ===== Поиск для ролей =====
         private void RolesSearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ClearRolesSearchButton.Visibility = string.IsNullOrEmpty(RolesSearchBox.Text)
@@ -199,21 +228,19 @@ namespace EnterpriseAssets.View.Pages
             ApplyRolesFilter();
         }
 
-        // ===== Поиск для мастеров =====
         private void MastersSearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             ClearMastersSearchButton.Visibility = string.IsNullOrEmpty(MastersSearchBox.Text)
                 ? Visibility.Collapsed
                 : Visibility.Visible;
-            ApplyMasterFilters();
+            ApplyResponsiblePersonFilters();
         }
 
         private void ClearMastersSearch_Click(object sender, RoutedEventArgs e)
         {
             MastersSearchBox.Text = string.Empty;
-            ApplyMasterFilters();
+            ApplyResponsiblePersonFilters();
         }
-
 
         // ===== Пользователи =====
         private void RefreshUsers_Click(object sender, RoutedEventArgs e)
@@ -237,7 +264,6 @@ namespace EnterpriseAssets.View.Pages
 
             IEnumerable<USERS> filteredUsers = _allUsers;
 
-            // Поиск
             string searchText = UsersSearchBox.Text?.Trim().ToLower() ?? "";
             if (!string.IsNullOrEmpty(searchText))
             {
@@ -249,15 +275,16 @@ namespace EnterpriseAssets.View.Pages
                 );
             }
 
-            // Фильтр по роли
-            var selectedRole = (RoleFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+            // Фильтр по роли - теперь загружен из БД
+            var selectedRoleItem = RoleFilter.SelectedItem as ComboBoxItem;
+            var selectedRole = selectedRoleItem?.Content?.ToString();
+
             if (selectedRole != "Все роли" && !string.IsNullOrEmpty(selectedRole))
             {
                 filteredUsers = filteredUsers.Where(u => u.ROLES != null && u.ROLES.name == selectedRole);
             }
 
-            // Сортировка
-            var selectedSort = (UsersSortFilter.SelectedItem as ComboBoxItem)?.Content.ToString();
+            var selectedSort = (UsersSortFilter.SelectedItem as ComboBoxItem)?.Content?.ToString();
             filteredUsers = selectedSort switch
             {
                 "По полному имени" => filteredUsers.OrderBy(u => u.full_name),
@@ -265,12 +292,10 @@ namespace EnterpriseAssets.View.Pages
                 _ => filteredUsers.OrderBy(u => u.username)
             };
 
-            // Применяем шаблон с аватарами
             UsersList.ItemsSource = null;
             UsersList.ItemsSource = filteredUsers.ToList();
         }
 
-        // Метод для получения изображения аватара из байтов
         private ImageSource GetAvatarImage(byte[] photoBytes)
         {
             if (photoBytes == null || photoBytes.Length == 0)
@@ -354,39 +379,37 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        // ===== Мастера =====
+        // ===== МОЛ (Материально-ответственные лица) =====
         private void FilterMasters(object sender, RoutedEventArgs e)
         {
-            ApplyMasterFilters();
+            ApplyResponsiblePersonFilters();
         }
 
-        private void ApplyMasterFilters()
+        private void ApplyResponsiblePersonFilters()
         {
-            if (_allMasters == null) return;
+            if (_allResponsiblePersons == null) return;
 
-            IEnumerable<MasterViewModel> filteredMasters = _allMasters;
+            IEnumerable<ResponsiblePersonViewModel> filteredPersons = _allResponsiblePersons;
 
-            // Поиск
             string searchText = MastersSearchBox.Text?.Trim().ToLower() ?? "";
             if (!string.IsNullOrEmpty(searchText))
             {
-                filteredMasters = filteredMasters.Where(m =>
+                filteredPersons = filteredPersons.Where(m =>
                     (m.UserName?.ToLower().Contains(searchText) ?? false) ||
                     (m.SpecialtyName?.ToLower().Contains(searchText) ?? false) ||
                     (m.QualificationName?.ToLower().Contains(searchText) ?? false)
                 );
             }
 
-            // Фильтр доступности
             if (ShowOnlyAvailable.IsChecked == true)
             {
-                filteredMasters = filteredMasters.Where(m => m.IsAvailable);
+                filteredPersons = filteredPersons.Where(m => m.IsAvailable);
             }
 
-            filteredMasters = filteredMasters.OrderBy(m => m.UserName);
+            filteredPersons = filteredPersons.OrderBy(m => m.UserName);
 
             MastersList.ItemsSource = null;
-            MastersList.ItemsSource = filteredMasters.ToList();
+            MastersList.ItemsSource = filteredPersons.ToList();
         }
 
         private void AssignMaster_Click(object sender, RoutedEventArgs e)
@@ -420,7 +443,7 @@ namespace EnterpriseAssets.View.Pages
         {
             ApplyUserFilters();
             ApplyRolesFilter();
-            ApplyMasterFilters();
+            ApplyResponsiblePersonFilters();
         }
 
         ~UsersPage()
@@ -429,8 +452,7 @@ namespace EnterpriseAssets.View.Pages
         }
     }
 
-
-// ViewModel для ролей
+    // ViewModel для ролей
     public class RoleViewModel
     {
         public int Id { get; set; }
@@ -439,8 +461,8 @@ namespace EnterpriseAssets.View.Pages
         public int UsersCount { get; set; }
     }
 
-    // ViewModel для мастеров
-    public class MasterViewModel
+    // ViewModel для МОЛ (Материально-ответственное лицо)
+    public class ResponsiblePersonViewModel
     {
         public int Id { get; set; }
         public string UserName { get; set; }

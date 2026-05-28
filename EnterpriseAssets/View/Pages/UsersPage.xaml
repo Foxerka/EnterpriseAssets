@@ -85,7 +85,7 @@
                              Style="{StaticResource TabButtonStyle}"
                              Checked="TabRoles_Checked"/>
                 <RadioButton x:Name="TabMasters" 
-                             Content="Мастера" 
+                             Content="МОЛ" 
                              GroupName="MainTabs" 
                              Style="{StaticResource TabButtonStyle}"
                              Checked="TabMasters_Checked"/>
@@ -119,13 +119,6 @@
                                           BorderThickness="0"
                                           Background="Transparent"
                                           SelectionChanged="FilterUsers">
-                                    <ComboBoxItem Content="Все роли" IsSelected="True"/>
-                                    <ComboBoxItem Content="Администратор"/>
-                                    <ComboBoxItem Content="Директор"/>
-                                    <ComboBoxItem Content="Начальник цеха"/>
-                                    <ComboBoxItem Content="Мастер"/>
-                                    <ComboBoxItem Content="Кладовщик"/>
-                                    <ComboBoxItem Content="Оператор"/>
                                 </ComboBox>
                             </StackPanel>
                         </Border>

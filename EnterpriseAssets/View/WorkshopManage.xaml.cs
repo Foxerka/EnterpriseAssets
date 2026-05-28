@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
-using System.Xml.Linq;
 using EnterpriseAssets.Model.DataBase;
 
 namespace EnterpriseAssets.View
@@ -14,53 +12,59 @@ namespace EnterpriseAssets.View
         private WORKSHOPS _currentWorkshop;
         private bool _isNewWorkshop;
 
-        // Конструктор для существующего цеха
+        // Конструктор для существующего места хранения
         public WorkshopManage(WORKSHOPS workshop)
         {
             InitializeComponent();
             _currentWorkshop = workshop;
             _isNewWorkshop = false;
-            Title = "Редактирование цеха";
-            LoadManagers();
+            Title = "Редактирование места хранения";
+            WorkshopTitle.Text = workshop.name ?? "Место хранения";
+            LoadResponsiblePersons();
             LoadWorkshopData();
             BtnDelete.Visibility = Visibility.Visible;
             CreatedAtSection.Visibility = Visibility.Visible;
         }
 
-        // Конструктор для нового цеха
+        // Конструктор для нового места хранения
         public WorkshopManage()
         {
             InitializeComponent();
             _currentWorkshop = new WORKSHOPS();
             _isNewWorkshop = true;
-            Title = "Добавление нового цеха";
-            WorkshopTitle.Text = "Новый цех";
-            LoadManagers();
+            Title = "Добавление нового места хранения";
+            WorkshopTitle.Text = "Новое место хранения";
+            LoadResponsiblePersons();
             BtnDelete.Visibility = Visibility.Collapsed;
             CreatedAtSection.Visibility = Visibility.Collapsed;
         }
 
-        private void LoadManagers()
+        private void LoadResponsiblePersons()
         {
             try
             {
                 CmbManager.Items.Clear();
-                // 1. Ищем роль "Мастер"
-                var masterRole = db.ROLES
-                    .FirstOrDefault(r => r.name.Trim().ToLower() == "мастер");
 
-                if (masterRole == null)
+                // Ищем роль "МОЛ" (Материально-ответственное лицо)
+                // Если такой роли нет, ищем "Мастер" или создайте роль "МОЛ" в БД
+                var molRole = db.ROLES
+                    .FirstOrDefault(r => r.name.Trim().ToLower() == "мол" || r.name.Trim().ToLower() == "мастер");
+
+                if (molRole == null)
                 {
                     var allRoles = string.Join(", ", db.ROLES.Select(r => $"'{r.name}'"));
                     MessageBox.Show(
-                        $"Роль 'Мастер' не найдена.\nДоступные роли: {allRoles}",
+                        $"Роль 'МОЛ' не найдена.\nДоступные роли: {allRoles}\n\nСоздайте роль 'МОЛ' в справочнике ролей.",
                         "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                    // Добавляем пустой список, чтобы форма работала
+                    CmbManager.ItemsSource = new List<dynamic>();
                     return;
                 }
 
-                // 2. Загружаем мастеров БЕЗ использования IsNullOrWhiteSpace в LINQ
-                var masters = db.USERS
-                    .Where(u => u.role_id == masterRole.id)
+                // Загружаем МОЛ (пользователей с ролью МОЛ)
+                var responsiblePersons = db.USERS
+                    .Where(u => u.role_id == molRole.id)
                     .Join(db.MASTERS,
                         user => user.id,
                         master => master.user_id,
@@ -70,7 +74,7 @@ namespace EnterpriseAssets.View
                             Username = user.username
                         })
                     .OrderBy(m => m.FullName)
-                    .ToList()  // ← ВАЖНО: загружаем в память ПЕРЕД проверкой
+                    .ToList()
                     .Select(m => new {
                         MasterId = m.MasterId,
                         DisplayName = string.IsNullOrWhiteSpace(m.FullName)
@@ -79,16 +83,16 @@ namespace EnterpriseAssets.View
                     })
                     .ToList();
 
-                // 3. Формируем источник для ComboBox
+                // Формируем источник для ComboBox
                 var comboBoxItems = new List<dynamic>();
                 comboBoxItems.Add(new { MasterId = (int?)null, DisplayName = "— Не назначен —" });
-                comboBoxItems.AddRange(masters);
+                comboBoxItems.AddRange(responsiblePersons);
 
                 CmbManager.ItemsSource = comboBoxItems;
                 CmbManager.SelectedValuePath = "MasterId";
                 CmbManager.DisplayMemberPath = "DisplayName";
 
-                // 4. Устанавливаем выбранное значение
+                // Устанавливаем выбранное значение
                 if (!_isNewWorkshop && _currentWorkshop?.manager_id.HasValue == true)
                 {
                     CmbManager.SelectedValue = _currentWorkshop.manager_id.Value;
@@ -100,7 +104,7 @@ namespace EnterpriseAssets.View
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка загрузки мастеров: {ex.Message}", "Ошибка",
+                MessageBox.Show($"Ошибка загрузки ответственных лиц: {ex.Message}", "Ошибка",
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -111,7 +115,7 @@ namespace EnterpriseAssets.View
 
             TxtName.Text = _currentWorkshop.name;
             TxtLocation.Text = _currentWorkshop.location;
-            WorkshopTitle.Text = _currentWorkshop.name ?? "Новый цех";
+            WorkshopTitle.Text = _currentWorkshop.name ?? "Место хранения";
 
             if (_currentWorkshop.manager_id.HasValue)
             {
@@ -119,34 +123,39 @@ namespace EnterpriseAssets.View
             }
             else
             {
-                CmbManager.SelectedIndex = 0; // "Не назначен"
+                CmbManager.SelectedIndex = 0;
             }
 
             if (_currentWorkshop.created_at.HasValue)
             {
-                TxtCreatedAt.Text = $"Создан: {_currentWorkshop.created_at:dd.MM.yyyy}";
+                TxtCreatedAt.Text = $"Создано: {_currentWorkshop.created_at:dd.MM.yyyy}";
             }
+        }
+
+        private bool ValidateFields()
+        {
+            if (string.IsNullOrWhiteSpace(TxtName.Text))
+            {
+                MessageBox.Show("Введите название места хранения", "Ошибка",
+                              MessageBoxButton.OK, MessageBoxImage.Warning);
+                TxtName.Focus();
+                return false;
+            }
+            return true;
         }
 
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(TxtName.Text))
-                {
-                    MessageBox.Show("Введите название цеха", "Ошибка",
-                                  MessageBoxButton.OK, MessageBoxImage.Warning);
-                    TxtName.Focus();
-                    return;
-                }
+                if (!ValidateFields()) return;
 
                 _currentWorkshop.name = TxtName.Text.Trim();
                 _currentWorkshop.location = TxtLocation.Text?.Trim();
 
-                // SelectedValue теперь содержит MASTERS.id (или null)
                 if (CmbManager.SelectedValue is int masterId)
                 {
-                    _currentWorkshop.manager_id = masterId;  // ← Сохраняем MASTERS.id
+                    _currentWorkshop.manager_id = masterId;
                 }
                 else
                 {
@@ -186,14 +195,16 @@ namespace EnterpriseAssets.View
         {
             if (_isNewWorkshop || _currentWorkshop.id <= 0)
             {
-                MessageBox.Show("Нельзя удалить цех, который ещё не сохранён", "Предупреждение",
+                MessageBox.Show("Нельзя удалить место, которое ещё не сохранено", "Предупреждение",
                               MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             var result = MessageBox.Show(
-                $"Удалить цех «{_currentWorkshop.name}»?",
-                "Подтверждение", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                $"Удалить место хранения «{_currentWorkshop.name}»?\n\nЭто действие нельзя отменить.",
+                "Подтверждение удаления",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
 
             if (result != MessageBoxResult.Yes) return;
 
@@ -201,10 +212,6 @@ namespace EnterpriseAssets.View
             {
                 var workshop = db.WORKSHOPS.Find(_currentWorkshop.id);
                 if (workshop == null) return;
-
-                // ⚠️ Проверьте точные имена свойств в ваших классах!
-                // В EQUIPMENT: public Nullable<int> Workshop_id { get; set; }
-                // В PRODUCTION_ASSETS: public Nullable<int> workshop_id { get; set; }
 
                 bool hasEquipment = db.EQUIPMENT.Any(eq => eq.Workshop_id == workshop.id);
                 bool hasAssets = db.PRODUCTION_ASSETS.Any(a => a.workshop_id == workshop.id);
@@ -216,22 +223,24 @@ namespace EnterpriseAssets.View
                     if (hasAssets) reasons.Add($"• Активы: {db.PRODUCTION_ASSETS.Count(a => a.workshop_id == workshop.id)}");
 
                     MessageBox.Show(
-                        $"Нельзя удалить цех, к нему привязаны:\n{string.Join("\n", reasons)}",
-                        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        $"Нельзя удалить место хранения, к нему привязано:\n{string.Join("\n", reasons)}\n\nСначала переназначьте или удалите связанные записи.",
+                        "Ошибка удаления",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
                     return;
                 }
 
                 db.WORKSHOPS.Remove(workshop);
                 db.SaveChanges();
 
-                MessageBox.Show("Цех удалён", "Успех",
+                MessageBox.Show("Место хранения удалено", "Успех",
                               MessageBoxButton.OK, MessageBoxImage.Information);
                 DialogResult = true;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка: {ex.GetBaseException().Message}", "Ошибка",
+                MessageBox.Show($"Ошибка удаления: {ex.GetBaseException().Message}", "Ошибка",
                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -240,6 +249,12 @@ namespace EnterpriseAssets.View
         {
             DialogResult = false;
             Close();
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            db?.Dispose();
+            base.OnClosed(e);
         }
     }
 }

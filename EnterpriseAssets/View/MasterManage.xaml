@@ -1,10 +1,19 @@
 ﻿<Window x:Class="EnterpriseAssets.View.MasterManage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Управление мастером" Height="650" Width="1000"
+        Title="Управление МОЛ" Height="650" Width="1000"
         WindowStartupLocation="CenterOwner"
         Background="#F5F6FA"
         ResizeMode="NoResize">
+
+    <Window.Resources>
+        <Style x:Key="InfoTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Foreground" Value="#95A5A6"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+        </Style>
+    </Window.Resources>
 
     <Grid Margin="20">
         <Grid.ColumnDefinitions>
@@ -34,23 +43,29 @@
                     <TextBlock Text="Пользователь *" FontSize="13" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,0,5"/>
                     <ComboBox x:Name="CmbUsers" DisplayMemberPath="full_name" 
                               FontSize="14" Padding="10" Margin="0,0,0,15" 
-                              BorderBrush="#E1E5EB" BorderThickness="1"/>
+                              BorderBrush="#E1E5EB" BorderThickness="1"
+                              ToolTip="Выберите пользователя с ролью МОЛ"/>
+                    <TextBlock Text="💡 Только пользователи с ролью МОЛ" Style="{StaticResource InfoTextStyle}"/>
 
-                    <TextBlock Text="Дата приема *" FontSize="13" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,0,5"/>
+                    <TextBlock Text="Дата принятия *" FontSize="13" FontWeight="SemiBold" Foreground="#34495E" Margin="0,15,0,5"/>
                     <DatePicker x:Name="DpHireDate" FontSize="14" Padding="10" Margin="0,0,0,15" 
-                                BorderBrush="#E1E5EB" BorderThickness="1"/>
+                                BorderBrush="#E1E5EB" BorderThickness="1"
+                                ToolTip="Дата принятия на должность"/>
 
                     <TextBlock Text="Статус" FontSize="13" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,0,5"/>
                     <CheckBox x:Name="ChkIsAvailable" Content="Доступен для работ" 
-                              FontSize="14" Foreground="#2C3E50" Margin="0,0,0,15" IsChecked="True"/>
+                              FontSize="14" Foreground="#2C3E50" Margin="0,0,0,15" IsChecked="True"
+                              ToolTip="Определяет, доступен ли сотрудник для назначения задач"/>
 
-                    <TextBlock Text="Уровень навыков" FontSize="13" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,0,5"/>
+                    <TextBlock Text="Уровень квалификации" FontSize="13" FontWeight="SemiBold" Foreground="#34495E" Margin="0,0,0,5"/>
                     <ComboBox x:Name="CmbSkillLevel" FontSize="14" Padding="10" Margin="0,0,0,15" 
-                              BorderBrush="#E1E5EB" BorderThickness="1">
+                              BorderBrush="#E1E5EB" BorderThickness="1"
+                              ToolTip="Уровень профессиональных навыков">
                         <ComboBoxItem Content="Низкий" Tag="низкий"/>
                         <ComboBoxItem Content="Средний" Tag="средний" IsSelected="True"/>
                         <ComboBoxItem Content="Высокий" Tag="высокий"/>
                     </ComboBox>
+                    <TextBlock Text="💡 Низкий - новичок, Средний - опытный, Высокий - эксперт" Style="{StaticResource InfoTextStyle}"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -67,8 +82,8 @@
                 </Grid.RowDefinitions>
 
                 <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                    <TextBlock Text="🎓 Квалификация" FontSize="20" FontWeight="Bold" Foreground="#2C3E50"/>
-                    <TextBlock Text="Профессиональные данные" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                    <TextBlock Text="🎓 Профессиональные данные" FontSize="20" FontWeight="Bold" Foreground="#2C3E50"/>
+                    <TextBlock Text="Специальность и квалификация" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="1" VerticalAlignment="Top">
@@ -81,9 +96,10 @@
                         </Grid.ColumnDefinitions>
                         <ComboBox x:Name="CmbSpecialty" DisplayMemberPath="Speciality" 
                                   FontSize="14" Padding="10" Margin="0,0,5,0" 
-                                  BorderBrush="#E1E5EB" BorderThickness="1"/>
-                        <Button Grid.Column="1" Content="+" Width="40" Background="#4A6FA5" Foreground="White" 
-                                BorderThickness="0" Cursor="Hand" Click="BtnAddSpecialty_Click" ToolTip="Добавить специальность"/>
+                                  BorderBrush="#E1E5EB" BorderThickness="1"
+                                  ToolTip="Выберите специальность"/>
+                        <Button Grid.Column="1" Content="➕" Width="40" Background="#4A6FA5" Foreground="White" 
+                                BorderThickness="0" Cursor="Hand" Click="BtnAddSpecialty_Click" ToolTip="Добавить новую специальность"/>
                     </Grid>
 
                     <!-- Квалификация -->
@@ -95,10 +111,19 @@
                         </Grid.ColumnDefinitions>
                         <ComboBox x:Name="CmbQualification" DisplayMemberPath="Qualification1" 
                                   FontSize="14" Padding="10" Margin="0,0,5,0" 
-                                  BorderBrush="#E1E5EB" BorderThickness="1"/>
-                        <Button Grid.Column="1" Content="+" Width="40" Background="#4A6FA5" Foreground="White" 
-                                BorderThickness="0" Cursor="Hand" Click="BtnAddQualification_Click" ToolTip="Добавить квалификацию"/>
+                                  BorderBrush="#E1E5EB" BorderThickness="1"
+                                  ToolTip="Выберите уровень квалификации"/>
+                        <Button Grid.Column="1" Content="➕" Width="40" Background="#4A6FA5" Foreground="White" 
+                                BorderThickness="0" Cursor="Hand" Click="BtnAddQualification_Click" ToolTip="Добавить новый уровень квалификации"/>
                     </Grid>
+
+                    <Border Background="#E8F0FE" CornerRadius="6" Padding="12" Margin="0,10,0,0">
+                        <StackPanel>
+                            <TextBlock Text="💡 Информация" FontSize="11" FontWeight="SemiBold" Foreground="#4A6FA5"/>
+                            <TextBlock Text="МОЛ - материально-ответственное лицо, отвечающее за сохранность и учёт вверенных ему активов." 
+                                       FontSize="10" Foreground="#5D6D7E" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Grid>
         </Border>
@@ -117,10 +142,10 @@
 
                 <StackPanel Grid.Row="0" Margin="0,0,0,20">
                     <TextBlock Text="📊 Статистика" FontSize="20" FontWeight="Bold" Foreground="#2C3E50"/>
-                    <TextBlock Text="Только для существующих" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
+                    <TextBlock Text="Только для существующих МОЛ" FontSize="12" Foreground="#7F8C8D" Margin="0,5,0,0"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="1" VerticalAlignment="Top" x:Name="StatsPanel">
+                <StackPanel Grid.Row="1" VerticalAlignment="Top" x:Name="StatsPanel" Visibility="Collapsed">
                     <Border Background="#E8F0FE" CornerRadius="6" Padding="10" Margin="0,0,0,10">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="📝" FontSize="18" Margin="0,0,10,0"/>
@@ -150,15 +175,26 @@
                             </StackPanel>
                         </StackPanel>
                     </Border>
+
+                    <Border Background="#FFF3CD" CornerRadius="6" Padding="10" Margin="0,15,0,0">
+                        <StackPanel>
+                            <TextBlock Text="⚠️ Примечание" FontSize="11" FontWeight="SemiBold" Foreground="#856404"/>
+                            <TextBlock Text="При удалении МОЛ необходимо сначала переназначить все связанные активы и акты." 
+                                       FontSize="10" Foreground="#856404" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
                     <Button x:Name="BtnDelete" Content="🗑️" Background="#E74C3C" Foreground="White" 
-                            Width="40" Margin="0,0,10,0" BorderThickness="0" Cursor="Hand" Click="BtnDelete_Click" ToolTip="Удалить мастера"/>
+                            Width="40" Margin="0,0,10,0" BorderThickness="0" Cursor="Hand" Click="BtnDelete_Click" 
+                            ToolTip="Удалить МОЛ"/>
                     <Button Content="❌" Background="#95A5A6" Foreground="White" 
-                            Width="40" Margin="0,0,10,0" BorderThickness="0" Cursor="Hand" Click="BtnCancel_Click" ToolTip="Отмена"/>
+                            Width="40" Margin="0,0,10,0" BorderThickness="0" Cursor="Hand" Click="BtnCancel_Click" 
+                            ToolTip="Отмена"/>
                     <Button Content="💾" Background="#27AE60" Foreground="White" 
-                            Width="40" BorderThickness="0" Cursor="Hand" Click="BtnSave_Click" ToolTip="Сохранить"/>
+                            Width="40" BorderThickness="0" Cursor="Hand" Click="BtnSave_Click" 
+                            ToolTip="Сохранить"/>
                 </StackPanel>
             </Grid>
         </Border>

@@ -9,425 +9,418 @@
       Title="AssetsPage"
       Background="#F5F7FA"
       Loaded="Page_Loaded">
+    <Page.Resources>
+        <!-- Стиль для скролла -->
+        <Style TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+        </Style>
+    </Page.Resources>
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
+            <!-- Заголовок -->
             <RowDefinition Height="Auto"/>
+            <!-- Вкладки - занимают всё оставшееся место -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- 🔹 Заголовок + Вкладки -->
+        <!-- 🔹 Заголовок -->
         <StackPanel Grid.Row="0" Margin="0,0,0,15">
             <TextBlock Text="📦 Управление активами" 
                        FontSize="24" 
                        FontWeight="SemiBold" 
                        Foreground="#2C3E50"
                        Margin="0,0,0,15"/>
+        </StackPanel>
 
-            <TabControl x:Name="MainTabs" 
-                        Background="Transparent"
-                        BorderThickness="0"
-                        SelectionChanged="MainTabs_SelectionChanged">
-                <TabControl.Resources>
-                    <Style TargetType="TabItem">
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="TabItem">
-                                    <Border x:Name="Border"
-                                            Padding="15,8"
-                                            Margin="0,0,5,0"
-                                            Background="Transparent"
-                                            BorderBrush="Transparent"
-                                            BorderThickness="0,0,0,2"
-                                            Cursor="Hand">
-                                        <ContentPresenter ContentSource="Header"
-                                                          VerticalAlignment="Center"
-                                                          HorizontalAlignment="Center"/>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsSelected" Value="True">
-                                            <Setter TargetName="Border" Property="BorderBrush" Value="#4A6FA5"/>
-                                            <Setter TargetName="Border" Property="Background" Value="White"/>
-                                            <Setter Property="Foreground" Value="#2C3E50"/>
-                                        </Trigger>
-                                        <Trigger Property="IsSelected" Value="False">
-                                            <Setter Property="Foreground" Value="#7F8C8D"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </TabControl.Resources>
+        <!-- 🔹 Вкладки - перенесены в Row="1" для правильного растягивания -->
+        <TabControl x:Name="MainTabs" 
+                    Grid.Row="1"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    SelectionChanged="MainTabs_SelectionChanged">
 
-                <!-- 🔸 Вкладка 1: Список активов -->
-                <TabItem Header="📋 Активы" x:Name="TabAssets">
-                    <Grid Margin="0,10,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+            <TabControl.Resources>
+                <Style TargetType="TabItem">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="Border"
+                                        Padding="15,8"
+                                        Margin="0,0,5,0"
+                                        Background="Transparent"
+                                        BorderBrush="Transparent"
+                                        BorderThickness="0,0,0,2"
+                                        Cursor="Hand">
+                                    <ContentPresenter ContentSource="Header"
+                                                      VerticalAlignment="Center"
+                                                      HorizontalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter TargetName="Border" Property="BorderBrush" Value="#4A6FA5"/>
+                                        <Setter TargetName="Border" Property="Background" Value="White"/>
+                                        <Setter Property="Foreground" Value="#2C3E50"/>
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="False">
+                                        <Setter Property="Foreground" Value="#7F8C8D"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TabControl.Resources>
 
+            <!-- 🔸 Вкладка 1: Список активов -->
+            <TabItem Header="📋 Активы" x:Name="TabAssets">
+                <Grid Margin="0,10,0,0">
+                    <Grid.RowDefinitions>
                         <!-- Панель управления -->
-                        <Border Grid.Row="0" 
-                                Background="White"
-                                BorderBrush="#E1E5EB"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="12"
-                                Margin="0,0,0,10">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <!-- Поиск и фильтры -->
-                                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBox x:Name="TxtSearch" 
-                                             Width="250"
-                                             Padding="10,6"
-                                             TextChanged="TxtSearch_TextChanged"
-                                             BorderBrush="#BDC3C7"
-                                             Background="White"
-                                             VerticalContentAlignment="Center"
-                                             Margin="0,0,10,0"/>
-
-                                    <ComboBox x:Name="CmbTypeFilter" 
-                                              Width="150"
-                                              Padding="8,4"
-                                              SelectionChanged="CmbTypeFilter_SelectionChanged"
-                                              Margin="0,0,10,0">
-                                        <ComboBoxItem Content="Все типы" IsSelected="True"/>
-                                        <ComboBoxItem Content="Оборудование"/>
-                                        <ComboBoxItem Content="Материалы"/>
-                                        <ComboBoxItem Content="Запчасти"/>
-                                    </ComboBox>
-
-                                    <ComboBox x:Name="CmbWorkshopFilter" 
-                                              Width="180"
-                                              Padding="8,4"
-                                              SelectionChanged="CmbWorkshopFilter_SelectionChanged">
-                                        <ComboBoxItem Content="Все цеха" IsSelected="True"/>
-                                    </ComboBox>
-                                </StackPanel>
-
-                                <!-- Кнопки -->
-                                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                    <Button x:Name="BtnAddAsset" 
-                                            Content="➕ Добавить" 
-                                            Background="#4A6FA5"
-                                            Foreground="White"
-                                            Padding="12,6"
-                                            BorderThickness="0"
-                                            Cursor="Hand"
-                                            Margin="0,0,8,0"
-                                            Click="BtnAddAsset_Click"/>
-                                    <Button x:Name="BtnRefresh" 
-                                            Content="🔄" 
-                                            ToolTip="Обновить"
-                                            Background="#95A5A6"
-                                            Foreground="White"
-                                            Padding="10,6"
-                                            BorderThickness="0"
-                                            Cursor="Hand"
-                                            Click="BtnRefresh_Click"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
+                        <RowDefinition Height="Auto"/>
                         <!-- Список активов -->
-                        <ScrollViewer Grid.Row="1" 
-                                      VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled"
-                                      Margin="0,0,0,10">
-                            <ItemsControl x:Name="AssetsList">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Vertical"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border Background="White"
-                                                BorderBrush="#E1E5EB"
-                                                BorderThickness="1"
-                                                CornerRadius="8"
-                                                Margin="0,0,0,8"
-                                                Padding="12"
-                                                Cursor="Hand"
-                                                MouseLeftButtonUp="AssetCard_Click"
-                                                Tag="{Binding Id}">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-
-                                                <!-- Иконка типа актива -->
-                                                <Border Grid.Column="0"
-                                                        Width="40" Height="40"
-                                                        CornerRadius="20"
-                                                        Background="{Binding TypeColor}"
-                                                        Margin="0,0,12,0">
-                                                    <TextBlock Text="{Binding TypeIcon}" 
-                                                               FontSize="18"
-                                                               Foreground="White"
-                                                               HorizontalAlignment="Center"
-                                                               VerticalAlignment="Center"/>
-                                                </Border>
-
-                                                <!-- Информация -->
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Name}" 
-                                                               FontSize="15" 
-                                                               FontWeight="SemiBold" 
-                                                               Foreground="#2C3E50"/>
-                                                    <WrapPanel Margin="0,3,0,0">
-                                                        <TextBlock Text="📁" Foreground="#95A5A6" Margin="0,0,4,0"/>
-                                                        <TextBlock Text="{Binding CategoryName}" 
-                                                                   Foreground="#5D6D7E" 
-                                                                   FontSize="11"
-                                                                   Margin="0,0,12,0"/>
-
-                                                        <TextBlock Text="🏭" Foreground="#95A5A6" Margin="0,0,4,0"/>
-                                                        <TextBlock Text="{Binding WorkshopName}" 
-                                                                   Foreground="#5D6D7E" 
-                                                                   FontSize="11"
-                                                                   Margin="0,0,12,0"/>
-
-                                                        <!-- Статус только для оборудования --><!--
-                                                        <TextBlock Text="📊" 
-                                                                   Foreground="#95A5A6" 
-                                                                   Margin="0,0,4,0"
-                                                                   Visibility="{Binding ShowStatusIcon}"/>
-                                                        <TextBlock Text="{Binding StatusName}" 
-                                                                   Foreground="{Binding StatusColor}" 
-                                                                   FontSize="11"
-                                                                   FontWeight="Medium"
-                                                                   Visibility="{Binding ShowStatus}"/>-->
-                                                    </WrapPanel>
-                                                    <StackPanel Orientation="Horizontal" 
-                                                                Margin="0,2,0,0"
-                                                                Visibility="{Binding ShowStatus}">
-                                                        <TextBlock Text="📊" 
-                                                                Foreground="#95A5A6" 
-                                                                Margin="0,0,4,0"
-                                                                FontSize="11"/>
-                                                        <TextBlock Text="{Binding StatusName}" 
-                                                                    Foreground="{Binding StatusColor}" 
-                                                                FontSize="11"
-                                                                FontWeight="Medium"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-
-                                                <!-- Количество / Цена -->
-                                                <StackPanel Grid.Column="2" 
-                                                            VerticalAlignment="Center" 
-                                                            HorizontalAlignment="Right"
-                                                            Margin="0,0,15,0">
-                                                    <TextBlock Text="{Binding QuantityDisplay}" 
-                                                               FontSize="14"
-                                                               FontWeight="SemiBold"
-                                                               Foreground="#2C3E50"
-                                                               HorizontalAlignment="Right"/>
-                                                    <TextBlock Text="{Binding ValueDisplay}" 
-                                                               FontSize="11"
-                                                               Foreground="#7F8C8D"
-                                                               HorizontalAlignment="Right"/>
-                                                </StackPanel>
-
-                                                <!-- Кнопки действий -->
-                                                <StackPanel Grid.Column="3" 
-                                                            Orientation="Horizontal"
-                                                            VerticalAlignment="Center">
-                                                    <Button Content="✏️" 
-                                                            ToolTip="Редактировать"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
-                                                            Cursor="Hand"
-                                                            FontSize="16"
-                                                            Margin="4,0"
-                                                            Click="EditAsset_Click"
-                                                            Tag="{Binding Id}"/>
-                                                    <Button Content="🗑️" 
-                                                            ToolTip="Удалить"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
-                                                            Cursor="Hand"
-                                                            FontSize="16"
-                                                            Margin="4,0"
-                                                            Click="DeleteAsset_Click"
-                                                            Tag="{Binding Id}"
-                                                            Foreground="#E74C3C"/>
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-
+                        <RowDefinition Height="*"/>
                         <!-- Статистика -->
-                        <Border Grid.Row="2"
-                                VerticalAlignment="Bottom"
-                                Background="#F8F9FA" 
-                                Padding="10,8" 
-                                CornerRadius="4"
-                                BorderBrush="#E1E5EB"
-                                BorderThickness="1">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <TextBlock Text="Всего: " Foreground="#7F8C8D" FontSize="12"/>
-                                <TextBlock x:Name="TotalAssetsCount" Text="0" Foreground="#2C3E50" FontWeight="SemiBold" FontSize="12" Margin="0,0,15,0"/>
-                                <TextBlock Text="Оборудование: " Foreground="#7F8C8D" FontSize="12"/>
-                                <TextBlock x:Name="EquipmentCount" Text="0" Foreground="#4A6FA5" FontWeight="SemiBold" FontSize="12" Margin="0,0,15,0"/>
-                                <TextBlock Text="⚠️ Недостаточно: " Foreground="#7F8C8D" FontSize="12"/>
-                                <TextBlock x:Name="LowStockCount" Text="0" Foreground="#E74C3C" FontWeight="SemiBold" FontSize="12"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Панель управления -->
+                    <Border Grid.Row="0" 
+                            Background="White"
+                            BorderBrush="#E1E5EB"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="12"
+                            Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBox x:Name="TxtSearch" 
+                                         Width="250"
+                                         Padding="10,6"
+                                         TextChanged="TxtSearch_TextChanged"
+                                         BorderBrush="#BDC3C7"
+                                         Background="White"
+                                         VerticalContentAlignment="Center"
+                                         Margin="0,0,10,0"
+                                         ToolTip="Поиск по названию"/>
+
+                                <ComboBox x:Name="CmbTypeFilter" 
+                                    Width="150"
+                                    Padding="8,4"
+                                    SelectionChanged="CmbTypeFilter_SelectionChanged"
+                                    Margin="0,0,10,0"
+                                    DisplayMemberPath="AssetType1"
+                                    SelectedValuePath="ID_ASSETTYPE">
+                                    <ComboBoxItem Content="Все типы" Tag="0"/>
+                                </ComboBox>
+
+                                <ComboBox x:Name="CmbWorkshopFilter" 
+                                          Width="180"
+                                          Padding="8,4"
+                                          SelectionChanged="CmbWorkshopFilter_SelectionChanged">
+                                    <ComboBoxItem Content="Все цеха" IsSelected="True"/>
+                                </ComboBox>
                             </StackPanel>
-                        </Border>
-                    </Grid>
-                </TabItem>
 
-                <!-- 🔸 Вкладка 2: Справочники (только для админов) -->
-                <TabItem Header="⚙️ Справочники" x:Name="TabAdmin">
-                    <Grid Margin="0,10,0,0" x:Name="AdminPanel">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button x:Name="BtnAddAsset" 
+                                        Content="➕ Добавить" 
+                                        Background="#4A6FA5"
+                                        Foreground="White"
+                                        Padding="12,6"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        Margin="0,0,8,0"
+                                        Click="BtnAddAsset_Click"/>
+                                <Button x:Name="BtnRefresh" 
+                                        Content="🔄" 
+                                        ToolTip="Обновить"
+                                        Background="#95A5A6"
+                                        Foreground="White"
+                                        Padding="10,6"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        Click="BtnRefresh_Click"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
 
-                        <!-- Заголовок админ-панели -->
-                        <Border Grid.Row="0" 
-                                Background="#FFF3CD"
-                                BorderBrush="#FFC107"
-                                BorderThickness="1"
-                                CornerRadius="4"
-                                Padding="10"
-                                Margin="0,0,0,10">
-                            <TextBlock Text="🔐 Панель администратора: управление справочниками" 
-                                       Foreground="#856404"
-                                       FontWeight="Medium"/>
-                        </Border>
+                    <!-- Список активов с прокруткой -->
+                    <ScrollViewer Grid.Row="1" 
+                                  VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled"
+                                  Margin="0,0,0,10">
+                        <ItemsControl x:Name="AssetsList">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Vertical"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
 
-                        <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
-                            <!-- 🔹 Типы активов (AssetType1) -->
-                            <TabItem Header="🏷️ Типы">
-                                <Grid Margin="10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                                        <TextBox x:Name="TxtNewAssetType" Width="200" Padding="8,4" Margin="0,0,10,0"/>
-                                        <Button Content="➕ Добавить" Click="AddAssetType_Click" Padding="10,4"/>
-                                    </StackPanel>
-                                    <ListView x:Name="ListAssetTypes" Grid.Row="1" BorderThickness="0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White"
+                                            BorderBrush="#E1E5EB"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Margin="0,0,0,8"
+                                            Padding="12"
+                                            Cursor="Hand"
+                                            MouseLeftButtonUp="AssetCard_Click"
+                                            Tag="{Binding Id}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0"
+                                                    Width="40" Height="40"
+                                                    CornerRadius="20"
+                                                    Background="{Binding TypeColor}"
+                                                    Margin="0,0,12,0">
+                                                <TextBlock Text="{Binding TypeIcon}" 
+                                                           FontSize="18"
+                                                           Foreground="White"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" 
+                                                           FontSize="15" 
+                                                           FontWeight="SemiBold" 
+                                                           Foreground="#2C3E50"/>
+                                                <WrapPanel Margin="0,3,0,0">
+                                                    <TextBlock Text="📁" Foreground="#95A5A6" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="{Binding CategoryName}" 
+                                                               Foreground="#5D6D7E" 
+                                                               FontSize="11"
+                                                               Margin="0,0,12,0"/>
+
+                                                    <TextBlock Text="🏭" Foreground="#95A5A6" Margin="0,0,4,0"/>
+                                                    <TextBlock Text="{Binding WorkshopName}" 
+                                                               Foreground="#5D6D7E" 
+                                                               FontSize="11"
+                                                               Margin="0,0,12,0"/>
+                                                </WrapPanel>
+
+                                                <StackPanel Orientation="Horizontal" 
+                                                            Margin="0,2,0,0"
+                                                            Visibility="{Binding ShowStatus}">
+                                                    <TextBlock Text="📊" 
+                                                               Foreground="#95A5A6" 
+                                                               Margin="0,0,4,0"
+                                                               FontSize="11"/>
+                                                    <TextBlock Text="{Binding StatusName}" 
+                                                               Foreground="{Binding StatusColor}" 
+                                                               FontSize="11"
+                                                               FontWeight="Medium"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" 
+                                                        VerticalAlignment="Center" 
+                                                        HorizontalAlignment="Right"
+                                                        Margin="0,0,15,0">
+                                                <TextBlock Text="{Binding QuantityDisplay}" 
+                                                           FontSize="14"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="#2C3E50"
+                                                           HorizontalAlignment="Right"/>
+                                                <TextBlock Text="{Binding ValueDisplay}" 
+                                                           FontSize="11"
+                                                           Foreground="#7F8C8D"
+                                                           HorizontalAlignment="Right"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="3" 
+                                                        Orientation="Horizontal"
+                                                        VerticalAlignment="Center">
+                                                <Button Content="✏️" 
+                                                        ToolTip="Редактировать"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Cursor="Hand"
+                                                        FontSize="16"
+                                                        Margin="4,0"
+                                                        Click="EditAsset_Click"
+                                                        Tag="{Binding Id}"/>
+                                                <Button Content="🗑️" 
+                                                        ToolTip="Удалить"
+                                                        Background="Transparent"
+                                                        BorderThickness="0"
+                                                        Cursor="Hand"
+                                                        FontSize="16"
+                                                        Margin="4,0"
+                                                        Click="DeleteAsset_Click"
+                                                        Tag="{Binding Id}"
+                                                        Foreground="#E74C3C"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+
+                    <!-- Статистика -->
+                    <Border Grid.Row="2"
+                            Background="#F8F9FA" 
+                            Padding="10,8" 
+                            CornerRadius="4"
+                            BorderBrush="#E1E5EB"
+                            BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <TextBlock Text="Всего: " Foreground="#7F8C8D" FontSize="12"/>
+                            <TextBlock x:Name="TotalAssetsCount" Text="0" Foreground="#2C3E50" FontWeight="SemiBold" FontSize="12" Margin="0,0,15,0"/>
+                            <TextBlock Text="Оборудование: " Foreground="#7F8C8D" FontSize="12"/>
+                            <TextBlock x:Name="EquipmentCount" Text="0" Foreground="#4A6FA5" FontWeight="SemiBold" FontSize="12" Margin="0,0,15,0"/>
+                            <TextBlock Text="⚠️ Недостаточно: " Foreground="#7F8C8D" FontSize="12"/>
+                            <TextBlock x:Name="LowStockCount" Text="0" Foreground="#E74C3C" FontWeight="SemiBold" FontSize="12"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- 🔸 Вкладка 2: Справочники -->
+            <TabItem Header="⚙️ Справочники" x:Name="TabAdmin">
+                <Grid Margin="0,10,0,0" x:Name="AdminPanel">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" 
+                            Background="#FFF3CD"
+                            BorderBrush="#FFC107"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="10"
+                            Margin="0,0,0,10">
+                        <TextBlock Text="🔐 Панель администратора: управление справочниками" 
+                                   Foreground="#856404"
+                                   FontWeight="Medium"/>
+                    </Border>
+
+                    <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+                        <TabItem Header="🏷️ Типы">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBox x:Name="TxtNewAssetType" Width="200" Padding="8,4" Margin="0,0,10,0"/>
+                                    <Button Content="➕ Добавить" Click="AddAssetType_Click" Padding="10,4"/>
+                                </StackPanel>
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                    <ListView x:Name="ListAssetTypes" BorderThickness="0">
                                         <ListView.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <!-- ✅ Исправлено: AssetType1 вместо name -->
-                                                    <TextBlock Text="{Binding AssetType1}" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="{Binding AssetType1}" Margin="0,0,10,0" Width="200"/>
                                                     <Button Content="🗑️" Click="DeleteAssetType_Click" 
-                                                    Tag="{Binding ID_ASSETTYPE}" Background="Transparent" BorderThickness="0"/>
+                                                            Tag="{Binding ID_ASSETTYPE}" Background="Transparent" BorderThickness="0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ListView.ItemTemplate>
                                     </ListView>
-                                </Grid>
-                            </TabItem>
+                                </ScrollViewer>
+                            </Grid>
+                        </TabItem>
 
-                            <!-- 🔹 Категории (Category1) -->
-                            <TabItem Header="📁 Категории">
-                                <Grid Margin="10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                                        <TextBox x:Name="TxtNewCategory" Width="200" Padding="8,4" Margin="0,0,10,0"/>
-                                        <Button Content="➕ Добавить" Click="AddCategory_Click" Padding="10,4"/>
-                                    </StackPanel>
-                                    <ListView x:Name="ListCategories" Grid.Row="1" BorderThickness="0">
+                        <TabItem Header="📁 Категории">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBox x:Name="TxtNewCategory" Width="200" Padding="8,4" Margin="0,0,10,0"/>
+                                    <Button Content="➕ Добавить" Click="AddCategory_Click" Padding="10,4"/>
+                                </StackPanel>
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                    <ListView x:Name="ListCategories" BorderThickness="0">
                                         <ListView.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <!-- ✅ Исправлено: Category1 вместо name -->
-                                                    <TextBlock Text="{Binding Category1}" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="{Binding Category1}" Margin="0,0,10,0" Width="200"/>
                                                     <Button Content="🗑️" Click="DeleteCategory_Click" 
                                                             Tag="{Binding ID_category}" Background="Transparent" BorderThickness="0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ListView.ItemTemplate>
                                     </ListView>
-                                </Grid>
-                            </TabItem>
+                                </ScrollViewer>
+                            </Grid>
+                        </TabItem>
 
-                            <!-- 🔹 Статусы (Status) -->
-                            <TabItem Header="📊 Статусы">
-                                <Grid Margin="10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="*"/>
-                                    </Grid.RowDefinitions>
-                                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                                        <TextBox x:Name="TxtNewStatus" Width="200" Padding="8,4" Margin="0,0,10,0"/>
-                                        <Button Content="➕ Добавить" Click="AddStatus_Click" Padding="10,4"/>
-                                    </StackPanel>
-                                    <ListView x:Name="ListStatuses" Grid.Row="1" BorderThickness="0">
+                        <TabItem Header="📊 Статусы">
+                            <Grid Margin="10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBox x:Name="TxtNewStatus" Width="200" Padding="8,4" Margin="0,0,10,0"/>
+                                    <Button Content="➕ Добавить" Click="AddStatus_Click" Padding="10,4"/>
+                                </StackPanel>
+                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                    <ListView x:Name="ListStatuses" BorderThickness="0">
                                         <ListView.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">
-                                                    <!-- ✅ Исправлено: Status вместо name -->
-                                                    <TextBlock Text="{Binding Status}" Margin="0,0,10,0"/>
+                                                    <TextBlock Text="{Binding Status}" Margin="0,0,10,0" Width="200"/>
                                                     <Button Content="🗑️" Click="DeleteStatus_Click" 
                                                             Tag="{Binding ID_status}" Background="Transparent" BorderThickness="0"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ListView.ItemTemplate>
                                     </ListView>
-                                </Grid>
-                            </TabItem>
-                        </TabControl>
-                    </Grid>
-                </TabItem>
+                                </ScrollViewer>
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
+                </Grid>
+            </TabItem>
 
-                <!-- 🔸 Вкладка 3: Поставщики и связи -->
-                <TabItem Header="🤝 Поставщики" x:Name="TabSuppliers">
-                    <Grid Margin="0,10,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="300"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
+            <!-- 🔸 Вкладка 3: Поставщики -->
+            <TabItem Header="🤝 Поставщики" x:Name="TabSuppliers">
+                <Grid Margin="0,10,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                        <!-- Список поставщиков -->
-                        <Border Grid.Column="0" 
-                                Background="White"
-                                BorderBrush="#E1E5EB"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="10"
-                                Margin="0,0,10,0">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
+                    <Border Grid.Column="0" 
+                            Background="White"
+                            BorderBrush="#E1E5EB"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10"
+                            Margin="0,0,10,0">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-                                    <TextBox x:Name="TxtSearchSupplier" Width="150" Padding="6,4" Margin="0,0,5,0"/>
-                                    <Button Content="➕" Click="AddSupplier_Click" Padding="8,4"/>
-                                </StackPanel>
-
-                                <ListView x:Name="ListSuppliers" Grid.Row="1" 
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <ListView x:Name="ListSuppliers" 
                                           SelectionChanged="ListSuppliers_SelectionChanged"
                                           BorderThickness="0">
                                     <ListView.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Margin="0,4">
-                                                <!-- ✅ SUPPLIERS.name — стандартное имя -->
                                                 <TextBlock Text="{Binding name}" FontWeight="SemiBold"/>
                                                 <TextBlock Text="{Binding contact_person}" 
                                                            FontSize="11" Foreground="#7F8C8D"/>
@@ -435,63 +428,61 @@
                                         </DataTemplate>
                                     </ListView.ItemTemplate>
                                 </ListView>
-                            </Grid>
-                        </Border>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
 
-                        <!-- Активы поставщика -->
-                        <Border Grid.Column="1" 
-                                Background="White"
-                                BorderBrush="#E1E5EB"
-                                BorderThickness="1"
-                                CornerRadius="6"
-                                Padding="15">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
+                    <Border Grid.Column="1" 
+                            Background="White"
+                            BorderBrush="#E1E5EB"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="15">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                                <TextBlock Grid.Row="0" 
-                                           Text="Активы от выбранного поставщика" 
-                                           FontWeight="SemiBold"
-                                           Margin="0,0,0,10"/>
+                            <TextBlock Grid.Row="0" 
+                                       Text="Активы от выбранного поставщика" 
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,10"/>
 
-                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                    <ItemsControl x:Name="SupplierAssetsList">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border Background="#F8F9FA"
-                                                        CornerRadius="4"
-                                                        Padding="10"
-                                                        Margin="0,0,0,8">
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <StackPanel Grid.Column="0">
-                                                            <!-- ✅ PRODUCTION_ASSETS.name — стандартное имя -->
-                                                            <TextBlock Text="{Binding name}" FontWeight="Medium"/>
-                                                            <TextBlock Text="{Binding description}" 
-                                                                       FontSize="11" Foreground="#7F8C8D"/>
-                                                        </StackPanel>
-                                                        <Button Grid.Column="1" 
-                                                                Content="🔗 Отвязать" 
-                                                                Click="UnlinkAsset_Click"
-                                                                Tag="{Binding id}"
-                                                                Padding="8,4"
-                                                                FontSize="11"/>
-                                                    </Grid>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </ScrollViewer>
-                            </Grid>
-                        </Border>
-                    </Grid>
-                </TabItem>
-            </TabControl>
-        </StackPanel>
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="SupplierAssetsList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#F8F9FA"
+                                                    CornerRadius="4"
+                                                    Padding="10"
+                                                    Margin="0,0,0,8">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding name}" FontWeight="Medium"/>
+                                                        <TextBlock Text="{Binding description}" 
+                                                                   FontSize="11" Foreground="#7F8C8D"/>
+                                                    </StackPanel>
+                                                    <Button Grid.Column="1" 
+                                                            Content="🔗 Отвязать" 
+                                                            Click="UnlinkAsset_Click"
+                                                            Tag="{Binding id}"
+                                                            Padding="8,4"
+                                                            FontSize="11"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
     </Grid>
 </Page>

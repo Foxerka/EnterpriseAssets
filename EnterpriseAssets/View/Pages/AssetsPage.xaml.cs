@@ -3,461 +3,391 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using EnterpriseAssets.Model.DataBase;
-using System.Data.Entity;
-using EnterpriseAssets.ViewModel;
 
 namespace EnterpriseAssets.View.Pages
 {
     public partial class AssetsPage : Page
     {
         private DB_AssetManage db = new DB_AssetManage();
-        private int? _currentUserId;
+        private List<AssetViewModel> _allAssets;
         private bool _isAdmin;
+        private int _currentUserId;
 
-        public AssetsPage(bool isAdmin = false)
+        // Конструктор по умолчанию
+        public AssetsPage()
         {
-            LoadEquipmentTypeId();
             InitializeComponent();
-            _isAdmin = isAdmin;  // ✅ Прямая установка
-            InitializePage();
-        }
-
-        private void InitializePage()
-        {
-            // Скрываем админ-панель если не админ
-            if (!_isAdmin && TabAdmin != null)
-            {
-                TabAdmin.Visibility = Visibility.Collapsed;
-                AdminPanel.Visibility = Visibility.Collapsed;
-            }
-
-            // Загружаем данные
-            LoadFilters();
-            LoadAssets();
-            LoadAdminData();  // ✅ Внутри есть проверка if (!_isAdmin) return;
-            LoadSuppliers();
+            Loaded += AssetsPage_Loaded;
         }
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            try
+            // Показываем/скрываем админ-вкладку
+            if (TabAdmin != null)
             {
-                System.Diagnostics.Debug.WriteLine("📦 AssetsPage loaded");
-
-                // ✅ Проверяем что db инициализирован
-                if (db == null)
-                {
-                    db = new DB_AssetManage();
-                    System.Diagnostics.Debug.WriteLine("✅ DB_AssetManage создана");
-                }
-
-                LoadFilters();
-                LoadAssets();
-                LoadAdminData();
-                LoadSuppliers();
+                TabAdmin.Visibility = _isAdmin ? Visibility.Visible : Visibility.Collapsed;
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Page_Loaded error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-            }
+
+            LoadReferenceData();
+            LoadAssets();
+            LoadSuppliersForAdmin();
         }
 
-        // 🔹 Загрузка фильтров (цеха)
-        private void LoadFilters()
+        private void CmbTypeFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LoadAssets();
+        }
+
+
+        public AssetsPage(bool isAdmin) : this()
+        {
+            _isAdmin = isAdmin;
+        }
+
+        public AssetsPage(bool isAdmin, int currentUserId) : this(isAdmin)
+        {
+            _currentUserId = currentUserId;
+        }
+
+        private void AssetsPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Показываем/скрываем админ-вкладку
+            if (TabAdmin != null)
+            {
+                TabAdmin.Visibility = _isAdmin ? Visibility.Visible : Visibility.Collapsed;
+            }
+
+            LoadReferenceData();
+            LoadAssets();
+            LoadSuppliersForAdmin();
+        }
+
+        private void LoadReferenceData()
         {
             try
             {
-                // ✅ Проверяем что ComboBox существует
-                if (CmbWorkshopFilter == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ CmbWorkshopFilter is null!");
-                    return;
-                }
+                System.Diagnostics.Debug.WriteLine("🔄 Загрузка справочников...");
 
-                CmbWorkshopFilter.Items.Clear();
-                CmbWorkshopFilter.Items.Add(new ComboBoxItem { Content = "Все цеха", Tag = null });
+                // Типы активов
+                var assetTypes = db.ASSETTYPE.OrderBy(t => t.AssetType1).ToList();
+                System.Diagnostics.Debug.WriteLine($"📦 Типы: {assetTypes.Count} записей");
 
-                var workshops = db.WORKSHOPS?.OrderBy(w => w.name).ToList();
-                if (workshops != null)
-                {
-                    foreach (var w in workshops)
-                    {
-                        CmbWorkshopFilter.Items.Add(new ComboBoxItem { Content = w.name, Tag = w.id });
-                    }
-                }
-                CmbWorkshopFilter.SelectedIndex = 0;
+                // Категории
+                var categories = db.CATEGORY.OrderBy(c => c.Category1).ToList();
+                System.Diagnostics.Debug.WriteLine($"📁 Категории: {categories.Count} записей");
+
+                // Статусы
+                var statuses = db.STATUSASSETS.OrderBy(s => s.Status).ToList();
+                System.Diagnostics.Debug.WriteLine($"📊 Статусы: {statuses.Count} записей");
+
+                // Заполняем ComboBox для админки
+                ListAssetTypes.ItemsSource = assetTypes;
+                ListCategories.ItemsSource = categories;
+                ListStatuses.ItemsSource = statuses;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ ошибка: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки справочников: {ex.Message}");
             }
         }
 
-        // 🔹 Загрузка активов с привязанными данными
         private void LoadAssets()
         {
             try
             {
-                // ✅ Проверяем что AssetsList существует
-                if (AssetsList == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ AssetsList is null!");
-                    return;
-                }
+                System.Diagnostics.Debug.WriteLine("🔄 Загрузка активов...");
 
-                var query = db.PRODUCTION_ASSETS
-                    .Include("ASSETTYPE")
-                    .Include("CATEGORY")
-                    .Include("WORKSHOPS")
-                    .Include("STATUSASSETS")
-                    .Include(a => a.Unit1)
-                    .AsQueryable();
+                // Загружаем активы без Include для избежания ошибок
+                var assets = db.PRODUCTION_ASSETS.ToList();
 
-                // Поиск
-                if (!string.IsNullOrWhiteSpace(TxtSearch?.Text))
-                {
-                    var search = TxtSearch.Text.ToLower();
-                    query = query.Where(a => a.name.ToLower().Contains(search)
-                                          || (a.description != null && a.description.ToLower().Contains(search))
-                                          || (a.serial_number != null && a.serial_number.ToLower().Contains(search)));
-                }
+                // Загружаем связанные данные отдельно
+                var workshops = db.WORKSHOPS.ToDictionary(w => w.id, w => w.name);
+                var categories = db.CATEGORY.ToDictionary(c => c.ID_category, c => c.Category1);
+                var assetTypes = db.ASSETTYPE.ToDictionary(t => t.ID_ASSETTYPE, t => t.AssetType1);
+                var units = db.Unit.ToDictionary(u => u.ID, u => u.unit1);
+                var statuses = db.STATUSASSETS.ToDictionary(s => s.ID_status, s => s.Status);
+                var suppliers = db.SUPPLIERS.ToDictionary(s => s.id, s => s.name);
 
-                // Фильтр по цеху - ✅ БЕЗОПАСНАЯ ПРОВЕРКА
-                if (CmbWorkshopFilter != null && CmbWorkshopFilter.SelectedIndex > 0)
-                {
-                    if (CmbWorkshopFilter.SelectedItem is ComboBoxItem selectedWorkshop)
-                    {
-                        if (selectedWorkshop.Tag is int workshopId)
-                        {
-                            query = query.Where(a => a.workshop_id == workshopId);
-                        }
-                    }
-                }
-
-                var assets = query.OrderByDescending(a => a.created_at).ToList();
-
-
-                // Преобразуем в ViewModel для отображения
-                AssetsList.ItemsSource = assets.Select(a => new AssetViewModel
+                _allAssets = assets.Select(a => new AssetViewModel
                 {
                     Id = a.id,
-                    Name = a.name ?? "Без названия",
-                    CategoryName = a.CATEGORY?.Category1 ?? "—",
-                    WorkshopName = a.WORKSHOPS?.name ?? "Не назначен",
-                    Quantity = a.quantity,
-                    UnitName = a.Unit1?.unit1 ?? "шт.",
-                    Value = a.current_value,
-                    StatusName = a.STATUSASSETS?.Status,
-                    StatusColor = GetStatusColor(a.STATUSASSETS?.Status),
+                    Name = a.name,
+                    AssetType = assetTypes.GetValueOrDefault(a.asset_type ?? 0, "Не указан"),
+                    CategoryName = categories.GetValueOrDefault(a.id_category ?? 0, "Без категории"),
+                    WorkshopName = workshops.GetValueOrDefault(a.workshop_id ?? 0, "Без цеха"),
+                    UnitName = units.GetValueOrDefault(a.unit ?? 0, "шт"),
+                    Quantity = a.quantity ?? 0,
+                    MinQuantity = a.min_quantity ?? 0,
+                    CurrentValue = a.current_value ?? 0,
+                    PurchaseCost = a.purchase_cost ?? 0,
+                    StatusName = statuses.GetValueOrDefault(a.status ?? 0, ""),
+                    TypeIcon = GetTypeIcon(assetTypes.GetValueOrDefault(a.asset_type ?? 0, "")),
+                    TypeColor = GetTypeColor(assetTypes.GetValueOrDefault(a.asset_type ?? 0, "")),
+                    SupplierName = suppliers.GetValueOrDefault(a.supplier_id ?? 0, ""),
+                    ShowStatus = assetTypes.GetValueOrDefault(a.asset_type ?? 0, "") == "Оборудование",
+                    StatusColor = GetStatusColor(statuses.GetValueOrDefault(a.status ?? 0, ""))
+                }).OrderBy(a => a.Name).ToList();
 
-                    // ✅ Получаем название типа
-                    TypeName = a.ASSETTYPE?.AssetType1,
-                    TypeIcon = GetTypeIcon(a.ASSETTYPE?.AssetType1),
-                    TypeColor = GetTypeColor(a.ASSETTYPE?.AssetType1),
+                System.Diagnostics.Debug.WriteLine($"✅ Загружено активов: {_allAssets.Count}");
 
-                    // ✅ Проверка по НАЗВАНИЮ, возврат Visibility
-                    ShowStatus = IsEquipmentType(a.ASSETTYPE?.AssetType1) ? Visibility.Visible : Visibility.Collapsed,
-                    ShowStatusIcon = IsEquipmentType(a.ASSETTYPE?.AssetType1) ? Visibility.Visible : Visibility.Collapsed,
-
-                    QuantityDisplay = $"{a.quantity} {a.Unit1?.unit1 ?? "шт."}",
-                    ValueDisplay = a.current_value.HasValue ? $"{a.current_value:C}" : "—"
-                }).ToList();
-
-                UpdateStats(assets);
+                ApplyFilters();
+                UpdateStatistics();
             }
             catch (Exception ex)
             {
-
-                System.Diagnostics.Debug.WriteLine($"❌ LoadAssets ошибка: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-
-                if (IsLoaded)
-                {
-                    try
-                    {
-                        MessageBox.Show($"Ошибка загрузки активов: {ex.Message}", "Ошибка",
-                                      MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    catch { /* Игнорируем ошибки при показе MessageBox */ }
-                }
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки активов: {ex.Message}");
+                MessageBox.Show($"Ошибка загрузки активов: {ex.Message}", "Ошибка",
+                              MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private bool IsEquipmentType(string assetTypeName)
-        {
-            return string.Equals(assetTypeName?.Trim(), "Оборудование", StringComparison.OrdinalIgnoreCase);
-        }
-       
-        private void LoadSuppliers()
+        private void LoadSuppliersForAdmin()
         {
             try
             {
-                // ✅ Проверяем что ListSuppliers существует
-                if (ListSuppliers == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ ListSuppliers is null!");
-                    return;
-                }
+                if (!_isAdmin) return;
 
-                if (db?.SUPPLIERS == null)
-                {
-                    System.Diagnostics.Debug.WriteLine("⚠️ db.SUPPLIERS is null!");
-                    return;
-                }
-
-                ListSuppliers.ItemsSource = db.SUPPLIERS.OrderBy(s => s.name).ToList();
+                var suppliers = db.SUPPLIERS.OrderBy(s => s.name).ToList();
+                ListSuppliers.ItemsSource = suppliers;
+                System.Diagnostics.Debug.WriteLine($"✅ Поставщики: {suppliers.Count} записей");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"❌ LoadSuppliers error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки поставщиков: {ex.Message}");
             }
         }
 
-        // 🔹 ViewModel для карточки актива
-        public class AssetViewModel
+        private void ApplyFilters()
         {
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public string TypeName { get; set; }
-            public string CategoryName { get; set; }
-            public string WorkshopName { get; set; }
-            public decimal? Quantity { get; set; }
-            public string UnitName { get; set; }
-            public decimal? Value { get; set; }
-            public string StatusName { get; set; }
-            public string StatusColor { get; set; }
-            public string TypeIcon { get; set; }
-            public string TypeColor { get; set; }
-            public Visibility ShowStatus { get; set; }
-            public Visibility ShowStatusIcon { get; set; }
-            public string QuantityDisplay { get; set; }
-            public string ValueDisplay { get; set; }
+            if (_allAssets == null)
+            {
+                System.Diagnostics.Debug.WriteLine("⚠️ AssetsList is null!");
+                return;
+            }
+
+            var filtered = _allAssets.AsEnumerable();
+
+            // Поиск
+            string searchText = TxtSearch.Text?.Trim().ToLower() ?? "";
+            if (!string.IsNullOrEmpty(searchText))
+            {
+                filtered = filtered.Where(a =>
+                    a.Name.ToLower().Contains(searchText) ||
+                    a.CategoryName.ToLower().Contains(searchText) ||
+                    a.WorkshopName.ToLower().Contains(searchText)
+                );
+            }
+
+            // Фильтр по типу
+            if (CmbTypeFilter.SelectedItem is ComboBoxItem typeItem && typeItem.Content.ToString() != "Все типы")
+            {
+                filtered = filtered.Where(a => a.AssetType == typeItem.Content.ToString());
+            }
+
+            // Фильтр по цеху
+            if (CmbWorkshopFilter.SelectedItem is ComboBoxItem workshopItem && workshopItem.Content.ToString() != "Все цеха")
+            {
+                filtered = filtered.Where(a => a.WorkshopName == workshopItem.Content.ToString());
+            }
+
+            AssetsList.ItemsSource = filtered.OrderBy(a => a.Name).ToList();
         }
 
-        // 🔹 Вспомогательные методы
-        private string GetStatusColor(string statusName)
+        private void UpdateStatistics()
         {
-            return statusName?.Trim().ToLower() switch
+            if (_allAssets == null) return;
+
+            TotalAssetsCount.Text = _allAssets.Count.ToString();
+            EquipmentCount.Text = _allAssets.Count(a => a.AssetType == "Оборудование").ToString();
+            LowStockCount.Text = _allAssets.Count(a => a.Quantity > 0 && a.Quantity <= a.MinQuantity).ToString();
+        }
+
+        private string GetTypeIcon(string assetType)
+        {
+            return assetType switch
+            {
+                "Оборудование" => "⚙️",
+                "Материалы" => "📦",
+                "Инструмент" => "🔧",
+                "Запчасти" => "🔩",
+                _ => "📄"
+            };
+        }
+
+        private string GetTypeColor(string assetType)
+        {
+            return assetType switch
+            {
+                "Оборудование" => "#3498DB",
+                "Материалы" => "#27AE60",
+                "Инструмент" => "#F39C12",
+                "Запчасти" => "#9B59B6",
+                _ => "#95A5A6"
+            };
+        }
+
+        private string GetStatusColor(string status)
+        {
+            return status switch
             {
                 "Исправен" => "#27AE60",
-                "В работе" => "#27AE60",    // 🟢 Зелёный
-                "на обслуживании" => "#F39C12",   // 🟡 Жёлтый
-                "неисправен" => "#E74C3C",        // 🔴 Красный
-                "списан" => "#95A5A6",            // ⚪ Серый
-                "В ремонте" => "#E67E22",        // 🟠 Оранжевый
-                "В резерве" => "#3498DB",            // 🔵 Синий
-                _ => "#7F8C8D"                    // ⚫ Дефолтный серый
+                "В работе" => "#3498DB",
+                "В ремонте" => "#F39C12",
+                "На обслуживании" => "#9B59B6",
+                "Неисправен" => "#E74C3C",
+                "Списан" => "#95A5A6",
+                _ => "#95A5A6"
             };
         }
 
-        // ⚙️ Иконка типа актива по названию
-        private string GetTypeIcon(string assetTypeName)
-        {
-            return assetTypeName?.Trim().ToLower() switch
-            {
-                "оборудование" => "⚙️",
-                "материал" => "📦",
-                "Комплектующие" => "🔧",
-                "инструмент" => "🪛",
-                "сырье" => "🧱",
-                "готовая продукция" => "📦",
-                _ => "📋"  // Дефолтная иконка
-            };
-        }
-
-        // 🎨 Цвет типа актива по названию
-        private string GetTypeColor(string assetTypeName)
-        {
-            return assetTypeName?.Trim().ToLower() switch
-            {
-                "оборудование" => "#4A6FA5",   // 🔵 Синий
-                "материал" => "#27AE60",      // 🟢 Зелёный
-                "Комплектующие" => "#8E44AD",       // 🟣 Фиолетовый
-                "инструмент" => "#D35400",     // 🟠 Оранжевый
-                "сырье" => "#16A085",          // 🟢 Бирюзовый
-                "готовая продукция" => "#2C3E50", // ⚫ Тёмно-серый
-                _ => "#95A5A6"                 // ⚪ Дефолтный серый
-            };
-        }
-
-
-        private int _equipmentTypeId;
-
-        private void LoadEquipmentTypeId()
-        {
-            _equipmentTypeId = db.ASSETTYPE
-                .Where(t => t.AssetType1 == "Оборудование")
-                .Select(t => t.ID_ASSETTYPE)
-                .FirstOrDefault();
-        }
-
-        private void UpdateStats(List<PRODUCTION_ASSETS> assets)
-        {
-            TotalAssetsCount.Text = assets.Count.ToString();
-            EquipmentCount.Text = assets.Count(a => a.asset_type == _equipmentTypeId).ToString();
-            LowStockCount.Text = assets.Count(a => a.quantity < a.min_quantity).ToString();
-        }
-
-        // 🔹 Обработчики событий фильтров
+        // ========== ОБРАБОТЧИКИ ==========
         private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
-            => LoadAssets();
+        {
+            ApplyFilters();
+        }
 
-        private void CmbTypeFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => LoadAssets();
 
         private void CmbWorkshopFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
-            => LoadAssets();
-
-        private void BtnRefresh_Click(object sender, RoutedEventArgs e)
-            => LoadAssets();
+        {
+            ApplyFilters();
+        }
 
         private void BtnAddAsset_Click(object sender, RoutedEventArgs e)
         {
-            try
+            var dialog = new AssetManage();
+            dialog.Owner = Window.GetWindow(this);
+            if (dialog.ShowDialog() == true)
             {
-                var window = new AssetManage();
-                if (window.ShowDialog() == true)
-                {
-                    LoadAssets();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                LoadAssets();
             }
         }
 
-        private void AssetCard_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void BtnRefresh_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as FrameworkElement)?.Tag is int assetId)
+            LoadAssets();
+            LoadSuppliersForAdmin();
+        }
+
+        private void AssetCard_Click(object sender, MouseButtonEventArgs e)
+        {
+            var border = sender as Border;
+            if (border?.DataContext is AssetViewModel asset)
             {
-                try
+                var fullAsset = db.PRODUCTION_ASSETS.FirstOrDefault(a => a.id == asset.Id);
+                if (fullAsset != null)
                 {
-                    var asset = db.PRODUCTION_ASSETS.Find(assetId);
-                    if (asset != null)
+                    var dialog = new AssetManage(fullAsset);
+                    dialog.Owner = Window.GetWindow(this);
+                    if (dialog.ShowDialog() == true)
                     {
-                        var window = new AssetManage(asset);
-                        if (window.ShowDialog() == true)
-                        {
-                            LoadAssets();
-                        }
+                        LoadAssets();
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
         private void EditAsset_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.Tag is int assetId)
+            var button = sender as Button;
+            if (button?.Tag != null)
             {
-                try
+                int id = (int)button.Tag;
+                var asset = db.PRODUCTION_ASSETS.FirstOrDefault(a => a.id == id);
+                if (asset != null)
                 {
-                    var asset = db.PRODUCTION_ASSETS.Find(assetId);
-                    if (asset != null)
+                    var dialog = new AssetManage(asset);
+                    dialog.Owner = Window.GetWindow(this);
+                    if (dialog.ShowDialog() == true)
                     {
-                        var window = new AssetManage(asset);
-                        if (window.ShowDialog() == true)
-                        {
-                            LoadAssets();
-                        }
+                        LoadAssets();
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
         private void DeleteAsset_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.Tag is not int assetId) return;
-
-            var result = MessageBox.Show("Удалить этот актив?", "Подтверждение",
-                                       MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (result == MessageBoxResult.Yes)
+            var button = sender as Button;
+            if (button?.Tag != null)
             {
-                try
+                int id = (int)button.Tag;
+                var asset = db.PRODUCTION_ASSETS.FirstOrDefault(a => a.id == id);
+                if (asset != null)
                 {
-                    var asset = db.PRODUCTION_ASSETS.Find(assetId);
-                    if (asset == null) return;
+                    var result = MessageBox.Show(
+                        $"Вы уверены, что хотите удалить актив «{asset.name}»?\n\nЭто действие нельзя отменить.",
+                        "Подтверждение удаления",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
 
-                    // Проверка зависимостей
-                    bool hasWorkActs = db.WORK_ACTS.Any(wa => wa.asset_id == assetId);
-                    bool hasWorkActsMaterials = db.WORK_ACTS_MATERIALS.Any(wam => wam.asset_id == assetId);
-
-                    if (hasWorkActs || hasWorkActsMaterials)
+                    if (result == MessageBoxResult.Yes)
                     {
-                        MessageBox.Show(
-                            "Невозможно удалить актив, так как он используется в актах выполненных работ.",
-                            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
+                        try
+                        {
+                            // Проверяем связанные записи
+                            bool hasWorkActs = db.WORK_ACTS.Any(wa => wa.asset_id == id);
+                            bool hasMaterials = db.WORK_ACTS_MATERIALS.Any(wam => wam.asset_id == id);
+
+                            if (hasWorkActs || hasMaterials)
+                            {
+                                MessageBox.Show(
+                                    "Невозможно удалить актив, так как он используется в рабочих актах.\n\n" +
+                                    "Сначала удалите или измените связанные записи.",
+                                    "Ошибка удаления",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
+                                return;
+                            }
+
+                            db.PRODUCTION_ASSETS.Remove(asset);
+                            db.SaveChanges();
+                            LoadAssets();
+                            LoadSuppliersForAdmin();
+
+                            MessageBox.Show("Актив успешно удален", "Успех",
+                                          MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($"Ошибка удаления: {ex.Message}", "Ошибка",
+                                          MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
                     }
-
-                    db.PRODUCTION_ASSETS.Remove(asset);
-                    db.SaveChanges();
-                    LoadAssets();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
-        // 🔹 Админ-панель: загрузка справочников
-        private void LoadAdminData()
+        // ========== АДМИНКА ==========
+        private void MainTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (!_isAdmin) return;
-
-            try
+            if (MainTabs.SelectedItem == TabAdmin && _isAdmin)
             {
-                System.Diagnostics.Debug.WriteLine("🔄 Загрузка справочников...");
-
-                var types = db.ASSETTYPE.OrderBy(t => t.AssetType1).ToList();
-                System.Diagnostics.Debug.WriteLine($"📦 Типы: {types.Count} записей");
-                ListAssetTypes.ItemsSource = types;
-
-                var categories = db.CATEGORY.OrderBy(c => c.Category1).ToList();
-                System.Diagnostics.Debug.WriteLine($"📁 Категории: {categories.Count} записей");
-                ListCategories.ItemsSource = categories;
-
-                var statuses = db.STATUSASSETS.OrderBy(s => s.Status).ToList();
-                System.Diagnostics.Debug.WriteLine($"📊 Статусы: {statuses.Count} записей");
-                ListStatuses.ItemsSource = statuses;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"❌ Ошибка: {ex.Message}");
-                MessageBox.Show($"Ошибка загрузки справочников: {ex.Message}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                LoadReferenceData();
+                LoadSuppliersForAdmin();
             }
         }
 
-
-        // 🔹 Типы активов
         private void AddAssetType_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtNewAssetType.Text))
             {
-                MessageBox.Show("Введите название типа", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Введите название типа актива", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             try
             {
-                db.ASSETTYPE.Add(new ASSETTYPE { AssetType1 = TxtNewAssetType.Text.Trim() });
+                var newType = new ASSETTYPE { AssetType1 = TxtNewAssetType.Text.Trim() };
+                db.ASSETTYPE.Add(newType);
                 db.SaveChanges();
-                TxtNewAssetType.Clear();
-                LoadAdminData();
-                MessageBox.Show("Тип добавлен", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                LoadReferenceData();
+                TxtNewAssetType.Text = "";
+
+                MessageBox.Show("Тип актива добавлен", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
@@ -467,34 +397,29 @@ namespace EnterpriseAssets.View.Pages
 
         private void DeleteAssetType_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.Tag is not int id) return;
-
-            try
+            var button = sender as Button;
+            if (button?.Tag != null)
             {
-                // Проверка зависимостей
-                bool hasAssets = db.PRODUCTION_ASSETS.Any(a => a.asset_type == id);
-                if (hasAssets)
+                int id = (int)button.Tag;
+                var type = db.ASSETTYPE.Find(id);
+                if (type != null)
                 {
-                    MessageBox.Show("Невозможно удалить тип, так как есть активы с этим типом",
-                                  "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                    // Проверяем, используется ли тип
+                    bool inUse = db.PRODUCTION_ASSETS.Any(a => a.asset_type == id);
+                    if (inUse)
+                    {
+                        MessageBox.Show("Нельзя удалить тип, который используется в активах", "Ошибка",
+                                      MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
 
-                var item = db.ASSETTYPE.Find(id); 
-                if (item != null)
-                {
-                    db.ASSETTYPE.Remove(item);
+                    db.ASSETTYPE.Remove(type);
                     db.SaveChanges();
-                    LoadAdminData();
+                    LoadReferenceData();
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // 🔹 Категории
         private void AddCategory_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtNewCategory.Text))
@@ -505,10 +430,13 @@ namespace EnterpriseAssets.View.Pages
 
             try
             {
-                db.CATEGORY.Add(new CATEGORY { Category1 = TxtNewCategory.Text.Trim() });
+                var newCategory = new CATEGORY { Category1 = TxtNewCategory.Text.Trim() };
+                db.CATEGORY.Add(newCategory);
                 db.SaveChanges();
-                TxtNewCategory.Clear();
-                LoadAdminData();
+
+                LoadReferenceData();
+                TxtNewCategory.Text = "";
+
                 MessageBox.Show("Категория добавлена", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -519,33 +447,28 @@ namespace EnterpriseAssets.View.Pages
 
         private void DeleteCategory_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.Tag is not int id) return;
-
-            try
+            var button = sender as Button;
+            if (button?.Tag != null)
             {
-                bool hasAssets = db.PRODUCTION_ASSETS.Any(a => a.id_category == id);
-                if (hasAssets)
+                int id = (int)button.Tag;
+                var category = db.CATEGORY.Find(id);
+                if (category != null)
                 {
-                    MessageBox.Show("Невозможно удалить категорию, так как есть активы с этой категорией",
-                                  "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                    bool inUse = db.PRODUCTION_ASSETS.Any(a => a.id_category == id);
+                    if (inUse)
+                    {
+                        MessageBox.Show("Нельзя удалить категорию, которая используется в активах", "Ошибка",
+                                      MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
 
-                var item = db.CATEGORY.Find(id);
-                if (item != null)
-                {
-                    db.CATEGORY.Remove(item);
+                    db.CATEGORY.Remove(category);
                     db.SaveChanges();
-                    LoadAdminData();
+                    LoadReferenceData();
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        // 🔹 Статусы
         private void AddStatus_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(TxtNewStatus.Text))
@@ -556,10 +479,13 @@ namespace EnterpriseAssets.View.Pages
 
             try
             {
-                db.STATUSASSETS.Add(new STATUSASSETS { Status = TxtNewStatus.Text.Trim() });
+                var newStatus = new STATUSASSETS { Status = TxtNewStatus.Text.Trim() };
+                db.STATUSASSETS.Add(newStatus);
                 db.SaveChanges();
-                TxtNewStatus.Clear();
-                LoadAdminData();
+
+                LoadReferenceData();
+                TxtNewStatus.Text = "";
+
                 MessageBox.Show("Статус добавлен", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -570,93 +496,148 @@ namespace EnterpriseAssets.View.Pages
 
         private void DeleteStatus_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.Tag is not int id) return;
-
-            try
+            var button = sender as Button;
+            if (button?.Tag != null)
             {
-                bool hasAssets = db.PRODUCTION_ASSETS.Any(a => a.status == id);
-                if (hasAssets)
+                int id = (int)button.Tag;
+                var status = db.STATUSASSETS.Find(id);
+                if (status != null)
                 {
-                    MessageBox.Show("Невозможно удалить статус, так как есть активы с этим статусом",
-                                  "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                    bool inUse = db.PRODUCTION_ASSETS.Any(a => a.status == id);
+                    if (inUse)
+                    {
+                        MessageBox.Show("Нельзя удалить статус, который используется в активах", "Ошибка",
+                                      MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
 
-                var item = db.STATUSASSETS.Find(id); // ✅ Find работает с ID_status
-                if (item != null)
-                {
-                    db.STATUSASSETS.Remove(item);
+                    db.STATUSASSETS.Remove(status);
                     db.SaveChanges();
-                    LoadAdminData();
+                    LoadReferenceData();
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-
-        private void ListSuppliers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        // ========== ПОСТАВЩИКИ ==========
+        private void TxtSearchSupplier_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (ListSuppliers.SelectedItem is SUPPLIERS supplier)
+            // Проверяем, что элемент существует
+            if (ListSuppliers?.ItemsSource == null) return;
+
+            // Получаем TextBox через sender
+            var searchBox = sender as TextBox;
+            if (searchBox == null) return;
+
+            string search = searchBox.Text?.Trim().ToLower() ?? "";
+
+            try
             {
-                try
-                {
-                    var assets = db.PRODUCTION_ASSETS
-                        .Where(a => a.supplier_id == supplier.id)
-                        .ToList();
-                    SupplierAssetsList.ItemsSource = assets;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                var filtered = db.SUPPLIERS
+                    .Where(s => s.name.ToLower().Contains(search) ||
+                               (s.contact_person ?? "").ToLower().Contains(search))
+                    .ToList();
+                ListSuppliers.ItemsSource = filtered;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка поиска: {ex.Message}");
             }
         }
 
         private void AddSupplier_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Функция добавления поставщика будет реализована позже", "Информация",
-                          MessageBoxButton.OK, MessageBoxImage.Information);
+            var dialog = new SupplierManage();
+            dialog.Owner = Window.GetWindow(this);
+            if (dialog.ShowDialog() == true)
+            {
+                LoadSuppliersForAdmin();
+            }
+        }
+
+        private void ListSuppliers_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ListSuppliers.SelectedItem is SUPPLIERS selected)
+            {
+                try
+                {
+                    var assets = db.PRODUCTION_ASSETS
+                        .Where(a => a.supplier_id == selected.id)
+                        .ToList();
+                    SupplierAssetsList.ItemsSource = assets;
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Ошибка загрузки активов поставщика: {ex.Message}");
+                }
+            }
         }
 
         private void UnlinkAsset_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.Tag is not int assetId) return;
-
-            try
+            var button = sender as Button;
+            if (button?.Tag != null)
             {
-                var asset = db.PRODUCTION_ASSETS.Find(assetId);
-                if (asset != null)
+                int assetId = (int)button.Tag;
+                try
                 {
-                    asset.supplier_id = null;
-                    db.SaveChanges();
-                    LoadSuppliers();
-                    if (ListSuppliers.SelectedItem is SUPPLIERS s)
-                        ListSuppliers_SelectionChanged(null, null);
+                    var asset = db.PRODUCTION_ASSETS.Find(assetId);
+                    if (asset != null)
+                    {
+                        asset.supplier_id = null;
+                        db.SaveChanges();
+
+                        if (ListSuppliers.SelectedItem is SUPPLIERS selected)
+                        {
+                            var assets = db.PRODUCTION_ASSETS
+                                .Where(a => a.supplier_id == selected.id)
+                                .ToList();
+                            SupplierAssetsList.ItemsSource = assets;
+                        }
+
+                        MessageBox.Show("Связь с поставщиком удалена", "Успех",
+                                      MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
+                                  MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
         }
+    }
 
-        private void MainTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            // Перезагрузка данных при переключении вкладок
-            if (MainTabs.SelectedItem == TabAssets)
-                LoadAssets();
-            if (MainTabs.SelectedItem == TabAdmin && _isAdmin)
-                LoadAdminData();
-            if (MainTabs.SelectedItem == TabSuppliers)
-                LoadSuppliers();
-        }
+    // ViewModel для актива
+    public class AssetViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string AssetType { get; set; }
+        public string CategoryName { get; set; }
+        public string WorkshopName { get; set; }
+        public string UnitName { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal MinQuantity { get; set; }
+        public decimal CurrentValue { get; set; }
+        public decimal PurchaseCost { get; set; }
+        public string StatusName { get; set; }
+        public string TypeIcon { get; set; }
+        public string TypeColor { get; set; }
+        public string SupplierName { get; set; }
+        public bool ShowStatus { get; set; }
+        public string StatusColor { get; set; }
 
-        public void Dispose()
+        public string QuantityDisplay => $"{Quantity:N0} {UnitName}";
+        public string ValueDisplay => CurrentValue > 0 ? $"{CurrentValue:N2} ₸" : "";
+        public bool IsLowStock => Quantity > 0 && Quantity <= MinQuantity;
+    }
+
+    // Extension method для Dictionary
+    public static class DictionaryExtensions
+    {
+        public static TValue GetValueOrDefault<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key, TValue defaultValue)
         {
-            db?.Dispose();
+            return dict.TryGetValue(key, out TValue value) ? value : defaultValue;
         }
     }
 }

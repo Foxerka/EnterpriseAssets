@@ -11,36 +11,29 @@
       Loaded="Page_Loaded">
 
     <Grid Margin="20">
-        <!-- 🔧 Исправленная структура строк -->
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- 0: Заголовок -->
             <RowDefinition Height="Auto"/>
-            <!-- 1: Панель управления (поиск + кнопки) -->
             <RowDefinition Height="*"/>
-            <!-- 2: Список цехов (занимает всё свободное место) -->
             <RowDefinition Height="Auto"/>
-            <!-- 3: Статистика -->
         </Grid.RowDefinitions>
 
         <!-- 🔹 Заголовок -->
         <TextBlock Grid.Row="0"
-                   Text="Управление цехами" 
+                   Text="Управление местами хранения" 
                    FontSize="28" 
                    FontWeight="SemiBold" 
                    Foreground="#2C3E50"
                    Margin="0,0,0,15"/>
 
-        <!-- 🔹 Панель управления: Поиск (слева) + Кнопки (справа) -->
+        <!-- 🔹 Панель управления -->
         <Grid Grid.Row="1" Margin="0,0,0,15">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <!-- Поиск занимает доступное место -->
                 <ColumnDefinition Width="Auto"/>
-                <!-- Кнопки по содержимому -->
             </Grid.ColumnDefinitions>
 
-            <!-- 🔸 Поиск (слева) -->
+            <!-- 🔸 Поиск -->
             <StackPanel Grid.Column="0" 
                         Orientation="Horizontal" 
                         VerticalAlignment="Center">
@@ -56,15 +49,16 @@
                          BorderBrush="#BDC3C7"
                          BorderThickness="1"
                          Background="White"
-                         VerticalContentAlignment="Center"/>
+                         VerticalContentAlignment="Center"
+                         ToolTip="Поиск по названию или расположению"/>
             </StackPanel>
 
-            <!-- 🔸 Кнопки (справа) -->
+            <!-- 🔸 Кнопки -->
             <StackPanel Grid.Column="1" 
                         Orientation="Horizontal"
                         HorizontalAlignment="Right">
                 <Button x:Name="BtnAddWorkshop" 
-                        Content="➕ Добавить цех" 
+                        Content="➕ Добавить место" 
                         Background="#4A6FA5"
                         Foreground="White"
                         Padding="15,8"
@@ -72,7 +66,8 @@
                         Cursor="Hand"
                         Margin="0,0,10,0"
                         Click="BtnAddWorkshop_Click"
-                        FontWeight="Medium"/>
+                        FontWeight="Medium"
+                        ToolTip="Добавить новое место хранения"/>
 
                 <Button x:Name="BtnRefresh" 
                         Content="🔄 Обновить" 
@@ -82,11 +77,12 @@
                         BorderThickness="0"
                         Cursor="Hand"
                         Click="BtnRefresh_Click"
-                        FontWeight="Medium"/>
+                        FontWeight="Medium"
+                        ToolTip="Обновить список"/>
             </StackPanel>
         </Grid>
 
-        <!-- 🔹 Список цехов (занимает всё доступное пространство) -->
+        <!-- 🔹 Список мест хранения -->
         <ScrollViewer Grid.Row="2" 
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled"
@@ -100,7 +96,6 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <!-- Карточка цеха -->
                         <Border Background="White"
                                 BorderBrush="#E1E5EB"
                                 BorderThickness="1"
@@ -122,20 +117,20 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <!-- Иконка цеха -->
+                                <!-- Иконка -->
                                 <Border Grid.Column="0"
                                         Width="50" Height="50"
                                         CornerRadius="25"
                                         Background="#4A6FA5"
                                         Margin="0,0,15,0">
-                                    <TextBlock Text="🏭" 
+                                    <TextBlock Text="📍" 
                                                FontSize="24"
                                                Foreground="White"
                                                HorizontalAlignment="Center"
                                                VerticalAlignment="Center"/>
                                 </Border>
 
-                                <!-- Информация о цехе -->
+                                <!-- Информация -->
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Name}" 
                                                FontSize="16" 
@@ -197,9 +192,9 @@
                 BorderBrush="#E1E5EB"
                 BorderThickness="1">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <TextBlock Text="Всего цехов: " Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                <TextBlock Text="Всего мест: " Foreground="#7F8C8D" VerticalAlignment="Center"/>
                 <TextBlock x:Name="TotalCount" Text="0" Foreground="#2C3E50" FontWeight="SemiBold" Margin="0,0,20,0"/>
-                <TextBlock Text="С менеджером: " Foreground="#7F8C8D" VerticalAlignment="Center"/>
+                <TextBlock Text="С ответственным: " Foreground="#7F8C8D" VerticalAlignment="Center"/>
                 <TextBlock x:Name="WithManagerCount" Text="0" Foreground="#27AE60" FontWeight="SemiBold"/>
             </StackPanel>
         </Border>

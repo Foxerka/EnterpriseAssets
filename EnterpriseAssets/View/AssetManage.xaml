@@ -7,6 +7,20 @@
         ResizeMode="NoResize"
         Background="#F5F7FA">
 
+    <Window.Resources>
+        <Style x:Key="InfoTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="#95A5A6"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Margin" Value="0,3,0,8"/>
+        </Style>
+
+        <Style x:Key="RequiredLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#5D6D7E"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
+    </Window.Resources>
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -54,7 +68,8 @@
                                  Padding="10,8"
                                  BorderBrush="#BDC3C7"
                                  Background="White"
-                                 Margin="0,0,0,12"/>
+                                 Margin="0,0,0,12"
+                                 ToolTip="Введите полное название актива (обязательное поле)"/>
 
                         <!-- Тип актива и Категория -->
                         <Grid Margin="0,0,0,12">
@@ -68,13 +83,15 @@
                                 <TextBlock Text="Тип актива *" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                                 <ComboBox x:Name="CmbAssetType" 
                                           Padding="8,6"
-                                          SelectionChanged="CmbAssetType_SelectionChanged"/>
+                                          SelectionChanged="CmbAssetType_SelectionChanged"
+                                          ToolTip="Выберите тип актива (оборудование, материалы и т.д.)"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Категория" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                                 <ComboBox x:Name="CmbCategory" 
-                                          Padding="8,6"/>
+                                          Padding="8,6"
+                                          ToolTip="Выберите категорию для группировки активов"/>
                             </StackPanel>
                         </Grid>
 
@@ -84,7 +101,10 @@
                                  Padding="10,8"
                                  BorderBrush="#BDC3C7"
                                  Background="White"
-                                 Margin="0,0,0,12"/>
+                                 Margin="0,0,0,12"
+                                 ToolTip="Уникальный серийный номер актива (если есть)"/>
+                        <TextBlock Text="💡 Пример: INV-2024-001 или SN-12345-6789" 
+                                   Style="{StaticResource InfoTextStyle}"/>
 
                         <!-- Описание -->
                         <TextBlock Text="Описание" Foreground="#5D6D7E" Margin="0,0,0,5"/>
@@ -95,7 +115,8 @@
                                  TextWrapping="Wrap"
                                  AcceptsReturn="True"
                                  Height="80"
-                                 VerticalContentAlignment="Top"/>
+                                 VerticalContentAlignment="Top"
+                                 ToolTip="Подробное описание актива, его характеристики"/>
                     </StackPanel>
                 </Border>
 
@@ -126,25 +147,32 @@
                                          Padding="10,8"
                                          BorderBrush="#BDC3C7"
                                          Background="White"
-                                         PreviewTextInput="TxtQuantity_PreviewTextInput"/>
+                                         PreviewTextInput="TxtQuantity_PreviewTextInput"
+                                         ToolTip="Введите количество (только целые числа)"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
                                 <TextBlock Text="Единица измерения" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                                 <ComboBox x:Name="CmbUnit" 
-                                          Padding="8,6"/>
+                                          Padding="8,6"
+                                          ToolTip="Выберите единицу измерения (шт, кг, л и т.д.)"/>
                             </StackPanel>
                         </Grid>
+                        <TextBlock Text="💡 Используйте только целые числа" 
+                                   Style="{StaticResource InfoTextStyle}"/>
 
                         <!-- Минимальное количество -->
-                        <TextBlock Text="Минимальное количество (для уведомлений)" 
+                        <TextBlock Text="Минимальное количество" 
                                    Foreground="#5D6D7E" 
                                    Margin="0,12,0,5"/>
                         <TextBox x:Name="TxtMinQuantity" 
                                  Padding="10,8"
                                  BorderBrush="#BDC3C7"
                                  Background="White"
-                                 PreviewTextInput="TxtQuantity_PreviewTextInput"/>
+                                 PreviewTextInput="TxtQuantity_PreviewTextInput"
+                                 ToolTip="При достижении этого количества будет отображаться уведомление"/>
+                        <TextBlock Text="💡 При достижении этого количества будет показано предупреждение" 
+                                   Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -163,22 +191,22 @@
                                    Margin="0,0,0,12"/>
 
                         <!-- Цех -->
-                        <TextBlock Text="Цех" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                        <TextBlock Text="Цех / Отдел" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                         <ComboBox x:Name="CmbWorkshop" 
                                   Padding="8,6"
-                                  Margin="0,0,0,12"/>
+                                  Margin="0,0,0,12"
+                                  ToolTip="Выберите цех или отдел, где находится актив"/>
 
                         <!-- Место на складе -->
-                        <TextBlock Text="Место на складе" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                        <TextBlock Text="Место хранения" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                         <TextBox x:Name="TxtWarehouseLocation" 
                                  Padding="10,8"
                                  BorderBrush="#BDC3C7"
                                  Background="White"
-                                 Margin="0,0,0,5"/>
-                        <TextBlock Text="Например: Стеллаж A-12, Полка 3" 
-                                   FontSize="11" 
-                                   Foreground="#95A5A6"
-                                   FontStyle="Italic"/>
+                                 Margin="0,0,0,5"
+                                 ToolTip="Точное место хранения актива"/>
+                        <TextBlock Text="💡 Формат: Стеллаж A-12, Полка 3 / Шкаф №2 / Комната 101" 
+                                   Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -207,16 +235,18 @@
                                 <TextBlock Text="Дата покупки" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                                 <DatePicker x:Name="DpPurchaseDate" 
                                             Padding="8,6"
-                                            BorderBrush="#BDC3C7"/>
+                                            BorderBrush="#BDC3C7"
+                                            ToolTip="Дата приобретения актива"/>
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Стоимость покупки" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                                <TextBlock Text="Стоимость покупки (₽)" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                                 <TextBox x:Name="TxtPurchaseCost" 
                                          Padding="10,8"
                                          BorderBrush="#BDC3C7"
                                          Background="White"
-                                         PreviewTextInput="TxtDecimal_PreviewTextInput"/>
+                                         PreviewTextInput="TxtDecimal_PreviewTextInput"
+                                         ToolTip="Сумма, за которую актив был приобретен"/>
                             </StackPanel>
                         </Grid>
 
@@ -224,15 +254,19 @@
                         <TextBlock Text="Поставщик" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                         <ComboBox x:Name="CmbSupplier" 
                                   Padding="8,6"
-                                  Margin="0,0,0,12"/>
+                                  Margin="0,0,0,12"
+                                  ToolTip="Организация, у которой был приобретен актив"/>
 
                         <!-- Текущая стоимость -->
-                        <TextBlock Text="Текущая стоимость" Foreground="#5D6D7E" Margin="0,0,0,5"/>
+                        <TextBlock Text="Текущая стоимость (₽)" Foreground="#5D6D7E" Margin="0,0,0,5"/>
                         <TextBox x:Name="TxtCurrentValue" 
                                  Padding="10,8"
                                  BorderBrush="#BDC3C7"
                                  Background="White"
-                                 PreviewTextInput="TxtDecimal_PreviewTextInput"/>
+                                 PreviewTextInput="TxtDecimal_PreviewTextInput"
+                                 ToolTip="Актуальная стоимость актива на данный момент"/>
+                        <TextBlock Text="💡 Формат: 12500.50 (до 2 знаков после запятой)" 
+                                   Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -243,8 +277,7 @@
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="15"
-                        Margin="0,0,0,12"
-                        Visibility="Visible">
+                        Margin="0,0,0,12">
                     <StackPanel>
                         <TextBlock Text="📊 Статус" 
                                    FontSize="14" 
@@ -253,7 +286,10 @@
                                    Margin="0,0,0,12"/>
 
                         <ComboBox x:Name="CmbStatus" 
-                                  Padding="8,6"/>
+                                  Padding="8,6"
+                                  ToolTip="Текущее состояние актива (исправен, в ремонте и т.д.)"/>
+                        <TextBlock Text="💡 Доступно только для типа актива «Оборудование»" 
+                                   Style="{StaticResource InfoTextStyle}"/>
                     </StackPanel>
                 </Border>
 
@@ -287,7 +323,11 @@
                     BorderThickness="0"
                     Cursor="Hand"
                     Margin="0,0,10,0"
-                    Click="BtnDelete_Click"/>
+                    Click="BtnDelete_Click">
+                <Button.ToolTip>
+                    <ToolTip>Удалить актив (только если нет связанных записей)</ToolTip>
+                </Button.ToolTip>
+            </Button>
 
             <Button x:Name="BtnCancel" 
                     Content="Отмена" 
@@ -297,7 +337,9 @@
                     BorderThickness="0"
                     Cursor="Hand"
                     Margin="0,0,10,0"
-                    Click="BtnCancel_Click"/>
+                    Click="BtnCancel_Click">
+                <Button.ToolTip>Отменить изменения и закрыть окно</Button.ToolTip>
+            </Button>
 
             <Button x:Name="BtnSave" 
                     Content="💾 Сохранить" 
@@ -306,7 +348,9 @@
                     Padding="20,8"
                     BorderThickness="0"
                     Cursor="Hand"
-                    Click="BtnSave_Click"/>
+                    Click="BtnSave_Click">
+                <Button.ToolTip>Сохранить изменения в базе данных</Button.ToolTip>
+            </Button>
         </StackPanel>
     </Grid>
 </Window>

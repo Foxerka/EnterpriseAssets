@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
+using System.Text.RegularExpressions;
 using EnterpriseAssets.Model.DataBase;
 
 namespace EnterpriseAssets.View
@@ -20,6 +20,30 @@ namespace EnterpriseAssets.View
             InitializeComponent();
             _equipmentId = equipmentId;
             Loaded += EquipmentManage_Loaded;
+            SetupInputMasks();
+        }
+
+        private void SetupInputMasks()
+        {
+            // Маска для типа оборудования (буквы, цифры, пробелы, дефисы)
+            TxtEquipmentType.PreviewTextInput += (s, e) =>
+            {
+                e.Handled = !Regex.IsMatch(e.Text, @"^[a-zA-Zа-яА-Я0-9\s\-\.\(\)]+$");
+            };
+            TxtEquipmentType.PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Space && string.IsNullOrEmpty(TxtEquipmentType.Text))
+                    e.Handled = true;
+            };
+
+            // Маска для производителя
+            TxtManufacturer.PreviewTextInput += (s, e) =>
+            {
+                e.Handled = !Regex.IsMatch(e.Text, @"^[a-zA-Zа-яА-Я0-9\s\-\.\(\)]+$");
+            };
+
+            // Маска для примечаний - без ограничений
+            // Маски для числовых полей уже есть в TxtNumber_PreviewTextInput
         }
 
         private void EquipmentManage_Loaded(object sender, RoutedEventArgs e)
@@ -43,154 +67,204 @@ namespace EnterpriseAssets.View
 
         private void LoadComboBoxes()
         {
-            // 1. Активы (фильтруемые)
             LoadAssetsComboBox();
-
-            // 2. Цеха
-            CmbWorkshop.ItemsSource = db.WORKSHOPS.ToList();
-            CmbWorkshop.DisplayMemberPath = "name";
-            CmbWorkshop.SelectedValuePath = "id";
-
-            // 3. Мастера
-            var masters = db.MASTERS.Include("USERS").ToList();
-            CmbMaster.ItemsSource = masters;
-            CmbMaster.DisplayMemberPath = "USERS.full_name";
-            CmbMaster.SelectedValuePath = "id";
-
-            // 4. Статусы
-            CmbStatus.ItemsSource = db.STATUSASSETS.ToList();
-            CmbStatus.DisplayMemberPath = "Status";
-            CmbStatus.SelectedValuePath = "ID_status";
+            LoadWorkshops();
+            LoadMasters();
+            LoadStatuses();
         }
 
         private void LoadAssetsComboBox()
         {
-            // Все активы типа "Оборудование"
-            var allAssets = db.PRODUCTION_ASSETS
-                              .Where(a => a.asset_type == 6)
-                              .ToList();
+            try
+            {
+                var allAssets = db.PRODUCTION_ASSETS
+                                  .Where(a => a.asset_type == 6)
+                                  .ToList();
 
-            // ID активов, которые уже привязаны к какому-либо оборудованию (строковые значения)
-            var usedAssetIds = db.EQUIPMENT
-                                 .Where(e => e.asset_id != null)
-                                 .Select(e => e.asset_id)
-                                 .Distinct()
-                                 .ToList();
+                var usedAssetIds = db.EQUIPMENT
+                                     .Where(e => e.asset_id != null)
+                                     .Select(e => e.asset_id)
+                                     .Distinct()
+                                     .ToList();
 
-            // Доступные активы = все активы нужного типа, исключая занятые
-            var availableAssets = allAssets
-                .Where(a => !usedAssetIds.Contains(a.id.ToString()))
-                .ToList();
+                var availableAssets = allAssets
+                    .Where(a => !usedAssetIds.Contains(a.id.ToString()))
+                    .ToList();
 
-            CmbAsset.ItemsSource = availableAssets;
-            CmbAsset.DisplayMemberPath = "name";
-            CmbAsset.SelectedValuePath = "id";
+                CmbAsset.ItemsSource = availableAssets;
+                CmbAsset.DisplayMemberPath = "name";
+                CmbAsset.SelectedValuePath = "id";
+
+                System.Diagnostics.Debug.WriteLine($"✅ Загружено активов: {availableAssets.Count}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки активов: {ex.Message}");
+            }
         }
 
+        private void LoadWorkshops()
+        {
+            try
+            {
+                CmbWorkshop.ItemsSource = db.WORKSHOPS.ToList();
+                CmbWorkshop.DisplayMemberPath = "name";
+                CmbWorkshop.SelectedValuePath = "id";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки цехов: {ex.Message}");
+            }
+        }
 
-        /// <summary>
-        /// Обновление списка активов для режима редактирования (включает текущий актив)
-        /// </summary>
+        private void LoadMasters()
+        {
+            try
+            {
+                var masters = db.MASTERS.Include("USERS").ToList();
+                CmbMaster.ItemsSource = masters;
+                CmbMaster.DisplayMemberPath = "USERS.full_name";
+                CmbMaster.SelectedValuePath = "id";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки мастеров: {ex.Message}");
+            }
+        }
+
+        private void LoadStatuses()
+        {
+            try
+            {
+                CmbStatus.ItemsSource = db.STATUSASSETS.ToList();
+                CmbStatus.DisplayMemberPath = "Status";
+                CmbStatus.SelectedValuePath = "ID_status";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка загрузки статусов: {ex.Message}");
+            }
+        }
+
         private void RefreshAssetsComboBoxForEdit()
         {
             if (_currentEquipment == null) return;
 
-            // Все активы типа "Оборудование"
-            var allAssets = db.PRODUCTION_ASSETS
-                              .Where(a => a.asset_type == 6)
-                              .ToList();
+            try
+            {
+                var allAssets = db.PRODUCTION_ASSETS
+                                  .Where(a => a.asset_type == 6)
+                                  .ToList();
 
-            // ID активов, занятых другим оборудованием (исключая текущее)
-            var usedAssetIds = db.EQUIPMENT
-                                 .Where(e => e.asset_id != null && e.ID != _equipmentId.Value)
-                                 .Select(e => e.asset_id)
-                                 .Distinct()
-                                 .ToList();
+                var usedAssetIds = db.EQUIPMENT
+                                     .Where(e => e.asset_id != null && e.ID != _equipmentId.Value)
+                                     .Select(e => e.asset_id)
+                                     .Distinct()
+                                     .ToList();
 
-            // Доступные активы = все активы нужного типа, кроме занятых, плюс текущий актив (чтобы он был в списке)
-            var availableAssets = allAssets
-                .Where(a => !usedAssetIds.Contains(a.id.ToString()) || a.id.ToString() == _currentEquipment.asset_id)
-                .ToList();
+                var availableAssets = allAssets
+                    .Where(a => !usedAssetIds.Contains(a.id.ToString()) || a.id.ToString() == _currentEquipment.asset_id)
+                    .ToList();
 
-            CmbAsset.ItemsSource = availableAssets;
-            CmbAsset.DisplayMemberPath = "name";
-            CmbAsset.SelectedValuePath = "id";
+                CmbAsset.ItemsSource = availableAssets;
+                CmbAsset.DisplayMemberPath = "name";
+                CmbAsset.SelectedValuePath = "id";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка обновления списка активов: {ex.Message}");
+            }
         }
+
         private void LoadEquipmentData()
         {
-            _currentEquipment = db.EQUIPMENT
-                .Include("WORKSHOPS")
-                .Include("MASTERS")
-                .Include("STATUSASSETS")
-                .FirstOrDefault(e => e.ID == _equipmentId.Value);
-
-            if (_currentEquipment == null)
+            try
             {
-                MessageBox.Show("Оборудование не найдено.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                Close();
-                return;
+                _currentEquipment = db.EQUIPMENT
+                    .Include("WORKSHOPS")
+                    .Include("MASTERS")
+                    .Include("STATUSASSETS")
+                    .FirstOrDefault(e => e.ID == _equipmentId.Value);
+
+                if (_currentEquipment == null)
+                {
+                    MessageBox.Show("Оборудование не найдено.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Close();
+                    return;
+                }
+
+                RefreshAssetsComboBoxForEdit();
+
+                // Заполнение полей
+                if (int.TryParse(_currentEquipment.asset_id, out int assetId))
+                {
+                    CmbAsset.SelectedValue = assetId;
+                }
+
+                TxtEquipmentType.Text = _currentEquipment.equipment_type;
+                TxtManufacturer.Text = _currentEquipment.manufacturer;
+                TxtNotes.Text = _currentEquipment.notes;
+                CmbWorkshop.SelectedValue = _currentEquipment.Workshop_id;
+                CmbMaster.SelectedValue = _currentEquipment.assigned_to;
+                DpInstallationDate.SelectedDate = _currentEquipment.installation_date;
+                TxtWarranty.Text = _currentEquipment.warranty_period_months?.ToString();
+                DpLastMaintenance.SelectedDate = _currentEquipment.last_maintenance_date;
+                DpNextMaintenance.SelectedDate = _currentEquipment.next_maintenance_date;
+                TxtCurrentHours.Text = _currentEquipment.current_work_hours?.ToString();
+                TxtMaxHours.Text = _currentEquipment.max_work_hours_before_maintenance?.ToString();
+                CmbStatus.SelectedValue = _currentEquipment.status;
             }
-
-            // Обновляем список активов с учётом текущего
-            RefreshAssetsComboBoxForEdit();
-
-            // Заполнение полей
-            CmbAsset.SelectedValue = ParseInt(_currentEquipment.asset_id); // если asset_id число, иначе используйте строку
-            TxtEquipmentType.Text = _currentEquipment.equipment_type;
-            TxtManufacturer.Text = _currentEquipment.manufacturer;
-            TxtNotes.Text = _currentEquipment.notes;
-            CmbWorkshop.SelectedValue = _currentEquipment.Workshop_id;
-            CmbMaster.SelectedValue = _currentEquipment.assigned_to;
-            DpInstallationDate.SelectedDate = _currentEquipment.installation_date;
-            TxtWarranty.Text = _currentEquipment.warranty_period_months?.ToString();
-            DpLastMaintenance.SelectedDate = _currentEquipment.last_maintenance_date;
-            DpNextMaintenance.SelectedDate = _currentEquipment.next_maintenance_date;
-            TxtCurrentHours.Text = _currentEquipment.current_work_hours?.ToString();
-            TxtMaxHours.Text = _currentEquipment.max_work_hours_before_maintenance?.ToString();
-            CmbStatus.SelectedValue = _currentEquipment.status;
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки данных: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void CmbAsset_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Здесь можно автоматически заполнять поля, если актив содержит нужные данные
-            // Например:
-            // if (CmbAsset.SelectedItem is PRODUCTION_ASSETS selectedAsset)
-            // {
-            //     TxtEquipmentType.Text = selectedAsset.type;        // если есть такое поле
-            //     TxtManufacturer.Text = selectedAsset.manufacturer; // если есть
-            // }
+            // Можно автоматически заполнять поля из выбранного актива
+            if (CmbAsset.SelectedItem is PRODUCTION_ASSETS selectedAsset)
+            {
+                // Например: TxtEquipmentType.Text = selectedAsset.name; - по желанию
+            }
         }
 
         private bool ValidateFields()
         {
             if (CmbAsset.SelectedValue == null)
             {
-                MessageBox.Show("Выберите производственный актив.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowWarning("Выберите производственный актив.");
+                CmbAsset.Focus();
                 return false;
             }
             if (string.IsNullOrWhiteSpace(TxtEquipmentType.Text))
             {
-                MessageBox.Show("Введите тип оборудования.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowWarning("Введите тип оборудования.");
+                TxtEquipmentType.Focus();
                 return false;
             }
             if (string.IsNullOrWhiteSpace(TxtManufacturer.Text))
             {
-                MessageBox.Show("Введите производителя.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowWarning("Введите производителя.");
+                TxtManufacturer.Focus();
                 return false;
             }
             if (CmbWorkshop.SelectedValue == null)
             {
-                MessageBox.Show("Выберите цех.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowWarning("Выберите цех.");
+                CmbWorkshop.Focus();
                 return false;
             }
             if (CmbMaster.SelectedValue == null)
             {
-                MessageBox.Show("Выберите ответственного мастера.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowWarning("Выберите ответственного мастера.");
+                CmbMaster.Focus();
                 return false;
             }
             if (CmbStatus.SelectedValue == null)
             {
-                MessageBox.Show("Выберите статус оборудования.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ShowWarning("Выберите статус оборудования.");
+                CmbStatus.Focus();
                 return false;
             }
             return true;
@@ -221,6 +295,7 @@ namespace EnterpriseAssets.View
                     _currentEquipment.status = (int?)CmbStatus.SelectedValue;
 
                     db.SaveChanges();
+                    ShowSuccess("Оборудование успешно обновлено.");
                 }
                 else
                 {
@@ -244,6 +319,7 @@ namespace EnterpriseAssets.View
 
                     db.EQUIPMENT.Add(newEquipment);
                     db.SaveChanges();
+                    ShowSuccess("Оборудование успешно добавлено.");
                 }
 
                 DialogResult = true;
@@ -251,7 +327,7 @@ namespace EnterpriseAssets.View
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowError($"Ошибка при сохранении: {ex.Message}");
             }
         }
 
@@ -259,8 +335,10 @@ namespace EnterpriseAssets.View
         {
             if (!_equipmentId.HasValue) return;
 
-            var result = MessageBox.Show("Вы уверены, что хотите удалить это оборудование?", "Подтверждение",
-                                         MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var result = MessageBox.Show("Вы уверены, что хотите удалить это оборудование?\n\nЭто действие нельзя отменить.",
+                                         "Подтверждение удаления",
+                                         MessageBoxButton.YesNo,
+                                         MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {
                 try
@@ -270,13 +348,14 @@ namespace EnterpriseAssets.View
                     {
                         db.EQUIPMENT.Remove(equipment);
                         db.SaveChanges();
+                        ShowSuccess("Оборудование успешно удалено.");
                         DialogResult = true;
                         Close();
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Ошибка при удалении: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowError($"Ошибка при удалении: {ex.Message}");
                 }
             }
         }
@@ -289,8 +368,8 @@ namespace EnterpriseAssets.View
 
         private void TxtNumber_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            if (!char.IsDigit(e.Text, 0))
-                e.Handled = true;
+            // Разрешаем только цифры
+            e.Handled = !char.IsDigit(e.Text, 0);
         }
 
         private int? ParseInt(string text)
@@ -298,6 +377,27 @@ namespace EnterpriseAssets.View
             if (int.TryParse(text, out int result))
                 return result;
             return null;
+        }
+
+        private void ShowWarning(string message)
+        {
+            MessageBox.Show(message, "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+
+        private void ShowError(string message)
+        {
+            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void ShowSuccess(string message)
+        {
+            MessageBox.Show(message, "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            db?.Dispose();
+            base.OnClosed(e);
         }
     }
 }
