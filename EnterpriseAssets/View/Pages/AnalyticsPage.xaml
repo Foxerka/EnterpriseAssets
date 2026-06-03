@@ -1,0 +1,215 @@
+﻿<Page x:Class="EnterpriseAssets.View.AnalyticsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      mc:Ignorable="d" 
+      d:DesignHeight="700" d:DesignWidth="1200"
+      Title="Аналитика"
+      Background="#F5F5F5">
+
+    <Page.Resources>
+        <!-- Стиль для KPI карточки -->
+        <Style x:Key="KpiCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.15"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для секции -->
+        <Style x:Key="SectionStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="5" ShadowDepth="1" Opacity="0.1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для навигационной кнопки раздела -->
+        <Style x:Key="SectionNavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#555555"/>
+            <Setter Property="FontWeight" Value="Normal"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E3F2FD"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Page.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Заголовок -->
+        <Border Grid.Row="0" Background="White" Padding="20" CornerRadius="10" Margin="0,0,0,15">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="📊" FontSize="32" VerticalAlignment="Center" Margin="0,0,15,0"/>
+                <StackPanel>
+                    <TextBlock Text="Аналитика предприятия" 
+                              FontSize="26" 
+                              FontWeight="Bold" 
+                              Foreground="#333333"/>
+                    <TextBlock Text="Обзор ключевых показателей и статистики" 
+                              FontSize="13" 
+                              Foreground="#888888"
+                              Margin="0,3,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- Основной контент -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Левая панель навигации -->
+            <!-- Левая панель навигации -->
+            <Border Grid.Column="0" Background="White" CornerRadius="10" Padding="10" Margin="0,0,10,0" VerticalAlignment="Stretch">
+                <StackPanel>
+                    <TextBlock Text="Разделы" FontSize="16" FontWeight="Bold" Margin="10,5,10,15" Foreground="#333333"/>
+
+                    <Button x:Name="BtnNavOverview" 
+                Style="{StaticResource SectionNavButton}" 
+                Click="SectionButton_Click" 
+                Content="📈 Общий обзор"/>
+
+                    <Button x:Name="BtnNavCategories" 
+                Style="{StaticResource SectionNavButton}" 
+                Click="SectionButton_Click" 
+                Content="📁 По категориям"
+                Margin="0,2,0,0"/>
+
+                    <Button x:Name="BtnNavStatuses" 
+                Style="{StaticResource SectionNavButton}" 
+                Click="SectionButton_Click" 
+                Content="🔄 По статусам"
+                Margin="0,2,0,0"/>
+
+                    <Button x:Name="BtnNavWorkshops" 
+                Style="{StaticResource SectionNavButton}" 
+                Click="SectionButton_Click" 
+                Content="🏭 По цехам"
+                Margin="0,2,0,0"/>
+
+                    <Button x:Name="BtnNavFinance" 
+                Style="{StaticResource SectionNavButton}" 
+                Click="SectionButton_Click" 
+                Content="💰 Финансы"
+                Margin="0,2,0,0"/>
+
+                    <Button x:Name="BtnNavMaintenance" 
+                Style="{StaticResource SectionNavButton}" 
+                Click="SectionButton_Click" 
+                Content="🔧 Обслуживание"
+                Margin="0,2,0,0"/>
+
+                    <!-- Разделитель -->
+                    <Border BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0,15,0,10"/>
+
+                    <!-- Фильтр периода -->
+                    <TextBlock Text="Период анализа" FontSize="12" FontWeight="Bold" Margin="10,0,10,8" Foreground="#666666"/>
+
+                    <TextBlock Text="С:" FontSize="11" Margin="10,0,10,3" Foreground="#888888"/>
+                    <DatePicker x:Name="DpPeriodStart" 
+                    Margin="10,0,10,8" 
+                    SelectedDateChanged="PeriodFilter_Changed"/>
+
+                    <TextBlock Text="По:" FontSize="11" Margin="10,0,10,3" Foreground="#888888"/>
+                    <DatePicker x:Name="DpPeriodEnd" 
+                    Margin="10,0,10,8" 
+                    SelectedDateChanged="PeriodFilter_Changed"/>
+
+                    <Button Content="Применить" 
+                Background="#2196F3"
+                Foreground="White"
+                FontWeight="Bold"
+                Height="35"
+                Margin="10,5,10,0"
+                Cursor="Hand"
+                Click="BtnApplyPeriod_Click"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Правая панель с контентом -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <!-- KPI карточки (всегда видны) -->
+                    <StackPanel x:Name="KpiPanel">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- KPI 1: Всего активов -->
+                            <Border Grid.Column="0" Style="{StaticResource KpiCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="📦 Всего активов" FontSize="13" Foreground="#888888"/>
+                                    <TextBlock x:Name="TxtTotalAssets" Text="0" FontSize="32" FontWeight="Bold" Foreground="#2196F3" Margin="0,8,0,0"/>
+                                    <TextBlock x:Name="TxtAssetsChange" Text="+0 за месяц" FontSize="12" Foreground="#4CAF50" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 2: Общая стоимость -->
+                            <Border Grid.Column="1" Style="{StaticResource KpiCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="💵 Общая стоимость" FontSize="13" Foreground="#888888"/>
+                                    <TextBlock x:Name="TxtTotalValue" Text="0 ₽" FontSize="28" FontWeight="Bold" Foreground="#4CAF50" Margin="0,8,0,0"/>
+                                    <TextBlock Text="По всем активам" FontSize="12" Foreground="#888888" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 3: В ремонте -->
+                            <Border Grid.Column="2" Style="{StaticResource KpiCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text="🔧 В ремонте" FontSize="13" Foreground="#888888"/>
+                                    <TextBlock x:Name="TxtInRepair" Text="0" FontSize="32" FontWeight="Bold" Foreground="#FF9800" Margin="0,8,0,0"/>
+                                    <TextBlock x:Name="TxtRepairPercent" Text="0% от всех" FontSize="12" Foreground="#FF9800" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- KPI 4: На складе -->
+                            <Border Grid.Column="3" Style="{StaticResource KpiCardStyle}">
+                                <StackPanel>
+                                    <TextBlock Text=" На складе" FontSize="13" Foreground="#888888"/>
+                                    <TextBlock x:Name="TxtInWarehouse" Text="0" FontSize="32" FontWeight="Bold" Foreground="#9C27B0" Margin="0,8,0,0"/>
+                                    <TextBlock x:Name="TxtWarehousePercent" Text="0% от всех" FontSize="12" Foreground="#9C27B0" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Контент выбранного раздела -->
+                        <ContentControl x:Name="SectionContent" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>

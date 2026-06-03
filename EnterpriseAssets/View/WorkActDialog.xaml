@@ -1,115 +1,122 @@
-﻿<Window x:Class="EnterpriseAssets.View.WorkActDialog"
+﻿<Window x:Class="EnterpriseAssets.View.Pages.WorkActDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Акт работ" Height="650" Width="600" 
-        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+        Title="Акт работ" 
+        Height="720" 
+        Width="750"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="#F5F7FA">
 
-    <Grid Margin="15">
+    <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Акт работ" FontSize="22" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,15"/>
-
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <!-- Заголовок -->
+        <Border Grid.Row="0" Background="White" Padding="20" CornerRadius="8" Margin="0,0,0,15">
             <StackPanel>
-                <!-- Номер и дата -->
-                <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
+                <TextBlock x:Name="TxtTitle" 
+                           Text="Создание акта работ" 
+                           FontSize="22" 
+                           FontWeight="Bold" 
+                           Foreground="#2C3E50"/>
+                <TextBlock Text="Заполните информацию о выполненных работах" 
+                           FontSize="12" 
+                           Foreground="#7F8C8D" 
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Форма -->
+        <Border Grid.Row="1" Background="White" Padding="20" CornerRadius="8">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- Первая строка: Номер + Дата -->
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                            <TextBlock Text="Номер акта" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                            <TextBox x:Name="TxtActNumber" Padding="10"/>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Номер акта *" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <TextBox x:Name="TxtActNumber" 
+                                     Height="35" 
+                                     Padding="10,0" 
+                                     VerticalContentAlignment="Center"/>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="Дата акта" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                            <DatePicker x:Name="DateAct" Padding="8"/>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Дата работ *" FontWeight="SemiBold" Margin="0,0,0,5"/>
+                            <DatePicker x:Name="DpWorkDate" Height="35"/>
                         </StackPanel>
                     </Grid>
-                </Border>
 
-                <!-- Оборудование -->
-                <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
-                    <StackPanel>
-                        <TextBlock Text="Оборудование" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                        <ComboBox x:Name="CmbEquipment" Padding="10" DisplayMemberPath="name" 
-                                  SelectionChanged="CmbEquipment_SelectionChanged"/>
-                    </StackPanel>
-                </Border>
+                    <!-- Оборудование -->
+                    <TextBlock Text="Оборудование *" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                    <ComboBox x:Name="CmbEquipment" 
+                              Height="35" 
+                              Margin="0,0,0,0"/>
 
-                <!-- Мастер -->
-                <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
-                    <StackPanel>
-                        <TextBlock Text="Мастер" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                        <ComboBox x:Name="CmbMaster" Padding="10" DisplayMemberPath="FullName">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="{Binding FullName}"/>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </StackPanel>
-                </Border>
+                    <!-- Актив (материал) -->
+                    <TextBlock Text="Актив / материал" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                    <ComboBox x:Name="CmbAsset" 
+                              Height="35"/>
 
-                <!-- Статус -->
-                <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
-                    <StackPanel>
-                        <TextBlock Text="Статус" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                        <ComboBox x:Name="CmbStatus" Padding="10" DisplayMemberPath="Status"/>
-                    </StackPanel>
-                </Border>
+                    <!-- Количество -->
+                    <TextBlock Text="Количество" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                    <TextBox x:Name="TxtQuantity" 
+                             Height="35" 
+                             Padding="10,0" 
+                             VerticalContentAlignment="Center"/>
 
-                <!-- Описание работ -->
-                <Border Background="White" CornerRadius="8" Padding="15" Margin="0,0,0,15">
-                    <StackPanel>
-                        <TextBlock Text="Описание работ" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                        <TextBox x:Name="TxtDescription" Padding="10" Height="80" TextWrapping="Wrap"/>
-                    </StackPanel>
-                </Border>
+                    <!-- Мастер -->
+                    <TextBlock Text="Исполнитель *" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                    <ComboBox x:Name="CmbMaster" 
+                              Height="35"/>
 
-                <!-- Акт завершения (если статус Завершен) -->
-                <Border x:Name="CompletionSection" Background="White" CornerRadius="8" Padding="15" 
-                        Margin="0,0,0,15" Visibility="Collapsed">
-                    <StackPanel>
-                        <TextBlock Text="Акт завершения" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,10"/>
+                    <!-- Описание работ -->
+                    <TextBlock Text="Описание работ *" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                    <TextBox x:Name="TxtDescription" 
+                             Height="100" 
+                             TextWrapping="Wrap" 
+                             AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             Padding="10"/>
 
-                        <StackPanel Margin="0,0,0,10">
-                            <TextBlock Text="Номер акта завершения" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                            <TextBox x:Name="TxtCompletionNumber" Padding="10"/>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,0,0,10">
-                            <TextBlock Text="Дата завершения" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                            <DatePicker x:Name="DateCompletion" Padding="8"/>
-                        </StackPanel>
-
-                        <StackPanel Margin="0,0,0,10">
-                            <CheckBox x:Name="ChkQualityCheck" Content="Проверка качества пройдена" Margin="0,5"/>
-                        </StackPanel>
-
-                        <StackPanel>
-                            <TextBlock Text="Комментарии" Foreground="#7F8C8D" FontSize="12" Margin="0,0,0,5"/>
-                            <TextBox x:Name="TxtCompletionComments" Padding="10" Height="60" TextWrapping="Wrap"/>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
+                    <!-- Статус -->
+                    <TextBlock Text="Статус *" FontWeight="SemiBold" Margin="0,15,0,5"/>
+                    <ComboBox x:Name="CmbStatus" 
+                              Height="35" 
+                              SelectedIndex="0"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
 
         <!-- Кнопки -->
-        <Border Grid.Row="2" Background="White" CornerRadius="8" Padding="15" Margin="0,15,0,0">
+        <Border Grid.Row="2" Background="White" Padding="15" CornerRadius="8" Margin="0,15,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Отмена" Click="Cancel_Click" Background="Transparent" Foreground="#7F8C8D" 
-                        BorderBrush="#ccc" BorderThickness="1" Padding="20,8" Margin="0,0,10,0" Cursor="Hand"/>
-                <Button Content="Сохранить" Click="Save_Click" Background="#4A6FA5" Foreground="White" 
-                        BorderThickness="0" Padding="20,8" Cursor="Hand"/>
+                <Button Content="Отмена" 
+                        Click="BtnCancel_Click"
+                        Background="#95A5A6"
+                        Foreground="White"
+                        Width="120"
+                        Height="40"
+                        Margin="0,0,10,0"
+                        Cursor="Hand"
+                        BorderThickness="0"/>
+                <Button Content="💾 Сохранить" 
+                        Click="BtnSave_Click"
+                        Background="#27AE60"
+                        Foreground="White"
+                        Width="150"
+                        Height="40"
+                        Cursor="Hand"
+                        BorderThickness="0"/>
             </StackPanel>
         </Border>
     </Grid>

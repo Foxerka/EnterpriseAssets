@@ -154,6 +154,9 @@ namespace EnterpriseAssets.ViewModel
                 RoleName = roleName
             };
 
+            // 🔥 Устанавливаем сессию ДО открытия главного окна
+            Session.CurrentUser = currentUser;
+
             // Открываем главное окно
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -176,6 +179,7 @@ namespace EnterpriseAssets.ViewModel
             var logger = new UserLogger(dbUser.id);
             logger.LogLogin();
         }
+
 
         private string GetUserRole(int? roleId)
         {

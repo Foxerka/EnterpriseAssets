@@ -160,7 +160,9 @@
     <Compile Include="Model\DataBase\WORK_ACTS_MATERIALS.cs">
       <DependentUpon>DBManage.tt</DependentUpon>
     </Compile>
+    <Compile Include="Model\Session.cs" />
     <Compile Include="Model\User.cs" />
+    <Compile Include="Model\WorkActViewModel.cs" />
     <Compile Include="Services\ActionLogger.cs" />
     <Compile Include="Services\UserLogger.cs" />
     <Compile Include="ViewModel\LoginViewModel.cs" />
@@ -168,6 +170,9 @@
     <Compile Include="ViewModel\RelayCommand.cs" />
     <Compile Include="View\AssetManage.xaml.cs">
       <DependentUpon>AssetManage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\CreateReportWindow.xaml.cs">
+      <DependentUpon>CreateReportWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\EquipmentManage.xaml.cs">
       <DependentUpon>EquipmentManage.xaml</DependentUpon>
@@ -184,6 +189,9 @@
     <Compile Include="View\MasterManage.xaml.cs">
       <DependentUpon>MasterManage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\Pages\AnalyticsPage.xaml.cs">
+      <DependentUpon>AnalyticsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\Pages\AssetsPage.xaml.cs">
       <DependentUpon>AssetsPage.xaml</DependentUpon>
     </Compile>
@@ -198,6 +206,9 @@
     </Compile>
     <Compile Include="View\Pages\PurchasesPage.xaml.cs">
       <DependentUpon>PurchasesPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\Pages\ReportsPage.xaml.cs">
+      <DependentUpon>ReportsPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\Pages\SuppliersPage.xaml.cs">
       <DependentUpon>SuppliersPage.xaml</DependentUpon>
@@ -236,6 +247,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\CreateReportWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\EquipmentManage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -268,6 +283,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="View\Pages\AnalyticsPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\Pages\AssetsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -285,6 +304,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\Pages\PurchasesPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\Pages\ReportsPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

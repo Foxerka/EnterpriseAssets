@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using EnterpriseAssets.Model;
 using EnterpriseAssets.Model.DataBase;
 
 namespace EnterpriseAssets.View.Pages
@@ -13,6 +14,7 @@ namespace EnterpriseAssets.View.Pages
     {
         private DB_AssetManage db = new DB_AssetManage();
         private int? _selectedEquipmentId;
+        private string _searchEquipmentText = "";
 
         public MaintenancePage()
         {
@@ -31,14 +33,12 @@ namespace EnterpriseAssets.View.Pages
         {
             try
             {
-                // Проверяем, что EquipmentList существует
                 if (EquipmentList == null)
                 {
                     System.Diagnostics.Debug.WriteLine("EquipmentList is null!");
                     return;
                 }
 
-                // Загружаем оборудование с навигационными свойствами
                 var equipment = db.EQUIPMENT
                     .Include("WORKSHOPS")
                     .Include("MASTERS")
@@ -67,7 +67,17 @@ namespace EnterpriseAssets.View.Pages
                     };
                 }
 
-                // Преобразуем в ViewModel с безопасной обработкой null
+                // 🔍 Фильтр по поиску (инв.номер, тип, производитель)
+                if (!string.IsNullOrWhiteSpace(_searchEquipmentText))
+                {
+                    equipment = equipment.Where(e =>
+                        (e.asset_id?.ToLower().Contains(_searchEquipmentText) ?? false) ||
+                        (e.equipment_type?.ToLower().Contains(_searchEquipmentText) ?? false) ||
+                        (e.manufacturer?.ToLower().Contains(_searchEquipmentText) ?? false) ||
+                        (e.operational_status?.ToLower().Contains(_searchEquipmentText) ?? false)
+                    ).ToList();
+                }
+
                 var viewModels = equipment.Select(e => new EquipmentViewModel1
                 {
                     Id = e.ID,
@@ -88,7 +98,6 @@ namespace EnterpriseAssets.View.Pages
                     MaxWorkHours = e.max_work_hours_before_maintenance ?? 0
                 }).ToList();
 
-                // Сортировка по приоритету
                 viewModels = viewModels.OrderBy(vm => GetMaintenancePriority(vm.NextMaintenance, vm.StatusName)).ToList();
 
                 EquipmentList.ItemsSource = viewModels;
@@ -289,6 +298,56 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
+        /// <summary>
+        /// 🔍 Поиск оборудования
+        /// </summary>
+        private void SearchEquipment_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _searchEquipmentText = SearchEquipmentBox.Text?.Trim().ToLower() ?? "";
+            LoadEquipment();
+        }
+
+        /// <summary>
+        /// 📝 Создание акта работ для выбранного оборудования
+        /// </summary>
+        private void CreateActForEquipment_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_selectedEquipmentId.HasValue)
+            {
+                MessageBox.Show("Сначала выберите оборудование", "Внимание",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                int currentUserId = Session.CurrentUserId;
+
+                if (currentUserId == 0)
+                {
+                    MessageBox.Show("Не удалось определить текущего пользователя. Выполните вход заново.",
+                        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                var dialog = new WorkActDialog(currentUserId, _selectedEquipmentId.Value);
+                dialog.Owner = Window.GetWindow(this);
+                if (dialog.ShowDialog() == true)
+                {
+                    LoadEquipment();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private int GetCurrentUserId()
+        {
+            return Session.CurrentUserId;
+        }
         // 🔹 Обработчики событий
         private void CmbStatusFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
             => LoadEquipment();
@@ -319,6 +378,10 @@ namespace EnterpriseAssets.View.Pages
                             StatusBadge.Background = new SolidColorBrush(
                                 (Color)ColorConverter.ConvertFromString(GetStatusColor(eq.STATUSASSETS?.Status ?? eq.operational_status)));
                         }
+
+                        // Показываем кнопку создания акта
+                        if (BtnCreateActForEquipment != null)
+                            BtnCreateActForEquipment.Visibility = Visibility.Visible;
                     }
 
                     LoadMaintenanceHistory(id);

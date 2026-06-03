@@ -1,183 +1,384 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using EnterpriseAssets.Model.DataBase;
 
-namespace EnterpriseAssets.View
+namespace EnterpriseAssets.View.Pages
 {
     public partial class WorkActDialog : Window
     {
         private DB_AssetManage db = new DB_AssetManage();
-        private WORK_ACTS _currentAct;
-        private bool _isNewAct;
         private int _currentUserId;
+        private int? _currentMasterId;
+        private bool _isAdmin;
+        private WORK_ACTS _editingAct;
+        private bool _isNew;
+        private bool _canEdit;
 
-        // Класс для мастера
-        public class MasterItem
-        {
-            public int id { get; set; }
-            public string FullName { get; set; }
-        }
-
-        public WorkActDialog(int currentUserId)
+        public WorkActDialog(int currentUserId, int? preselectedEquipmentId = null)
         {
             InitializeComponent();
             _currentUserId = currentUserId;
-            _isNewAct = true;
-            _currentAct = new WORK_ACTS();
-            Title = "Новый акт работ";
-            LoadComboBoxes();
-            DateAct.SelectedDate = DateTime.Now;
+            _isNew = true;
+            _canEdit = true;
+            LoadCurrentUser();
+            LoadData(preselectedEquipmentId);
+            LoadStatuses();
+
+            DpWorkDate.SelectedDate = DateTime.Now;
+            TxtActNumber.Text = $"АКТ-{DateTime.Now:yyyyMMdd}-{GetNextActNumber()}";
         }
 
-        public WorkActDialog(WORK_ACTS act, int currentUserId) : this(currentUserId)
+        public WorkActDialog(WORK_ACTS act, int currentUserId, bool isAdmin)
         {
-            _currentAct = act;
-            _isNewAct = false;
-            Title = $"Акт работ №{act.act_number}";
-            LoadActData();
-        }
+            InitializeComponent();
+            _currentUserId = currentUserId;
+            _isAdmin = isAdmin;
+            _editingAct = act;
+            _isNew = false;
+            LoadCurrentUser();
 
-        private void LoadComboBoxes()
-        {
-            // Загрузка оборудования
-            CmbEquipment.ItemsSource = db.EQUIPMENT.ToList();
+            // Проверка прав на редактирование
+            _canEdit = _isAdmin || (_editingAct.master_id == _currentMasterId);
 
-            // Загрузка мастеров - используем конкретный тип
-            var masters = db.MASTERS
-                .Include("USERS")
-                .Select(m => new MasterItem { id = m.id, FullName = m.USERS.full_name })
-                .ToList();
-            CmbMaster.ItemsSource = masters;
+            TxtTitle.Text = _canEdit
+                ? $"Редактирование: {act.act_number}"
+                : $"Просмотр: {act.act_number} (только чтение)";
 
-            // Загрузка статусов
-            CmbStatus.ItemsSource = db.ActStatus.ToList();
-        }
+            LoadData();
+            LoadStatuses();
+            FillForm();
 
-        private void LoadActData()
-        {
-            TxtActNumber.Text = _currentAct.act_number;
-            DateAct.SelectedDate = _currentAct.work_date;
-            TxtDescription.Text = _currentAct.work_type;
-
-            if (_currentAct.equipment_id.HasValue)
+            // Если нет прав — блокируем форму
+            if (!_canEdit)
             {
-                CmbEquipment.SelectedValue = _currentAct.equipment_id;
-            }
-
-            if (_currentAct.master_id.HasValue)
-            {
-                // Ищем мастера по id
-                var master = CmbMaster.ItemsSource.Cast<MasterItem>().FirstOrDefault(m => m.id == _currentAct.master_id);
-                if (master != null)
-                {
-                    CmbMaster.SelectedItem = master;
-                }
-            }
-
-            if (_currentAct.status.HasValue)
-            {
-                CmbStatus.SelectedValue = _currentAct.status;
-            }
-
-            // COMPLETION_ACTS - это коллекция, берем первый элемент
-            var completionAct = _currentAct.COMPLETION_ACTS?.FirstOrDefault();
-            if (completionAct != null)
-            {
-                ShowCompletionSection();
-                TxtCompletionNumber.Text = completionAct.act_number;
-                DateCompletion.SelectedDate = completionAct.completion_date;
-                ChkQualityCheck.IsChecked = completionAct.quality_check;
-                TxtCompletionComments.Text = completionAct.comments;
+                TxtActNumber.IsEnabled = false;
+                DpWorkDate.IsEnabled = false;
+                CmbEquipment.IsEnabled = false;
+                CmbAsset.IsEnabled = false;
+                TxtQuantity.IsEnabled = false;
+                CmbMaster.IsEnabled = false;
+                TxtDescription.IsEnabled = false;
+                CmbStatus.IsEnabled = false;
             }
         }
 
-        private void CmbEquipment_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            // Дополнительная логика при выборе оборудования
-        }
-
-        private void Save_Click(object sender, RoutedEventArgs e)
+        private void LoadCurrentUser()
         {
             try
             {
-                // Валидация
-                if (string.IsNullOrWhiteSpace(TxtActNumber.Text))
+                var user = db.USERS.Include("ROLES").FirstOrDefault(u => u.id == _currentUserId);
+                _isAdmin = user?.ROLES?.name == "Администратор" ||
+                           user?.ROLES?.name == "Руководитель";
+
+                var master = db.MASTERS.FirstOrDefault(m => m.user_id == _currentUserId);
+                _currentMasterId = master?.id;
+            }
+            catch { }
+        }
+
+        private void LoadData(int? preselectedEquipmentId = null)
+        {
+            try
+            {
+                var equipment = db.EQUIPMENT
+                    .OrderBy(e => e.asset_id)
+                    .ToList()
+                    .Select(e => new EquipmentDisplay
+                    {
+                        Id = e.ID,
+                        DisplayName = FormatEquipmentName(e)
+                    })
+                    .ToList();
+                CmbEquipment.ItemsSource = equipment;
+
+                if (preselectedEquipmentId.HasValue)
                 {
-                    MessageBox.Show("Введите номер акта", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
+                    CmbEquipment.SelectedItem = equipment.FirstOrDefault(e => e.Id == preselectedEquipmentId.Value);
                 }
 
-                // Заполнение акта работ
-                _currentAct.act_number = TxtActNumber.Text;
-                _currentAct.work_date = DateAct.SelectedDate ?? DateTime.Now;
-                _currentAct.work_type = TxtDescription.Text;
-                _currentAct.created_at = DateTime.Now;
+                var assets = db.PRODUCTION_ASSETS
+                    .Include("CATEGORY")
+                    .OrderBy(a => a.name)
+                    .ToList()
+                    .Select(a => new AssetDisplay
+                    {
+                        Id = a.id,
+                        DisplayName = !string.IsNullOrWhiteSpace(a.name) ? a.name : $"Актив #{a.id}"
+                    })
+                    .ToList();
+                CmbAsset.ItemsSource = assets;
 
-                if (CmbEquipment.SelectedItem is EQUIPMENT eq)
-                    _currentAct.equipment_id = eq.ID;
+                var masters = db.MASTERS
+                    .Include("USERS")
+                    .Where(m => m.user_id != null)
+                    .ToList()
+                    .Select(m => new MasterDisplay
+                    {
+                        Id = m.id,
+                        DisplayName = m.USERS?.full_name ?? $"Мастер #{m.id}"
+                    })
+                    .OrderBy(m => m.DisplayName)
+                    .ToList();
+                CmbMaster.ItemsSource = masters;
 
-                // Используем конкретный тип вместо dynamic
-                if (CmbMaster.SelectedItem is MasterItem master)
-                    _currentAct.master_id = master.id;
-
-                if (CmbStatus.SelectedItem is ActStatus status)
-                    _currentAct.status = status.ID_status;
-
-                if (_isNewAct)
+                if (_currentMasterId.HasValue && _isNew)
                 {
-                    db.WORK_ACTS.Add(_currentAct);
+                    var currentMaster = masters.FirstOrDefault(m => m.Id == _currentMasterId.Value);
+                    if (currentMaster != null)
+                    {
+                        CmbMaster.SelectedItem = currentMaster;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки данных: {ex.Message}",
+                              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LoadStatuses()
+        {
+            try
+            {
+                var statuses = db.ActStatus.OrderBy(s => s.ID_status).ToList();
+                CmbStatus.ItemsSource = statuses;
+                CmbStatus.DisplayMemberPath = "Status";
+                CmbStatus.SelectedValuePath = "ID_status";
+                if (statuses.Any()) CmbStatus.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки статусов: {ex.Message}",
+                              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private string FormatEquipmentName(EQUIPMENT e)
+        {
+            var parts = new List<string>();
+            if (!string.IsNullOrWhiteSpace(e.asset_id)) parts.Add(e.asset_id);
+            if (!string.IsNullOrWhiteSpace(e.equipment_type)) parts.Add(e.equipment_type);
+            if (!string.IsNullOrWhiteSpace(e.manufacturer)) parts.Add(e.manufacturer);
+            return parts.Count > 0 ? string.Join(" • ", parts) : $"Оборудование #{e.ID}";
+        }
+
+        private void FillForm()
+        {
+            if (_editingAct == null) return;
+
+            TxtActNumber.Text = _editingAct.act_number;
+            DpWorkDate.SelectedDate = _editingAct.work_date;
+            TxtDescription.Text = _editingAct.work_type;
+            TxtQuantity.Text = _editingAct.quantity?.ToString() ?? "";
+
+            if (_editingAct.equipment_id.HasValue)
+            {
+                CmbEquipment.SelectedItem = CmbEquipment.ItemsSource
+                    .Cast<EquipmentDisplay>()
+                    .FirstOrDefault(e => e.Id == _editingAct.equipment_id.Value);
+            }
+
+            if (_editingAct.asset_id.HasValue)
+            {
+                CmbAsset.SelectedItem = CmbAsset.ItemsSource
+                    .Cast<AssetDisplay>()
+                    .FirstOrDefault(a => a.Id == _editingAct.asset_id.Value);
+            }
+
+            if (_editingAct.master_id.HasValue)
+            {
+                CmbMaster.SelectedItem = CmbMaster.ItemsSource
+                    .Cast<MasterDisplay>()
+                    .FirstOrDefault(m => m.Id == _editingAct.master_id.Value);
+            }
+
+            if (_editingAct.status.HasValue)
+            {
+                CmbStatus.SelectedValue = _editingAct.status.Value;
+            }
+        }
+
+        private int GetNextActNumber()
+        {
+            try
+            {
+                var lastAct = db.WORK_ACTS.OrderByDescending(a => a.id).FirstOrDefault();
+                return (lastAct?.id ?? 0) + 1;
+            }
+            catch { return 1; }
+        }
+
+        private bool ValidateInput()
+        {
+            if (string.IsNullOrWhiteSpace(TxtActNumber.Text))
+            {
+                MessageBox.Show("Введите номер акта", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+            if (!DpWorkDate.SelectedDate.HasValue)
+            {
+                MessageBox.Show("Укажите дату работ", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+            if (CmbEquipment.SelectedItem == null)
+            {
+                MessageBox.Show("Выберите оборудование", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+            if (CmbMaster.SelectedItem == null)
+            {
+                MessageBox.Show("Выберите исполнителя", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(TxtDescription.Text))
+            {
+                MessageBox.Show("Введите описание работ", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+            if (!string.IsNullOrWhiteSpace(TxtQuantity.Text))
+            {
+                if (!decimal.TryParse(TxtQuantity.Text, out decimal q) || q < 0)
+                {
+                    MessageBox.Show("Количество должно быть неотрицательным числом", "Внимание",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private void BtnSave_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_canEdit)
+            {
+                MessageBox.Show("У вас нет прав на редактирование этого акта",
+                              "Доступ запрещён", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!ValidateInput()) return;
+
+            try
+            {
+                var selectedEquipment = CmbEquipment.SelectedItem as EquipmentDisplay;
+                var selectedAsset = CmbAsset.SelectedItem as AssetDisplay;
+                var selectedMaster = CmbMaster.SelectedItem as MasterDisplay;
+                var selectedStatus = CmbStatus.SelectedItem as ActStatus;
+
+                decimal? quantity = null;
+                if (!string.IsNullOrWhiteSpace(TxtQuantity.Text) && decimal.TryParse(TxtQuantity.Text, out decimal q))
+                    quantity = q;
+
+                if (_isNew)
+                {
+                    var newAct = new WORK_ACTS
+                    {
+                        act_number = TxtActNumber.Text.Trim(),
+                        work_date = DpWorkDate.SelectedDate.Value,
+                        equipment_id = selectedEquipment?.Id,
+                        asset_id = selectedAsset?.Id,
+                        quantity = quantity,
+                        master_id = selectedMaster?.Id,
+                        work_type = TxtDescription.Text.Trim(),
+                        status = selectedStatus?.ID_status,
+                        created_at = DateTime.Now
+                    };
+                    db.WORK_ACTS.Add(newAct);
+
+                    // Если это ТО — создаём запись в MAINTENANCE
+                    if (IsMaintenanceAct(TxtDescription.Text))
+                    {
+                        CreateMaintenanceRecord(newAct, selectedEquipment?.Id, selectedMaster?.Id);
+                    }
+                }
+                else
+                {
+                    _editingAct.act_number = TxtActNumber.Text.Trim();
+                    _editingAct.work_date = DpWorkDate.SelectedDate.Value;
+                    _editingAct.equipment_id = selectedEquipment?.Id;
+                    _editingAct.asset_id = selectedAsset?.Id;
+                    _editingAct.quantity = quantity;
+                    _editingAct.master_id = selectedMaster?.Id;
+                    _editingAct.work_type = TxtDescription.Text.Trim();
+                    _editingAct.status = selectedStatus?.ID_status;
                 }
 
                 db.SaveChanges();
 
-                // Сохранение акта завершения
-                var selectedStatus = (ActStatus)CmbStatus.SelectedItem;
-                var existingCompletion = _currentAct.COMPLETION_ACTS?.FirstOrDefault();
+                MessageBox.Show(_isNew ? "Акт успешно создан!" : "Акт успешно обновлён!",
+                              "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                if (selectedStatus?.Status == "Завершен" && existingCompletion == null)
-                {
-                    var completionAct = new COMPLETION_ACTS
-                    {
-                        work_act_id = _currentAct.id,
-                        act_number = TxtCompletionNumber.Text,
-                        completion_date = DateCompletion.SelectedDate,
-                        quality_check = ChkQualityCheck.IsChecked,
-                        comments = TxtCompletionComments.Text,
-                        created_at = DateTime.Now
-                    };
-                    db.COMPLETION_ACTS.Add(completionAct);
-                    db.SaveChanges();
-                }
-                else if (selectedStatus?.Status == "Завершен" && existingCompletion != null)
-                {
-                    existingCompletion.act_number = TxtCompletionNumber.Text;
-                    existingCompletion.completion_date = DateCompletion.SelectedDate;
-                    existingCompletion.quality_check = ChkQualityCheck.IsChecked;
-                    existingCompletion.comments = TxtCompletionComments.Text;
-                    db.SaveChanges();
-                }
-
-                MessageBox.Show("Акт успешно сохранен", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                 DialogResult = true;
                 Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка сохранения: {ex.Message}", "Ошибка",
-                              MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка сохранения: {ex.Message}\n\n{ex.InnerException?.Message}",
+                              "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void Cancel_Click(object sender, RoutedEventArgs e)
+        private bool IsMaintenanceAct(string description)
+        {
+            if (string.IsNullOrWhiteSpace(description)) return false;
+            var lower = description.ToLower();
+            return lower.Contains("то") || lower.Contains("обслуживан") ||
+                   lower.Contains("ремонт") || lower.Contains("проверк");
+        }
+
+        private void CreateMaintenanceRecord(WORK_ACTS act, int? equipmentId, int? masterId)
+        {
+            try
+            {
+                var maintenance = new MAINTENANCE
+                {
+                    equipment_id = equipmentId,
+                    maintenance_date = act.work_date,
+                    maintenance_type = "Плановое ТО",
+                    technician_id = masterId,
+                    description = act.work_type,
+                    status = act.status,
+                    created_at = DateTime.Now,
+                    next_maintenance_date = DateTime.Now.AddMonths(3)
+                };
+                db.MAINTENANCE.Add(maintenance);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"CreateMaintenanceRecord error: {ex.Message}");
+            }
+        }
+
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
             Close();
         }
+    }
 
-        private void ShowCompletionSection()
-        {
-            CompletionSection.Visibility = Visibility.Visible;
-        }
+    public class EquipmentDisplay
+    {
+        public int Id { get; set; }
+        public string DisplayName { get; set; }
+        public override string ToString() => DisplayName;
+    }
+
+    public class AssetDisplay
+    {
+        public int Id { get; set; }
+        public string DisplayName { get; set; }
+        public override string ToString() => DisplayName;
+    }
+
+    public class MasterDisplay
+    {
+        public int Id { get; set; }
+        public string DisplayName { get; set; }
+        public override string ToString() => DisplayName;
     }
 }
