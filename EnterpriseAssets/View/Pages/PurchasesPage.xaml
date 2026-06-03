@@ -3,7 +3,6 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:EnterpriseAssets.View.Pages"
       mc:Ignorable="d" 
       d:DesignHeight="700" d:DesignWidth="1200"
       Title="PurchasesPage"
@@ -80,6 +79,16 @@
 
                 <!-- Кнопки -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="BtnExportReport" 
+                            Content="📊 Отчёт по закупкам" 
+                            Background="#8E44AD"
+                            Foreground="White"
+                            Padding="15,8"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            Margin="0,0,8,0"
+                            Click="BtnExportReport_Click"/>
+
                     <Button x:Name="BtnAddPurchase" 
                             Content="➕ Новая закупка" 
                             Background="#4A6FA5"
@@ -89,6 +98,7 @@
                             Cursor="Hand"
                             Margin="0,0,8,0"
                             Click="BtnAddPurchase_Click"/>
+
                     <Button x:Name="BtnRefresh" 
                             Content="🔄" 
                             ToolTip="Обновить"
@@ -214,6 +224,24 @@
                                 <StackPanel Grid.Column="3" 
                                             Orientation="Horizontal"
                                             VerticalAlignment="Center">
+                                    <Button Content="📄" 
+                                            ToolTip="Документы"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            FontSize="16"
+                                            Margin="4,0"
+                                            Click="Documents_Click"
+                                            Tag="{Binding Id}"/>
+                                    <Button Content="🖨️" 
+                                            ToolTip="Печать отчёта"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            FontSize="16"
+                                            Margin="4,0"
+                                            Click="PrintReport_Click"
+                                            Tag="{Binding Id}"/>
                                     <Button Content="👁️" 
                                             ToolTip="Просмотреть"
                                             Background="Transparent"

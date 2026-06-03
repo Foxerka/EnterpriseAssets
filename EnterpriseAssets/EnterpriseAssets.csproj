@@ -225,6 +225,9 @@
     <Compile Include="View\Pages\WorkActsPage.xaml.cs">
       <DependentUpon>WorkActsPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\PurchaseDocumentsDialog.xaml.cs">
+      <DependentUpon>PurchaseDocumentsDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\PurchaseManage.xaml.cs">
       <DependentUpon>PurchaseManage.xaml</DependentUpon>
     </Compile>
@@ -328,6 +331,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\Pages\WorkActsPage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\PurchaseDocumentsDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

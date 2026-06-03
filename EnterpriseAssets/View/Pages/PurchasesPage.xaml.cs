@@ -2,46 +2,38 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Win32;
+using EnterpriseAssets.Model;
 
 namespace EnterpriseAssets.View.Pages
 {
-    /// <summary>
-    /// Логика взаимодействия для PurchasesPage.xaml
-    /// </summary>
     public partial class PurchasesPage : Page
     {
-        // Контекст базы данных (Entity Framework)
         private DB_AssetManage _context;
         public int CurrentUserId { get; set; }
-
-        // Все закупки (полный список до фильтрации)
         private List<PurchaseDisplay> _allPurchases;
-
-        // Текущий выбранный поставщик для фильтра (ID или null для "Все")
         private int? _selectedSupplierId;
-
-        // Текущий выбранный статус для фильтра (ID статуса или null для "Все")
         private int? _selectedStatusId;
 
         public PurchasesPage()
         {
             InitializeComponent();
-            _context = new DB_AssetManage(); // Или new Entities(), в зависимости от реального имени контекста
+            _context = new DB_AssetManage();
         }
 
-        // Загрузка страницы (синхронно)
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
             LoadSuppliers();
             LoadPurchases();
         }
 
-        // Загрузка списка поставщиков в комбобокс (синхронно)
         private void LoadSuppliers()
         {
             try
@@ -49,7 +41,7 @@ namespace EnterpriseAssets.View.Pages
                 var suppliers = _context.SUPPLIERS
                     .Where(s => s.is_active == true || s.is_active == null)
                     .OrderBy(s => s.name)
-                    .ToList(); // синхронно
+                    .ToList();
 
                 CmbSupplierFilter.Items.Clear();
                 CmbSupplierFilter.Items.Add(new ComboBoxItem { Content = "Все поставщики", Tag = null, IsSelected = true });
@@ -69,12 +61,10 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        // Загрузка данных о закупках (синхронно)
         private void LoadPurchases()
         {
             try
             {
-                // Запрос с необходимыми связями
                 var query = from p in _context.EQUIPMENT_PURCHASES
                             join e in _context.EQUIPMENT on p.asset_id equals e.ID into equipmentJoin
                             from e in equipmentJoin.DefaultIfEmpty()
@@ -96,9 +86,8 @@ namespace EnterpriseAssets.View.Pages
                                 Status = st
                             };
 
-                var data = query.ToList(); // синхронно
+                var data = query.ToList();
 
-                // Преобразуем в список отображения
                 _allPurchases = data.Select(x => new PurchaseDisplay
                 {
                     Id = x.Purchase.id,
@@ -131,7 +120,6 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        // Форматирование строки доставки
         private string FormatDelivery(DateTime? expected, DateTime? actual)
         {
             if (actual.HasValue)
@@ -141,46 +129,42 @@ namespace EnterpriseAssets.View.Pages
             return "Срок не указан";
         }
 
-        // Цвет для срока доставки
         private Brush GetDeliveryColor(DateTime? expected, DateTime? actual)
         {
             if (actual.HasValue)
-                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27AE60")); // зелёный
+                return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27AE60"));
 
             if (expected.HasValue)
             {
                 if (expected.Value < DateTime.Today)
-                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E74C3C")); // просрочено - красный
+                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#E74C3C"));
                 else
-                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F39C12")); // ожидается - оранжевый
+                    return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F39C12"));
             }
 
-            return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#95A5A6")); // серый
+            return new SolidColorBrush((Color)ColorConverter.ConvertFromString("#95A5A6"));
         }
 
-        // Цвет статуса закупки (полоска слева)
         private Brush GetStatusColor(int? statusId)
         {
             return statusId switch
             {
-                1 => new SolidColorBrush(Colors.Gray),       // Черновик
-                2 => new SolidColorBrush(Colors.Orange),     // На согласовании
-                3 => new SolidColorBrush(Colors.LightBlue),  // Согласовано
-                4 => new SolidColorBrush(Colors.Purple),     // Заказано
-                5 => new SolidColorBrush(Colors.Green),      // Доставлено
-                6 => new SolidColorBrush(Colors.Red),        // Отменено
+                1 => new SolidColorBrush(Colors.Gray),
+                2 => new SolidColorBrush(Colors.Orange),
+                3 => new SolidColorBrush(Colors.LightBlue),
+                4 => new SolidColorBrush(Colors.Purple),
+                5 => new SolidColorBrush(Colors.Green),
+                6 => new SolidColorBrush(Colors.Red),
                 _ => new SolidColorBrush(Colors.LightGray)
             };
         }
 
-        // Применение фильтров (поиск, статус, поставщик)
         private void ApplyFilters()
         {
             if (_allPurchases == null) return;
 
             var filtered = _allPurchases.AsEnumerable();
 
-            // Фильтр по поисковому тексту
             string searchText = TxtSearch.Text?.Trim().ToLower();
             if (!string.IsNullOrEmpty(searchText))
             {
@@ -190,13 +174,11 @@ namespace EnterpriseAssets.View.Pages
                     (p.SupplierName?.ToLower().Contains(searchText) ?? false));
             }
 
-            // Фильтр по статусу
             if (_selectedStatusId.HasValue)
             {
                 filtered = filtered.Where(p => p.StatusId == _selectedStatusId.Value);
             }
 
-            // Фильтр по поставщику
             if (_selectedSupplierId.HasValue)
             {
                 filtered = filtered.Where(p => p.SupplierId == _selectedSupplierId.Value);
@@ -205,25 +187,21 @@ namespace EnterpriseAssets.View.Pages
             var resultList = filtered.ToList();
             PurchasesList.ItemsSource = resultList;
 
-            // Обновление статистики внизу
             UpdateStatistics(resultList);
         }
 
-        // Обновление нижней статистики
         private void UpdateStatistics(List<PurchaseDisplay> list)
         {
             TotalCount.Text = list.Count.ToString();
             decimal totalSum = list.Sum(p => p.TotalCost);
             TotalAmount.Text = totalSum.ToString("N2") + " ₽";
 
-            // Ожидающие (статусы: Черновик, На согласовании, Согласовано, Заказано — исключая Доставлено и Отменено)
             int pending = list.Count(p => p.StatusId.HasValue &&
-                                          p.StatusId.Value != 5 &&  // Доставлено
-                                          p.StatusId.Value != 6);   // Отменено
+                                          p.StatusId.Value != 5 &&
+                                          p.StatusId.Value != 6);
             PendingCount.Text = pending.ToString();
         }
 
-        // Обработчики фильтров
         private void TxtSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             ApplyFilters();
@@ -252,28 +230,25 @@ namespace EnterpriseAssets.View.Pages
         {
             if (CmbSupplierFilter.SelectedItem is ComboBoxItem item)
             {
-                _selectedSupplierId = item.Tag as int?; // Tag содержит ID поставщика или null
+                _selectedSupplierId = item.Tag as int?;
                 ApplyFilters();
             }
         }
 
-        // Кнопка "Новая закупка"
         private void BtnAddPurchase_Click(object sender, RoutedEventArgs e)
         {
-            var win = new PurchaseManage(CurrentUserId); // передаём ID
+            var win = new PurchaseManage(CurrentUserId);
             if (win.ShowDialog() == true)
             {
-                LoadPurchases(); // обновить список после добавления
+                LoadPurchases();
             }
         }
 
-        // Кнопка "Обновить"
         private void BtnRefresh_Click(object sender, RoutedEventArgs e)
         {
             LoadPurchases();
         }
 
-        // Клик по карточке закупки 
         private void PurchaseCard_Click(object sender, MouseButtonEventArgs e)
         {
             if (sender is Border border && border.Tag is int purchaseId)
@@ -282,7 +257,6 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        // Кнопка "Просмотр" в карточке
         private void ViewPurchase_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is int purchaseId)
@@ -291,18 +265,16 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        // Метод открытия просмотра
         private void ViewPurchase(int purchaseId)
         {
             MessageBox.Show($"Просмотр закупки ID: {purchaseId}", "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        // Кнопка "Редактировать"
         private void EditPurchase_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is int purchaseId)
             {
-                var win = new PurchaseManage(purchaseId, CurrentUserId); // передаём ID и редактируемую закупку
+                var win = new PurchaseManage(purchaseId, CurrentUserId);
                 if (win.ShowDialog() == true)
                 {
                     LoadPurchases();
@@ -310,7 +282,6 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        // Кнопка "Удалить"
         private void DeletePurchase_Click(object sender, RoutedEventArgs e)
         {
             if (sender is Button btn && btn.Tag is int purchaseId)
@@ -320,12 +291,12 @@ namespace EnterpriseAssets.View.Pages
                 {
                     try
                     {
-                        var purchase = _context.EQUIPMENT_PURCHASES.Find(purchaseId); // синхронно
+                        var purchase = _context.EQUIPMENT_PURCHASES.Find(purchaseId);
                         if (purchase != null)
                         {
                             _context.EQUIPMENT_PURCHASES.Remove(purchase);
-                            _context.SaveChanges(); // синхронно
-                            LoadPurchases(); // перезагружаем список
+                            _context.SaveChanges();
+                            LoadPurchases();
                         }
                     }
                     catch (Exception ex)
@@ -336,12 +307,223 @@ namespace EnterpriseAssets.View.Pages
             }
         }
 
-        // Освобождение ресурсов контекста при выгрузке страницы
-        //protected override void OnUnloaded(RoutedEventArgs e)
-        //{
-        //    _context?.Dispose();
-        //    base.OnUnloaded(e);
-        //}
+        // 🔥 НОВЫЕ МЕТОДЫ ДЛЯ ДОКУМЕНТОВ И ОТЧЁТОВ
+
+        private void Documents_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int purchaseId)
+            {
+                var dialog = new PurchaseDocumentsDialog(purchaseId, CurrentUserId, _context);
+                dialog.Owner = Window.GetWindow(this);
+                if (dialog.ShowDialog() == true)
+                {
+                    var purchase = _context.EQUIPMENT_PURCHASES.Find(purchaseId);
+                    if (purchase != null)
+                    {
+                        AutoUpdateStatus(purchaseId);
+                        _context.SaveChanges();
+                    }
+                    LoadPurchases();
+                }
+            }
+        }
+
+        private void PrintReport_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is int purchaseId)
+            {
+                GeneratePurchaseReport(purchaseId);
+            }
+        }
+
+        private void BtnExportReport_Click(object sender, RoutedEventArgs e)
+        {
+            GenerateSummaryReport();
+        }
+
+        private void AutoUpdateStatus(int purchaseId)
+        {
+            var purchase = _context.EQUIPMENT_PURCHASES.Find(purchaseId);
+            if (purchase == null) return;
+
+            var documents = _context.REPORTS
+                .Where(r => r.report_data.Contains($"PURCHASE_ID:{purchaseId}") ||
+                            (r.file_path != null && r.file_path.Contains($"Purchase_{purchaseId}")))
+                .ToList();
+
+            bool hasDeliveryNote = documents.Any(d => d.report_type == "DeliveryNote");
+            bool hasAct = documents.Any(d => d.report_type == "Act");
+
+            if (hasDeliveryNote || hasAct)
+            {
+                purchase.status = 5;
+                purchase.actual_delivery = DateTime.Now;
+            }
+            else if (documents.Any() && purchase.status < 4)
+            {
+                purchase.status = 4;
+            }
+        }
+
+        private void GeneratePurchaseReport(int purchaseId)
+        {
+            try
+            {
+                var purchase = _context.EQUIPMENT_PURCHASES
+                    .Include("EQUIPMENT")
+                    .Include("SUPPLIERS")
+                    .Include("MASTERS")
+                    .Include("MASTERS.USERS")
+                    .FirstOrDefault(p => p.id == purchaseId);
+
+                if (purchase == null) return;
+
+                string reportText = $@"
+ОТЧЁТ ПО ЗАКУПКЕ №{purchase.purchase_number}
+==========================================
+
+Дата заказа: {purchase.order_date:dd.MM.yyyy}
+Ожидаемая доставка: {purchase.expected_delivery:dd.MM.yyyy}
+Фактическая доставка: {(purchase.actual_delivery.HasValue ? purchase.actual_delivery.Value.ToString("dd.MM.yyyy") : "Не доставлено")}
+
+ОБОРУДОВАНИЕ:
+{(purchase.EQUIPMENT != null ? $"{purchase.EQUIPMENT.equipment_type} ({purchase.EQUIPMENT.manufacturer})" : "Не указано")}
+
+ПОСТАВЩИК:
+{(purchase.SUPPLIERS != null ? purchase.SUPPLIERS.name : "Не указан")}
+
+КОЛИЧЕСТВО И СТОИМОСТЬ:
+Количество: {purchase.quantity} ед.
+Цена за единицу: {purchase.unit_price:N2} ₽
+Общая стоимость: {purchase.total_cost:N2} ₽
+
+МЕНЕДЖЕР:
+{(purchase.MASTERS != null && purchase.MASTERS.USERS != null ? purchase.MASTERS.USERS.full_name : "Не назначен")}
+
+СТАТУС:
+{(purchase.STATUS_PURCHASE != null ? purchase.STATUS_PURCHASE.Status : "Неизвестно")}
+
+ПРИМЕЧАНИЯ:
+{(string.IsNullOrEmpty(purchase.notes) ? "—" : purchase.notes)}
+
+==========================================
+Сформирован: {DateTime.Now:dd.MM.yyyy HH:mm}
+";
+
+                string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Reports");
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                string fileName = $"Purchase_{purchaseId}_{purchase.purchase_number}_{DateTime.Now:yyyyMMdd}.txt";
+                string filePath = Path.Combine(folderPath, fileName);
+                File.WriteAllText(filePath, reportText);
+
+                var report = new REPORTS
+                {
+                    report_type = "PurchaseReport",
+                    period_start = purchase.order_date,
+                    period_end = purchase.actual_delivery ?? purchase.expected_delivery,
+                    generated_by = purchase.purchase_manager_id,
+                    report_data = $"PURCHASE_ID:{purchaseId}|NUMBER:{purchase.purchase_number}",
+                    file_path = filePath,
+                    created_at = DateTime.Now
+                };
+
+                _context.REPORTS.Add(report);
+                _context.SaveChanges();
+
+                MessageBox.Show("Отчёт успешно сохранён!", "Успех",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                Process.Start(filePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка генерации отчёта: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void GenerateSummaryReport()
+        {
+            try
+            {
+                var purchases = _context.EQUIPMENT_PURCHASES
+                    .Include("EQUIPMENT")
+                    .Include("SUPPLIERS")
+                    .Include("STATUS_PURCHASE")
+                    .ToList();
+
+                string reportText = $@"
+ОБЩИЙ ОТЧЁТ ПО ЗАКУПКАМ
+==========================================
+Период: все время
+Всего закупок: {purchases.Count}
+
+";
+
+                decimal totalAmount = purchases.Sum(p => p.total_cost ?? 0);
+                int delivered = purchases.Count(p => p.status == 5);
+                int pending = purchases.Count(p => p.status != 5 && p.status != 6);
+
+                reportText += $@"
+СТАТИСТИКА:
+Общая сумма: {totalAmount:N2} ₽
+Доставлено: {delivered}
+В ожидании: {pending}
+
+";
+
+                var bySupplier = purchases
+                    .Where(p => p.SUPPLIERS != null)
+                    .GroupBy(p => p.SUPPLIERS.name)
+                    .Select(g => new
+                    {
+                        Supplier = g.Key,
+                        Count = g.Count(),
+                        Total = g.Sum(p => p.total_cost ?? 0)
+                    })
+                    .OrderByDescending(x => x.Total);
+
+                reportText += "\nПО ПОСТАВЩИКАМ:\n";
+                foreach (var s in bySupplier)
+                {
+                    reportText += $"{s.Supplier}: {s.Count} закупок, {s.Total:N2} ₽\n";
+                }
+
+                string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Reports");
+                if (!Directory.Exists(folderPath))
+                    Directory.CreateDirectory(folderPath);
+
+                string fileName = $"Purchases_Summary_{DateTime.Now:yyyyMMdd}.txt";
+                string filePath = Path.Combine(folderPath, fileName);
+                File.WriteAllText(filePath, reportText);
+
+                var report = new REPORTS
+                {
+                    report_type = "PurchaseSummaryReport",
+                    period_start = purchases.Min(p => p.order_date),
+                    period_end = purchases.Max(p => p.actual_delivery ?? p.expected_delivery),
+                    generated_by = Session.CurrentMasterId,
+                    report_data = "PURCHASE_SUMMARY",
+                    file_path = filePath,
+                    created_at = DateTime.Now
+                };
+
+                _context.REPORTS.Add(report);
+                _context.SaveChanges();
+
+                MessageBox.Show("Общий отчёт успешно сохранён!", "Успех",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                Process.Start(filePath);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка генерации отчёта: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
         public class PurchaseDisplay
         {
@@ -358,8 +540,6 @@ namespace EnterpriseAssets.View.Pages
             public string QuantityDisplay { get; set; }
             public string TotalCostDisplay { get; set; }
             public string UnitPriceDisplay { get; set; }
-
-            // Служебные поля для фильтрации
             public int? StatusId { get; set; }
             public int? SupplierId { get; set; }
             public decimal TotalCost { get; set; }
