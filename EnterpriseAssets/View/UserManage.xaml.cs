@@ -67,7 +67,7 @@ namespace EnterpriseAssets.View
             // Маска для полного имени (буквы, пробелы, дефис)
             TxtFullName.PreviewTextInput += (s, e) =>
             {
-                e.Handled = !Regex.IsMatch(e.Text, @"^[a-zA-Zа-яА-Яё-Ё\s\-]+$");
+                e.Handled = !Regex.IsMatch(e.Text, @"^[a-zA-Zа-яА-ЯёЁ\s\-]+$");
             };
 
             // 🔹 Маска для телефона
